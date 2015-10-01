@@ -1,0 +1,12 @@
+diff -u -r sdk/DA14580_581_SDK_3.0.8.0/dk_apps/src/plf/refip/src/arch/compiler/rvds/compiler.h src/src/plf/refip/src/arch/compiler/rvds/compiler.h
+--- sdk/DA14580_581_SDK_3.0.8.0/dk_apps/src/plf/refip/src/arch/compiler/rvds/compiler.h	2015-03-11 12:56:20.000000000 +0200
++++ src/src/plf/refip/src/arch/compiler/rvds/compiler.h	2015-04-29 22:48:49.000000000 +0300
+@@ -39,6 +39,8 @@
+ /// Put a variable in a memory not maintained during deep sleep
+ #define __LOWPOWER_UNSAVED  __attribute__ ((section (".lpus")));
+ 
++#define __weak __attribute__ ((weak));
++
+ #else
+ #ifndef __ARMCC_VERSION
+ #error "File only included with RVDS!"

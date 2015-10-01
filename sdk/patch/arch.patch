@@ -1,0 +1,11 @@
+--- sdk/DA14580_581_SDK_3.0.8.0/dk_apps/src/plf/refip/src/arch/arch.h	2015-08-04 00:52:26.000000000 +0300
++++ src/src/plf/refip/src/arch/arch.h	2015-08-04 00:55:34.000000000 +0300
+@@ -465,7 +465,7 @@
+  ****************************************************************************************
+  */
+ 
+-void app_set_startup_sleep_delay(uint32_t delay);
++//void app_set_startup_sleep_delay(uint32_t delay);
+ 
+ __INLINE void app_set_startup_sleep_delay(uint32_t delay)
+ {
