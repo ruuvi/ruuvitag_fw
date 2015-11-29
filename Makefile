@@ -11,6 +11,8 @@ SDK_FILE    := nRF52_SDK_$(SDK_VERSION).zip
 SDK_DIR     := $(basename $(SDK_FILE))
 SDK_HOME    := $(TOP)/$(SDK_DIR)
 
+DOWNLOAD_CMD ?= curl -O
+
 export SDK_HOME
 
 .PHONY: all download_sdk bootstrap fw bootloader
@@ -24,8 +26,9 @@ $(SDK_FILE): download_sdk
 	@if [ ! -d $(SDK_DIR) ]; then \
 	 unzip -q -d $(SDK_DIR) $(SDK_FILE); fi
 
+
 download_sdk:
-	@if [ ! -f $(SDK_FILE) ] ;then echo downloading SDK... ; curl -0 $(SDK_URL)/$(SDK_FILE); fi
+	@if [ ! -f $(SDK_FILE) ] ;then echo downloading SDK... ; $(DOWNLOAD_CMD) $(SDK_URL)/$(SDK_FILE); fi
 
 fw:
 	@echo build FW
