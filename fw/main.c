@@ -195,16 +195,15 @@ static void reset_prepare(void)
     else
     {
         // If not connected, the device will be advertising. Hence stop the advertising.
-        advertising_stop();
+        // advertising_stop();
     }
 
     err_code = ble_conn_params_stop();
     APP_ERROR_CHECK(err_code);
 
-    nrf_delay_ms(500);
+    // nrf_delay_ms(500);
 }
 /** @snippet [DFU BLE Reset prepare] */
-#endif // BLE_DFU_APP_SUPPORT
 
 
 
