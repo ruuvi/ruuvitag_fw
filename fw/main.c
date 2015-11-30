@@ -173,6 +173,40 @@ static void gap_params_init(void)
 }
 
 
+/** @snippet [DFU BLE Reset prepare] */
+/**@brief Function for preparing for system reset.
+ *
+ * @details This function implements @ref dfu_app_reset_prepare_t. It will be called by 
+ *          @ref dfu_app_handler.c before entering the bootloader/DFU.
+ *          This allows the current running application to shut down gracefully.
+ */
+static void reset_prepare(void)
+{
+    uint32_t err_code;
+
+    if (m_conn_handle != BLE_CONN_HANDLE_INVALID)
+    {
+        // Disconnect from peer.
+        err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+        APP_ERROR_CHECK(err_code);
+        err_code = bsp_indication_set(BSP_INDICATE_IDLE);
+        APP_ERROR_CHECK(err_code);
+    }
+    else
+    {
+        // If not connected, the device will be advertising. Hence stop the advertising.
+        advertising_stop();
+    }
+
+    err_code = ble_conn_params_stop();
+    APP_ERROR_CHECK(err_code);
+
+    nrf_delay_ms(500);
+}
+/** @snippet [DFU BLE Reset prepare] */
+#endif // BLE_DFU_APP_SUPPORT
+
+
 
 /**@brief Function for initializing services that will be used by the application.
  */
