@@ -407,6 +407,10 @@ static void ble_evt_dispatch(ble_evt_t * p_ble_evt)
     YOUR_JOB: Add service ble_evt handlers calls here, like, for example:
     ble_bas_on_ble_evt(&m_bas, p_ble_evt);
     */
+
+    /** @snippet [Propagating BLE Stack events to DFU Service] */
+    ble_dfu_on_ble_evt(&m_dfus, p_ble_evt);
+    /** @snippet [Propagating BLE Stack events to DFU Service] */
     
     /* Added this line to register the device 
     manger event handler with the BLE dispatcher: */
