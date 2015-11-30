@@ -45,7 +45,7 @@
 #include "ble_dfu.h"
 #include "dfu_app_handler.h"
 
-#define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
+#define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                           /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
 #define WAKEUP_BUTTON_ID                0                                           /**< Button used to wake up the application. */
 // YOUR_JOB: Define any other buttons to be used by the applications:
