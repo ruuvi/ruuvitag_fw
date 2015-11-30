@@ -1,10 +1,10 @@
-PROJECT_NAME := ruuvitag_revb
+PROJECT_NAME := ble_app_template_s132_pca10036
 
 export OUTPUT_FILENAME
 #MAKEFILE_NAME := $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 MAKEFILE_NAME := $(MAKEFILE_LIST)
-MAKEFILE_DIR := $(dir $(MAKEFILE_NAME) ) 
-SDK = ../../../nRF52_SDK_0.9.2_dbc28c9
+MAKEFILE_DIR := $(dir $(MAKEFILE_NAME) )  
+SDK = ../../../../nRF52_SDK_0.9.2_dbc28c9
 
 TEMPLATE_PATH = $(SDK)/components/toolchain/gcc
 ifeq ($(OS),Windows_NT)
@@ -38,22 +38,56 @@ remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-ou
 
 #source common to all targets
 C_SOURCE_FILES += \
-$(SDK)/components/toolchain/system_nrf52.c \
-../../main.c \
+$(SDK)/components/libraries/button/app_button.c \
 $(SDK)/components/libraries/util/app_error.c \
+$(SDK)/components/libraries/scheduler/app_scheduler.c \
+$(SDK)/components/libraries/timer/app_timer.c \
+$(SDK)/components/libraries/timer/app_timer_appsh.c \
+$(SDK)/components/libraries/trace/app_trace.c \
+$(SDK)/components/libraries/util/nrf_assert.c \
+$(SDK)/components/libraries/uart/retarget.c \
+$(SDK)/components/libraries/uart/app_uart.c \
+$(SDK)/components/drivers_nrf/delay/nrf_delay.c \
+$(SDK)/components/drivers_nrf/common/nrf_drv_common.c \
+$(SDK)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c \
+$(SDK)/components/drivers_nrf/uart/nrf_drv_uart.c \
+$(SDK)/components/drivers_nrf/pstorage/pstorage.c \
+$(SDK)/examples/bsp/bsp.c \
+../../../main.c \
+$(SDK)/components/ble/common/ble_advdata.c \
+$(SDK)/components/ble/ble_advertising/ble_advertising.c \
+$(SDK)/components/ble/common/ble_conn_params.c \
+$(SDK)/components/ble/common/ble_srv_common.c \
+$(SDK)/components/toolchain/system_nrf52.c \
+$(SDK)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
 
 #assembly files common to all targets
 ASM_SOURCE_FILES  = $(SDK)/components/toolchain/gcc/gcc_startup_nrf52.s
 
 #includes common to all targets
-INC_PATHS  = -I$(SDK)/examples/bsp
-INC_PATHS += -I$(SDK)/components/drivers_nrf/nrf_soc_nosd
-INC_PATHS += -I$(SDK)/components/device
-INC_PATHS += -I$(SDK)/components/drivers_nrf/hal
-INC_PATHS += -I../..
+INC_PATHS  = -I../../../config
+INC_PATHS += -I$(SDK)/components/libraries/scheduler
+INC_PATHS += -I$(SDK)/components/drivers_nrf/config
+INC_PATHS += -I$(SDK)/examples/bsp
+INC_PATHS += -I$(SDK)/components/drivers_nrf/delay
+INC_PATHS += -I$(SDK)/components/softdevice/s132/headers/nrf52
 INC_PATHS += -I$(SDK)/components/libraries/util
-INC_PATHS += -I$(SDK)/components/toolchain
+INC_PATHS += -I$(SDK)/components/drivers_nrf/uart
+INC_PATHS += -I$(SDK)/components/ble/common
+INC_PATHS += -I$(SDK)/components/drivers_nrf/pstorage
+INC_PATHS += -I$(SDK)/components/libraries/uart
+INC_PATHS += -I$(SDK)/components/device
+INC_PATHS += -I$(SDK)/components/libraries/button
+INC_PATHS += -I$(SDK)/components/libraries/timer
+INC_PATHS += -I$(SDK)/components/softdevice/s132/headers
+INC_PATHS += -I$(SDK)/components/drivers_nrf/gpiote
+INC_PATHS += -I$(SDK)/components/drivers_nrf/hal
 INC_PATHS += -I$(SDK)/components/toolchain/gcc
+INC_PATHS += -I$(SDK)/components/toolchain
+INC_PATHS += -I$(SDK)/components/drivers_nrf/common
+INC_PATHS += -I$(SDK)/components/ble/ble_advertising
+INC_PATHS += -I$(SDK)/components/libraries/trace
+INC_PATHS += -I$(SDK)/components/softdevice/common/softdevice_handler
 
 OBJECT_DIRECTORY = _build
 LISTING_DIRECTORY = $(OBJECT_DIRECTORY)
@@ -63,10 +97,13 @@ OUTPUT_BINARY_DIRECTORY = $(OBJECT_DIRECTORY)
 BUILD_DIRECTORIES := $(sort $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY) $(LISTING_DIRECTORY) )
 
 #flags common to all targets
-CFLAGS  = -DCONFIG_GPIO_AS_PINRESET
-CFLAGS += -DBOARD_RUUVITAG_REVB1
+CFLAGS  = -DSWI_DISABLE0
+CFLAGS += -DSOFTDEVICE_PRESENT
 CFLAGS += -DNRF52
-CFLAGS += -DBSP_DEFINES_ONLY
+CFLAGS += -DBOARD_PCA10036
+CFLAGS += -DCONFIG_GPIO_AS_PINRESET
+CFLAGS += -DS132
+CFLAGS += -DBLE_STACK_SUPPORT_REQD
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs --std=gnu99
 CFLAGS += -Wall -Werror -O3
@@ -87,22 +124,26 @@ LDFLAGS += --specs=nano.specs -lc -lnosys
 
 # Assembler flags
 ASMFLAGS += -x assembler-with-cpp
-ASMFLAGS += -DCONFIG_GPIO_AS_PINRESET
-ASMFLAGS += -DBOARD_RUUVITAG_REVB1
+ASMFLAGS += -DSWI_DISABLE0
+ASMFLAGS += -DSOFTDEVICE_PRESENT
 ASMFLAGS += -DNRF52
-ASMFLAGS += -DBSP_DEFINES_ONLY
+ASMFLAGS += -DBOARD_PCA10036
+ASMFLAGS += -DCONFIG_GPIO_AS_PINRESET
+ASMFLAGS += -DS132
+ASMFLAGS += -DBLE_STACK_SUPPORT_REQD
 #default target - first one defined
-default: clean ruuvitag_revb1
+default: clean nrf52832_xxaa_s132
 
 #building all targets
 all: clean
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e cleanobj
-	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e ruuvitag_revb1 
+	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e nrf52832_xxaa_s132 
 
 #target for printing all targets
 help:
 	@echo following targets are available:
-	@echo 	ruuvitag_revb1
+	@echo 	nrf52832_xxaa_s132
+	@echo 	flash_softdevice
 
 
 C_SOURCE_FILE_NAMES = $(notdir $(C_SOURCE_FILES))
@@ -118,9 +159,9 @@ vpath %.s $(ASM_PATHS)
 
 OBJECTS = $(C_OBJECTS) $(ASM_OBJECTS)
 
-ruuvitag_revb1: OUTPUT_FILENAME := ruuvitag_revb1
-ruuvitag_revb1: LINKER_SCRIPT=template_gcc_nrf52.ld
-ruuvitag_revb1: $(BUILD_DIRECTORIES) $(OBJECTS)
+nrf52832_xxaa_s132: OUTPUT_FILENAME := nrf52832_xxaa_s132
+nrf52832_xxaa_s132: LINKER_SCRIPT=ble_app_template_gcc_nrf52.ld
+nrf52832_xxaa_s132: $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo Linking target: $(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e finalize
@@ -181,8 +222,13 @@ cleanobj:
 
 flash: $(MAKECMDGOALS)
 	@echo Flashing: $(OUTPUT_BINARY_DIRECTORY)/$<.hex
-	nrfjprog --erasepage 0x0-0x80000 -f nrf52
+	nrfjprog --erasepage 0x1f000-0x80000 -f nrf52
 	nrfjprog --program $(OUTPUT_BINARY_DIRECTORY)/$<.hex -f nrf52
 	nrfjprog --reset
 
 ## Flash softdevice
+flash_softdevice:
+	@echo Flashing: s132_nrf52_1.0.0-3.alpha_softdevice.hex
+	nrfjprog --erasepage 0x0-0x1f000 -f nrf52
+	nrfjprog --program $(SDK)/components/softdevice/s132/hex/s132_nrf52_1.0.0-3.alpha_softdevice.hex -f nrf52
+	nrfjprog --reset
