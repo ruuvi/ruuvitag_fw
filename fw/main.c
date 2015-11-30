@@ -24,6 +24,8 @@
  * with 'YOUR_JOB' indicates where and how you can customize.
  */
 
+#define BLE_DFU_APP_SUPPORT
+
 #include <stdint.h>
 #include <string.h>
 #include "nordic_common.h"
@@ -42,6 +44,10 @@
 #include "bsp.h"
 #include "device_manager.h"
 #include "pstorage.h"
+#ifdef BLE_DFU_APP_SUPPORT
+#include "ble_dfu.h"
+#include "dfu_app_handler.h"
+#endif // BLE_DFU_APP_SUPPORT
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
@@ -173,6 +179,7 @@ static void gap_params_init(void)
 }
 
 
+#ifdef BLE_DFU_APP_SUPPORT
 /** @snippet [DFU BLE Reset prepare] */
 /**@brief Function for preparing for system reset.
  *
@@ -204,7 +211,7 @@ static void reset_prepare(void)
     // nrf_delay_ms(500);
 }
 /** @snippet [DFU BLE Reset prepare] */
-
+#endif // BLE_DFU_APP_SUPPORT
 
 
 /**@brief Function for initializing services that will be used by the application.
@@ -212,6 +219,26 @@ static void reset_prepare(void)
 static void services_init(void)
 {
     // YOUR_JOB: Add code to initialize the services used by the application.
+
+#ifdef BLE_DFU_APP_SUPPORT
+    /** @snippet [DFU BLE Service initialization] */
+    ble_dfu_init_t   dfus_init;
+
+    // Initialize the Device Firmware Update Service.
+    memset(&dfus_init, 0, sizeof(dfus_init));
+
+    dfus_init.evt_handler   = dfu_app_on_dfu_evt;
+    dfus_init.error_handler = NULL;
+    dfus_init.evt_handler   = dfu_app_on_dfu_evt;
+    dfus_init.revision      = DFU_REVISION;
+
+    err_code = ble_dfu_init(&m_dfus, &dfus_init);
+    APP_ERROR_CHECK(err_code);
+
+    dfu_app_reset_prepare_set(reset_prepare);
+    dfu_app_dm_appl_instance_set(m_app_handle);
+    /** @snippet [DFU BLE Service initialization] */
+#endif // BLE_DFU_APP_SUPPORT
 }
 
 
