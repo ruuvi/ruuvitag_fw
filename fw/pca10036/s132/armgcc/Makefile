@@ -54,7 +54,7 @@ $(SDK)/components/drivers_nrf/uart/nrf_drv_uart.c \
 $(SDK)/components/drivers_nrf/pstorage/pstorage.c \
 $(SDK)/examples/bsp/bsp.c \
 ../../../main.c \
-../../../device_manager_peripheral.c \
+$(SDK)/components/ble/device_manager/device_manager_peripheral.c \
 $(SDK)/components/ble/common/ble_advdata.c \
 $(SDK)/components/ble/ble_advertising/ble_advertising.c \
 $(SDK)/components/ble/common/ble_conn_params.c \
