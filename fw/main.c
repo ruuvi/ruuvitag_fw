@@ -24,8 +24,6 @@
  * with 'YOUR_JOB' indicates where and how you can customize.
  */
 
-#define BLE_DFU_APP_SUPPORT
-
 #include <stdint.h>
 #include <string.h>
 #include "nordic_common.h"
@@ -44,10 +42,8 @@
 #include "bsp.h"
 #include "device_manager.h"
 #include "pstorage.h"
-#ifdef BLE_DFU_APP_SUPPORT
 #include "ble_dfu.h"
 #include "dfu_app_handler.h"
-#endif // BLE_DFU_APP_SUPPORT
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
@@ -89,6 +85,10 @@
 
 static ble_gap_sec_params_t             m_sec_params;                               /**< Security requirements for this application. */
 static uint16_t                         m_conn_handle = BLE_CONN_HANDLE_INVALID;    /**< Handle of the current connection. */
+
+static dm_application_instance_t         m_app_handle;                              /**< Application identifier allocated by device manager */
+
+static ble_dfu_t                         m_dfus;                                    /**< Structure used to identify the DFU service. */
 
 // YOUR_JOB: Initialize UUIDs for service(s) used in your application.
 ble_uuid_t m_adv_uuids[] = {{BLE_UUID_BATTERY_SERVICE, BLE_UUID_TYPE_BLE}};         /**< Universally unique service identifiers. */
@@ -179,7 +179,6 @@ static void gap_params_init(void)
 }
 
 
-#ifdef BLE_DFU_APP_SUPPORT
 /** @snippet [DFU BLE Reset prepare] */
 /**@brief Function for preparing for system reset.
  *
@@ -211,7 +210,7 @@ static void reset_prepare(void)
     // nrf_delay_ms(500);
 }
 /** @snippet [DFU BLE Reset prepare] */
-#endif // BLE_DFU_APP_SUPPORT
+
 
 
 /**@brief Function for initializing services that will be used by the application.
@@ -220,7 +219,8 @@ static void services_init(void)
 {
     // YOUR_JOB: Add code to initialize the services used by the application.
 
-#ifdef BLE_DFU_APP_SUPPORT
+    uint32_t       err_code;
+
     /** @snippet [DFU BLE Service initialization] */
     ble_dfu_init_t   dfus_init;
 
@@ -230,7 +230,8 @@ static void services_init(void)
     dfus_init.evt_handler   = dfu_app_on_dfu_evt;
     dfus_init.error_handler = NULL;
     dfus_init.evt_handler   = dfu_app_on_dfu_evt;
-    dfus_init.revision      = DFU_REVISION;
+    //dfus_init.revision      = DFU_REVISION;
+    dfus_init.revision      = 1;
 
     err_code = ble_dfu_init(&m_dfus, &dfus_init);
     APP_ERROR_CHECK(err_code);
@@ -238,7 +239,6 @@ static void services_init(void)
     dfu_app_reset_prepare_set(reset_prepare);
     dfu_app_dm_appl_instance_set(m_app_handle);
     /** @snippet [DFU BLE Service initialization] */
-#endif // BLE_DFU_APP_SUPPORT
 }
 
 
