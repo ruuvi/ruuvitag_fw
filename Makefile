@@ -32,7 +32,7 @@ download_sdk:
 
 fw:
 	@echo build FW
-	$(MAKE) -C fw/ruuvitag_revb1/armgcc
+	$(MAKE) -C fw/pca10036/s132/armgcc
 
 bootloader:
 	@echo build bootloader
@@ -40,6 +40,6 @@ bootloader:
 
 clean:
 	@echo cleaning FW build files…
-	$(MAKE) -C fw/ruuvitag_revb1/armgcc clean
+	$(MAKE) -C fw/pca10036/s132/armgcc clean
 	@echo cleaning bootloader build files…
 	$(MAKE) -C bootloader/ruuvitag_revb1/dual_bank_ble_s132/armgcc clean
