@@ -1,9 +1,9 @@
 # ruuvitag_fw nrf52 branch
 
-This repo has:
+This repo has at the moment:
 
-* Bootloader
-* Firmware
+* Bootloader project (unmodified dual_bank_ble_s132 bootloader example project from nordic, outputs .hex)
+* Firmware project (ble_app_template project with added device manager support + dfu ota support, outputs .hex)
 
 ### Prerequisites (to compile):
 
@@ -15,6 +15,27 @@ Extract the GCC tarball. Other destinations are also ok, but this one is used of
 To add to path create a file `/etc/paths.d/arm-gcc`:
 
 `/usr/local/gcc-arm-none-eabi-4_9-2015q3/bin`
+
+### Prerequisites (to create DFU distribution .zip packages)
+
+Instructions how to install (on OS X):
+
+`git clone https://github.com/NordicSemiconductor/pc-nrfutil.git`
+`cd pc-nrfutil`
+`curl -O https://bootstrap.pypa.io/get-pip.py`
+`sudo python get-pip.py`
+`sudo pip install -r requirements.txt`
+`sudo python setup.py install`
+`nrfutil version`
+
+How to use it:
+
+`nrfutil dfu genpkg --application nrf52832_xxaa_s132.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe DFUTEST.zip
+Zip created at DFUTEST.zip`
+
+### Prerequisites (to run):
+
+* SoftDevice S132 (Bluetooth protocol stack). Can be found from `SDK_root/components/softdevice/s132/hex/s132_nrf52_1.0.0-3.alpha_softdevice.hex`
 
 # Compiling
 
@@ -36,21 +57,3 @@ https://devzone.nordicsemi.com/question/56723/dfu-on-nrf52/
 
 2) "Set the maximum number of characteristic client descriptors in the file device_manager_cnfg.h (located in <InstallFolder>\components\ble\device_manager\config):"
 `#define DM_GATT_CCCD_COUNT               4`
-
-# DFU distribution .zip package
-
-`nrfutil` knows how to create .zip distribution package (for DFU OTA).
-Instructions how to install nrfutil (on OS X):
-
-`git clone https://github.com/NordicSemiconductor/pc-nrfutil.git`
-`cd pc-nrfutil`
-`curl -O https://bootstrap.pypa.io/get-pip.py`
-`sudo python get-pip.py`
-`sudo pip install -r requirements.txt`
-`sudo python setup.py install`
-`nrfutil version`
-
-How to use it:
-
-`nrfutil dfu genpkg --application nrf52832_xxaa_s132.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe DFUTEST.zip
-Zip created at DFUTEST.zip`
