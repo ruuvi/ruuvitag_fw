@@ -37,4 +37,20 @@ https://devzone.nordicsemi.com/question/56723/dfu-on-nrf52/
 2) "Set the maximum number of characteristic client descriptors in the file device_manager_cnfg.h (located in <InstallFolder>\components\ble\device_manager\config):"
 `#define DM_GATT_CCCD_COUNT               4`
 
+# DFU distribution .zip package
 
+`nrfutil` knows how to create .zip distribution package (for DFU OTA).
+Instructions how to install nrfutil (on OS X):
+
+`git clone https://github.com/NordicSemiconductor/pc-nrfutil.git`
+`cd pc-nrfutil`
+`curl -O https://bootstrap.pypa.io/get-pip.py`
+`sudo python get-pip.py`
+`sudo pip install -r requirements.txt`
+`sudo python setup.py install`
+`nrfutil version`
+
+How to use it:
+
+`nrfutil dfu genpkg --application nrf52832_xxaa_s132.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe DFUTEST.zip
+Zip created at DFUTEST.zip`
