@@ -1,27 +1,40 @@
 # ruuvitag_fw nrf52 branch
 
-There are 2 main parts on this repository:
+This repo has:
 
 * Bootloader
-* FW
+* Firmware
 
-Prerequisites (for compiling):
+### Prerequisites (to compile):
 
 * Download and install GCC https://launchpad.net/gcc-arm-embedded/+download
 
 Extract the GCC tarball. Other destinations are also ok, but this one is used often:
-sudo mkdir -p /usr/local && cd /usr/local && sudo tar xjf ~/Downloads/gcc-arm-none-eabi-4_xxxxxxxx.tar.bz2
+`sudo mkdir -p /usr/local && cd /usr/local && sudo tar xjf ~/Downloads/gcc-arm-none-eabi-4_xxxxxxxx.tar.bz2`
 
-To add to path:
+To add to path create a file `/etc/paths.d/arm-gcc`:
 
-cat /etc/paths.d/arm-gcc
-/usr/local/gcc-arm-none-eabi-4_9-2015q3/bin
+`/usr/local/gcc-arm-none-eabi-4_9-2015q3/bin`
 
-== Compiling ==
+# Compiling
 
-"make" downloads Nordic Semiconductor's nRF52 SDK and extracts it. After that builds the bootloader and the FW.
-"make clean" cleans the build directories.
+`make` downloads Nordic Semiconductor's nRF52 SDK and extracts it. After that builds the bootloader and the FW.
+`make clean` cleans the build directories.
 
-Request an invite to Ruuvi's Slack channel to join our dev talk!
+For more help, request an invite to Ruuvi's Slack channel!
 
 http://ruuvi.com/blog/ruuvi-slack-com.html
+
+
+
+# TODO:
+
+At the moment SDK requires some patching to compile example fw correctly:
+
+1) ERROR: ...........\components\libraries\bootloader_dfu\dfu_app_handler.c(153): error: #136: struct "<unnamed>" has no field "BOOTLOADERADDR". You have to modify line 146 and 153 in components\libraries\bootloader_dfu\dfu_app_handler.c. In both those lines you should replace `NRF_UICR->BOOTLOADERADDR` with `*(uint32_t *)(0x10001014)`.
+https://devzone.nordicsemi.com/question/56723/dfu-on-nrf52/
+
+2) "Set the maximum number of characteristic client descriptors in the file device_manager_cnfg.h (located in <InstallFolder>\components\ble\device_manager\config):"
+`#define DM_GATT_CCCD_COUNT               4`
+
+
