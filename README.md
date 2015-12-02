@@ -12,7 +12,7 @@ This repo has at the moment:
 Extract the GCC tarball. Other destinations are also ok, but this one is used often:
 `sudo mkdir -p /usr/local && cd /usr/local && sudo tar xjf ~/Downloads/gcc-arm-none-eabi-4_xxxxxxxx.tar.bz2`
 
-To add to path create a file `/etc/paths.d/arm-gcc`:
+To add to path create a file `/etc/paths.d/arm-gcc` with content:
 
 `/usr/local/gcc-arm-none-eabi-4_9-2015q3/bin`
 
@@ -21,21 +21,23 @@ To add to path create a file `/etc/paths.d/arm-gcc`:
 Instructions how to install (on OS X):
 
 `git clone https://github.com/NordicSemiconductor/pc-nrfutil.git`
+
 `cd pc-nrfutil`
+
 `curl -O https://bootstrap.pypa.io/get-pip.py`
+
 `sudo python get-pip.py`
+
 `sudo pip install -r requirements.txt`
+
 `sudo python setup.py install`
+
 `nrfutil version`
 
 How to use it:
 
 `nrfutil dfu genpkg --application nrf52832_xxaa_s132.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe DFUTEST.zip
 Zip created at DFUTEST.zip`
-
-### Prerequisites (to run):
-
-* SoftDevice S132 (Bluetooth protocol stack). Can be found from `SDK_root/components/softdevice/s132/hex/s132_nrf52_1.0.0-3.alpha_softdevice.hex`
 
 # Compiling
 
@@ -46,7 +48,25 @@ For more help, request an invite to Ruuvi's Slack channel!
 
 http://ruuvi.com/blog/ruuvi-slack-com.html
 
+# Flashing
 
+If the device is empty (no SoftDevice S132 + bootloader flashed), you need to flash using SWD interface. The easiest way is to use nRF52 development kit (PCA10036 or PCA10040) with embedded Segger. Steps:
+
+Download and install latest J-Link https://www.segger.com/jlink-software.html
+
+`JLinkExe -device nrf52`
+
+SoftDevice is Nordic Semiconductor's Bluetooth Smart (or ANT) protocol stack. Sources are super secret, but the latest version is always bundled with the SDK. So, let's flash it:
+
+`J-Link>loadfile nRF52_SDK_0.9.2_dbc28c9/components/softdevice/s132/hex/s132_nrf52_1.0.0-3.alpha_softdevice.hex`
+
+If the J-Link asks to verify interface and speed, `swd` and `1000` (kHz) should be fine.
+
+After the SoftDevice is flashed successfully, flash bootloader:
+
+`J-Link>loadfile bootloader/ruuvitag_revb1/dual_bank_ble_s132/armgcc/_build/ruuvitag_revb1_bootloader.hex`
+
+After this no cables are needed, ever! (unless the device needs to be rescued for some reason)
 
 # TODO:
 
