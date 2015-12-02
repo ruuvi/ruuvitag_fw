@@ -1,9 +1,11 @@
-# ruuvitag_fw nrf52 branch
+# RuuviTag nRF52 Bootloader & Firmware
 
 This repo has at the moment:
 
-* Bootloader project (unmodified dual_bank_ble_s132 bootloader example project from nordic, outputs .hex)
+* Bootloader project (unmodified dual_bank_ble_s132 bootloader example project, outputs .hex)
 * Firmware project (ble_app_template project with added device manager support + dfu ota support, outputs .hex)
+
+Instructions below are tested using OS X, but basically any Unix distribution should be fine. If you've compiled and flashed successfully (or unsuccessfully), please identify yourself on our Slack :)
 
 ### Prerequisites (to compile):
 
@@ -36,8 +38,9 @@ Instructions how to install (on OS X):
 
 How to use it:
 
-`nrfutil dfu genpkg --application nrf52832_xxaa_s132.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe DFUTEST.zip
-Zip created at DFUTEST.zip`
+`nrfutil dfu genpkg --application nrf52832_xxaa_s132.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe DFUTEST.zip``
+
+`Zip created at DFUTEST.zip`
 
 # Compiling
 
@@ -54,6 +57,8 @@ If the device is empty (no SoftDevice S132 + bootloader flashed), you need to fl
 
 Download and install latest J-Link https://www.segger.com/jlink-software.html
 
+Start the J-Link from command line by typing:
+
 `JLinkExe -device nrf52`
 
 SoftDevice is Nordic Semiconductor's Bluetooth Smart (or ANT) protocol stack. Sources are super secret, but the latest version is always bundled with the SDK. So, let's flash it:
@@ -62,15 +67,19 @@ SoftDevice is Nordic Semiconductor's Bluetooth Smart (or ANT) protocol stack. So
 
 If the J-Link asks to verify interface and speed, `swd` and `1000` (kHz) should be fine.
 
-After the SoftDevice is flashed successfully, flash bootloader:
+After the SoftDevice is flashed successfully, flash the bootloader:
 
 `J-Link>loadfile bootloader/ruuvitag_revb1/dual_bank_ble_s132/armgcc/_build/ruuvitag_revb1_bootloader.hex`
 
-After this no cables are needed, ever! (unless the device needs to be rescued for some reason)
+After this no cables are needed, ever (unless the device needs to be rescued for some reason)! Fow now on, the FW (and/or the bootloader and/or the SoftDevice) can be updated Over-The-Air using Nordic's nRF Toolbox:
+
+https://www.nordicsemi.com/eng/Products/nRFready-Demo-Apps/nRF-Toolbox-App
+https://github.com/NordicSemiconductor/Android-nRF-Toolbox
+https://github.com/NordicSemiconductor/IOS-nRF-Toolbox
 
 # TODO:
 
-At the moment SDK requires some patching to compile example fw correctly:
+At the moment SDK requires some patching to compile example FW project correctly:
 
 1) ERROR: ...........\components\libraries\bootloader_dfu\dfu_app_handler.c(153): error: #136: struct "<unnamed>" has no field "BOOTLOADERADDR". You have to modify line 146 and 153 in components\libraries\bootloader_dfu\dfu_app_handler.c. In both those lines you should replace `NRF_UICR->BOOTLOADERADDR` with `*(uint32_t *)(0x10001014)`.
 https://devzone.nordicsemi.com/question/56723/dfu-on-nrf52/
