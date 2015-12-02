@@ -38,7 +38,7 @@ Instructions how to install (on OS X):
 
 How to use it:
 
-`nrfutil dfu genpkg --application nrf52832_xxaa_s132.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe DFUTEST.zip``
+`nrfutil dfu genpkg --application fw/pca10036/s132/armgcc/_build/nrf52832_xxaa_s132.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe /Users/lauri/Dropbox/RuuviTag_FW.zip`
 
 `Zip created at DFUTEST.zip`
 
