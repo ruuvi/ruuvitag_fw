@@ -74,7 +74,9 @@ After the SoftDevice is flashed successfully, flash the bootloader:
 After this no cables are needed, ever (unless the device needs to be rescued for some reason)! Fow now on, the FW (and/or the bootloader and/or the SoftDevice) can be updated Over-The-Air using Nordic's nRF Toolbox:
 
 https://www.nordicsemi.com/eng/Products/nRFready-Demo-Apps/nRF-Toolbox-App
+
 https://github.com/NordicSemiconductor/Android-nRF-Toolbox
+
 https://github.com/NordicSemiconductor/IOS-nRF-Toolbox
 
 # TODO:
