@@ -91,6 +91,8 @@ https://github.com/NordicSemiconductor/IOS-nRF-Toolbox
 8. After completed, hit it again! And again! No more cables needed ^^
 9. Now you can update SoftDevice and/or bootloader and/or application using DFU OTA. Cool, huh?
 
+[![RuuviTag Factsheet](https://github.com/ruuvi/ruuvi_brand/blob/master/ruuvitag_factsheet_2015/ruuvitag_factsheet_2015.jpg)](http://ruuvi.com)
+
 # TODO:
 
 At the moment SDK requires some patching to compile example FW project correctly:
