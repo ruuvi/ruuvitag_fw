@@ -71,7 +71,7 @@ After the SoftDevice is flashed successfully, flash the bootloader:
 
 `J-Link>loadfile bootloader/ruuvitag_revb1/dual_bank_ble_s132/armgcc/_build/ruuvitag_revb1_bootloader.hex`
 
-After this no cables are needed, ever (unless the device needs to be rescued for some reason)! Fow now on, the FW (and/or the bootloader and/or the SoftDevice) can be updated Over-The-Air using Nordic's nRF Toolbox:
+After this no cables are needed, ever (unless the device needs to be rescued for some reason)! From now on, the FW (and/or the bootloader and/or the SoftDevice) can be updated Over-The-Air using Nordic's nRF Toolbox:
 
 https://www.nordicsemi.com/eng/Products/nRFready-Demo-Apps/nRF-Toolbox-App
 
