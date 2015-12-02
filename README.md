@@ -79,6 +79,18 @@ https://github.com/NordicSemiconductor/Android-nRF-Toolbox
 
 https://github.com/NordicSemiconductor/IOS-nRF-Toolbox
 
+# This is probably what you're after:
+
+1) Flash SoftDevice protocol stack
+2) Compile bootloader and firmware
+3) Flash the bootloader
+4) Reset the device
+5) Create .zip distribution package (that includes at least the application)
+6) Install nRF Toolbox (Android/iOS/WP)
+7) Hit DFU OTA!
+8) After completed, hit it again! And again! No more cables needed ^^
+9) Now you can update SoftDevice and/or bootloader and/or application using DFU OTA. Cool, huh?
+
 # TODO:
 
 At the moment SDK requires some patching to compile example FW project correctly:
