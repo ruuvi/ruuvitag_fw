@@ -15,21 +15,20 @@ DOWNLOAD_CMD ?= curl -O
 
 export SDK_HOME
 
-.PHONY: all download_sdk bootstrap fw bootloader
+.PHONY: all bootstrap fw bootloader
 
 all: bootstrap fw bootloader
 
-bootstrap: $(SDK_FILE)
+bootstrap: $(SDK_FILE) $(SDK_DIR)
 	@echo SDK_HOME = ${SDK_HOME}
 
-$(SDK_FILE): download_sdk
-	@if [ ! -d $(SDK_DIR) ]; then \
-	 unzip -q -d $(SDK_DIR) $(SDK_FILE); fi
+$(SDK_DIR):
+	unzip -q -d $(SDK_DIR) $(SDK_FILE)
 	$(call patch_sdk_$(SDK_VERSION))
 
-download_sdk:
-	@if [ ! -f $(SDK_FILE) ] ;then echo downloading SDK... ; $(DOWNLOAD_CMD) $(SDK_URL)/$(SDK_FILE); fi
-
+$(SDK_FILE):
+	@echo downloading SDK zip...
+	$(DOWNLOAD_CMD) $(SDK_URL)/$(SDK_FILE)
 
 define patch_sdk_0.9.2_dbc28c9
 	@echo Patching SDK 0.9.2 files...
