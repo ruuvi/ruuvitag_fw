@@ -25,10 +25,17 @@ bootstrap: $(SDK_FILE)
 $(SDK_FILE): download_sdk
 	@if [ ! -d $(SDK_DIR) ]; then \
 	 unzip -q -d $(SDK_DIR) $(SDK_FILE); fi
-
+	$(call patch_sdk_$(SDK_VERSION))
 
 download_sdk:
 	@if [ ! -f $(SDK_FILE) ] ;then echo downloading SDK... ; $(DOWNLOAD_CMD) $(SDK_URL)/$(SDK_FILE); fi
+
+
+define patch_sdk_0.9.2_dbc28c9
+	@echo Patching SDK 0.9.2 files...
+	patch -p0 <sdk_patch/0001-dfu_app_handler.patch
+endef
+
 
 fw:
 	@echo build FW
