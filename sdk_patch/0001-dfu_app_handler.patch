@@ -1,0 +1,20 @@
+diff -u -r nRF52_SDK_0.9.2_dbc28c9_ORIG/components/libraries/bootloader_dfu/dfu_app_handler.c nRF52_SDK_0.9.2_dbc28c9/components/libraries/bootloader_dfu/dfu_app_handler.c
+--- nRF52_SDK_0.9.2_dbc28c9_ORIG/components/libraries/bootloader_dfu/dfu_app_handler.c	2015-12-03 13:18:51.000000000 +0200
++++ nRF52_SDK_0.9.2_dbc28c9/components/libraries/bootloader_dfu/dfu_app_handler.c	2015-12-03 13:36:07.000000000 +0200
+@@ -143,14 +143,14 @@
+     err_code = sd_softdevice_disable();
+     APP_ERROR_CHECK(err_code);
+ 
+-    err_code = sd_softdevice_vector_table_base_set(NRF_UICR->BOOTLOADERADDR);
++    err_code = sd_softdevice_vector_table_base_set(*(uint32_t *)(0x10001014));
+     APP_ERROR_CHECK(err_code);
+ 
+     dfu_app_peer_data_set(conn_handle);
+ 
+     NVIC_ClearPendingIRQ(SWI2_IRQn);
+     interrupts_disable();
+-    bootloader_util_app_start(NRF_UICR->BOOTLOADERADDR);
++    bootloader_util_app_start(*(uint32_t *)(0x10001014));
+ }
+ 
+ 
