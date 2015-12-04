@@ -97,8 +97,12 @@ https://github.com/NordicSemiconductor/IOS-nRF-Toolbox
 
 At the moment SDK requires some patching to compile example FW project correctly:
 
-1) ERROR: ...........\components\libraries\bootloader_dfu\dfu_app_handler.c(153): error: #136: struct "<unnamed>" has no field "BOOTLOADERADDR". You have to modify line 146 and 153 in components\libraries\bootloader_dfu\dfu_app_handler.c. In both those lines you should replace `NRF_UICR->BOOTLOADERADDR` with `*(uint32_t *)(0x10001014)`.
-https://devzone.nordicsemi.com/question/56723/dfu-on-nrf52/
+1) in SDK/examples/bsp/boards.h
+`#elif defined(BOARD_CUSTOM)``
+`#include "custom_board.h"`
+to
+`#elif defined(BOARD_RUUVITAG_B1)``
+`#include "../../../ruuvitag_b1.h"`
 
 2) "Set the maximum number of characteristic client descriptors in the file device_manager_cnfg.h (located in <InstallFolder>\components\ble\device_manager\config):"
 `#define DM_GATT_CCCD_COUNT               4`
