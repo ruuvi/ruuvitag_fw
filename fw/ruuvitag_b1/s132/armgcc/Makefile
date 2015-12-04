@@ -1,4 +1,4 @@
-PROJECT_NAME := ble_app_template_s132_pca10036
+PROJECT_NAME := ble_app_template_s132_ruuvitag_b1
 
 export OUTPUT_FILENAME
 #MAKEFILE_NAME := $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
@@ -69,6 +69,7 @@ $(SDK)/components/ble/ble_services/ble_dfu/ble_dfu.c \
 ASM_SOURCE_FILES  = $(SDK)/components/toolchain/gcc/gcc_startup_nrf52.s
 
 #includes common to all targets
+INC_PATHS  = -I../../../..
 INC_PATHS  = -I../../../config
 INC_PATHS += -I$(SDK)/components/libraries/scheduler
 INC_PATHS += -I$(SDK)/components/drivers_nrf/config
@@ -109,7 +110,7 @@ BUILD_DIRECTORIES := $(sort $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY) $(LIS
 CFLAGS  = -DSWI_DISABLE0
 CFLAGS += -DSOFTDEVICE_PRESENT
 CFLAGS += -DNRF52
-CFLAGS += -DBOARD_PCA10036
+CFLAGS += -DBOARD_RUUVITAG_B1
 CFLAGS += -DCONFIG_GPIO_AS_PINRESET
 CFLAGS += -DS132
 CFLAGS += -DBLE_STACK_SUPPORT_REQD
@@ -141,17 +142,17 @@ ASMFLAGS += -DCONFIG_GPIO_AS_PINRESET
 ASMFLAGS += -DS132
 ASMFLAGS += -DBLE_STACK_SUPPORT_REQD
 #default target - first one defined
-default: clean nrf52832_xxaa_s132
+default: clean ruuvitag_b1_fw
 
 #building all targets
 all: clean
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e cleanobj
-	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e nrf52832_xxaa_s132 
+	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e ruuvitag_b1_fw 
 
 #target for printing all targets
 help:
 	@echo following targets are available:
-	@echo 	nrf52832_xxaa_s132
+	@echo 	ruuvitag_b1_fw
 	@echo 	flash_softdevice
 
 
@@ -168,9 +169,9 @@ vpath %.s $(ASM_PATHS)
 
 OBJECTS = $(C_OBJECTS) $(ASM_OBJECTS)
 
-nrf52832_xxaa_s132: OUTPUT_FILENAME := nrf52832_xxaa_s132
-nrf52832_xxaa_s132: LINKER_SCRIPT=ble_app_template_gcc_nrf52.ld
-nrf52832_xxaa_s132: $(BUILD_DIRECTORIES) $(OBJECTS)
+ruuvitag_b1_fw: OUTPUT_FILENAME := ruuvitag_b1_fw
+ruuvitag_b1_fw: LINKER_SCRIPT=ble_app_template_gcc_nrf52.ld
+ruuvitag_b1_fw: $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo Linking target: $(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e finalize
