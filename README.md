@@ -98,10 +98,10 @@ https://github.com/NordicSemiconductor/IOS-nRF-Toolbox
 At the moment SDK requires some patching to compile example FW project correctly:
 
 1) in SDK/examples/bsp/boards.h
-`#elif defined(BOARD_CUSTOM)``
+`#elif defined(BOARD_CUSTOM)`
 `#include "custom_board.h"`
 to
-`#elif defined(BOARD_RUUVITAG_B1)``
+`#elif defined(BOARD_RUUVITAG_B1)`
 `#include "../../../ruuvitag_b1.h"`
 
 2) "Set the maximum number of characteristic client descriptors in the file device_manager_cnfg.h (located in <InstallFolder>\components\ble\device_manager\config):"
