@@ -67,7 +67,7 @@ $(SDK)/components/softdevice/common/softdevice_handler/softdevice_handler_appsh.
 ASM_SOURCE_FILES  = $(SDK)/components/toolchain/gcc/gcc_startup_nrf52.s
 
 #includes common to all targets
-INC_PATHS  = -I../../../..
+INC_PATHS  = -I../../../../board_configs
 INC_PATHS += -I../../../config
 INC_PATHS += -I$(SDK)/components/libraries/util
 INC_PATHS += -I$(SDK)/components/libraries/timer
