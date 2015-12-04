@@ -92,17 +92,3 @@ https://github.com/NordicSemiconductor/IOS-nRF-Toolbox
 9. Now you can update SoftDevice and/or bootloader and/or application using DFU OTA. Cool, huh?
 
 [![RuuviTag Factsheet](https://github.com/ruuvi/ruuvi_brand/blob/master/ruuvitag_factsheet_2015/ruuvitag_factsheet_2015.jpg)](http://ruuvi.com)
-
-# TODO:
-
-At the moment SDK requires some patching to compile example FW project correctly:
-
-1) in SDK/examples/bsp/boards.h
-`#elif defined(BOARD_CUSTOM)`
-`#include "custom_board.h"`
-to
-`#elif defined(BOARD_RUUVITAG_B1)`
-`#include "../../../ruuvitag_b1.h"`
-
-2) "Set the maximum number of characteristic client descriptors in the file device_manager_cnfg.h (located in <InstallFolder>\components\ble\device_manager\config):"
-`#define DM_GATT_CCCD_COUNT               4`
