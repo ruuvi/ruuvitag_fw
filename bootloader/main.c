@@ -59,7 +59,7 @@
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                                       /**< Include the service_changed characteristic. For DFU this should normally be the case. */
 
-#define BOOTLOADER_BUTTON               BSP_BUTTON_1                                            /**< Button used to enter SW update mode. */
+#define BOOTLOADER_BUTTON               BSP_BUTTON_0                                            /**< Button used to enter SW update mode. */
 #define UPDATE_IN_PROGRESS_LED          BSP_LED_1                                               /**< Led used to indicate that DFU is active. */
 
 #define APP_TIMER_PRESCALER             0                                                       /**< Value of the RTC1 PRESCALER register. */
