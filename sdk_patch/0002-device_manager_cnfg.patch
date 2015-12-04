@@ -1,0 +1,11 @@
+--- nRF52_SDK_0.9.2_dbc28c9_ORIG/components/ble/device_manager/config/device_manager_cnfg.h	2015-10-15 10:15:12.000000000 +0700
++++ nRF52_SDK_0.9.2_dbc28c9/components/ble/device_manager/config/device_manager_cnfg.h	2015-12-05 02:19:00.000000000 +0700
+@@ -75,7 +75,7 @@
+  *          Maximum value : 254.
+  *          Dependencies  : None.
+  */
+-#define DM_GATT_CCCD_COUNT               2
++#define DM_GATT_CCCD_COUNT               4
+ 
+ 
+ /**

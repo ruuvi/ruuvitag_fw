@@ -33,6 +33,7 @@ $(SDK_FILE):
 define patch_sdk_0.9.2_dbc28c9
 	@echo Patching SDK 0.9.2 files...
 	patch -p0 <sdk_patch/0001-dfu_app_handler.patch
+	patch -p0 <sdk_patch/0002-device_manager_cnfg.patch
 endef
 
 
