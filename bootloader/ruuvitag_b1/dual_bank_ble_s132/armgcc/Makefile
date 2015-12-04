@@ -1,4 +1,4 @@
-PROJECT_NAME := dfu_dual_bank_ble_s132_ruuvitag_revb
+PROJECT_NAME := dfu_dual_bank_ble_s132_ruuvitag_b1
 
 export OUTPUT_FILENAME
 #MAKEFILE_NAME := $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
@@ -136,17 +136,17 @@ ASMFLAGS += -D__HEAP_SIZE=0
 ASMFLAGS += -DS132
 ASMFLAGS += -DBSP_DEFINES_ONLY
 #default target - first one defined
-default: clean ruuvitag_revb1_bootloader
+default: clean ruuvitag_b1_bootloader
 
 #building all targets
 all: clean
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e cleanobj
-	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e ruuvitag_revb1_bootloader 
+	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e ruuvitag_b1_bootloader 
 
 #target for printing all targets
 help:
 	@echo following targets are available:
-	@echo 	ruuvitag_revb1_bootloader
+	@echo 	ruuvitag_b1_bootloader
 
 
 C_SOURCE_FILE_NAMES = $(notdir $(C_SOURCE_FILES))
@@ -162,9 +162,9 @@ vpath %.s $(ASM_PATHS)
 
 OBJECTS = $(C_OBJECTS) $(ASM_OBJECTS)
 
-ruuvitag_revb1_bootloader: OUTPUT_FILENAME := ruuvitag_revb1_bootloader
-ruuvitag_revb1_bootloader: LINKER_SCRIPT=../../../dfu_gcc_nrf52.ld
-ruuvitag_revb1_bootloader: $(BUILD_DIRECTORIES) $(OBJECTS)
+ruuvitag_b1_bootloader: OUTPUT_FILENAME := ruuvitag_b1_bootloader
+ruuvitag_b1_bootloader: LINKER_SCRIPT=../../../dfu_gcc_nrf52.ld
+ruuvitag_b1_bootloader: $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo Linking target: $(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e finalize

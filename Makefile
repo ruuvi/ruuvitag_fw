@@ -42,10 +42,10 @@ fw:
 
 bootloader:
 	@echo build bootloader
-	$(MAKE) -C bootloader/ruuvitag_revb1/dual_bank_ble_s132/armgcc
+	$(MAKE) -C bootloader/ruuvitag_b1/dual_bank_ble_s132/armgcc
 
 clean:
 	@echo cleaning FW build files…
 	$(MAKE) -C fw/pca10036/s132/armgcc clean
 	@echo cleaning bootloader build files…
-	$(MAKE) -C bootloader/ruuvitag_revb1/dual_bank_ble_s132/armgcc clean
+	$(MAKE) -C bootloader/ruuvitag_b1/dual_bank_ble_s132/armgcc clean
