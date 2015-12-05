@@ -48,13 +48,11 @@
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                           /**< Include or not the service_changed characteristic. if not enabled, the server's database cannot be changed for the lifetime of the device*/
 
 #define WAKEUP_BUTTON_ID                0                                           /**< Button used to wake up the application. */
-// YOUR_JOB: Define any other buttons to be used by the applications:
-// #define MY_BUTTON_ID                   1
 
-#define DEVICE_NAME                     "RuuviTag"                           /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "RuuviTag"                                  /**< Name of device. Will be included in the advertising data. */
 
-#define APP_ADV_INTERVAL                64                                          /**< The advertising interval (in units of 0.625 ms. This value corresponds to 40 ms). */
-#define APP_ADV_TIMEOUT_IN_SECONDS      600                                         /**< The advertising timeout (in units of seconds). */
+#define APP_ADV_INTERVAL                640                                         /**< The advertising interval (in units of 0.625 ms. 64 = 40ms). */
+#define APP_ADV_TIMEOUT_IN_SECONDS      36000                                       /**< The advertising timeout (in units of seconds). */
 
 // YOUR_JOB: Modify these according to requirements.
 #define APP_TIMER_PRESCALER             0                                           /**< Value of the RTC1 PRESCALER register. */
