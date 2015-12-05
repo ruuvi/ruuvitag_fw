@@ -42,6 +42,8 @@
 
 #define RX_PIN_NUMBER  8
 #define TX_PIN_NUMBER  7
+#define CTS_PIN_NUMBER 5 // Not connected, but defined so that ble_app_uart example project compiles
+#define RTS_PIN_NUMBER 6 // Not connected, but defined so that ble_app_uart example project compiles
 #define HWFC           false
 
 #define SPIM0_SCK_PIN   29  // SPI clock GPIO pin number.
