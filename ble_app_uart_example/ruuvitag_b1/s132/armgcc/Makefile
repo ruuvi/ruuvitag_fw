@@ -1,4 +1,4 @@
-PROJECT_NAME := ble_app_uart_s132_pca10036
+PROJECT_NAME := ble_app_uart_s132_ruuvitag_b1
 
 export OUTPUT_FILENAME
 #MAKEFILE_NAME := $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
