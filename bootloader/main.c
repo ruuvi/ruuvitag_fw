@@ -92,7 +92,13 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
  */
 static void leds_init(void)
 {
-    nrf_gpio_cfg_output(UPDATE_IN_PROGRESS_LED);
+    nrf_gpio_cfg(
+        UPDATE_IN_PROGRESS_LED,
+        NRF_GPIO_PIN_DIR_OUTPUT,
+        NRF_GPIO_PIN_INPUT_DISCONNECT,
+        NRF_GPIO_PIN_NOPULL,
+        NRF_GPIO_PIN_H0H1); // High current drive (sink & source)
+        NRF_GPIO_PIN_NOSENSE);
     nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
 }
 
