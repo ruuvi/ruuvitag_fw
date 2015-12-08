@@ -97,7 +97,7 @@ static void leds_init(void)
         NRF_GPIO_PIN_DIR_OUTPUT,
         NRF_GPIO_PIN_INPUT_DISCONNECT,
         NRF_GPIO_PIN_NOPULL,
-        NRF_GPIO_PIN_H0H1); // High current drive (sink & source)
+        NRF_GPIO_PIN_H0H1, // High current drive (sink & source)
         NRF_GPIO_PIN_NOSENSE);
     nrf_gpio_pin_set(UPDATE_IN_PROGRESS_LED);
 }
