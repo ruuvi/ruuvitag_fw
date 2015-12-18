@@ -38,9 +38,11 @@ Instructions how to install (on OS X):
 
 How to use it:
 
-`nrfutil dfu genpkg --application fw/pca10036/s132/armgcc/_build/nrf52832_xxaa_s132.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe /Users/lauri/Dropbox/RuuviTag_FW.zip`
+`nrfutil dfu genpkg --application fw/ruuvitag_b1/s132/armgcc/_build/ruuvitag_b1_fw.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe /Users/lauri/Dropbox/RuuviTag_FW.zip`
 
-`Zip created at DFUTEST.zip`
+Or if want to create distribution package that includes both bootloader and fw:
+
+`nrfutil dfu genpkg --bootloader bootloader/ruuvitag_b1/dual_bank_ble_s132/armgcc/_build/ruuvitag_b1_bootloader.hex --application fw/ruuvitag_b1/s132/armgcc/_build/ruuvitag_b1_fw.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe /Users/lauri/Dropbox/RuuviTag_Bootloader_and_FW.zip`
 
 # Compiling
 
@@ -81,12 +83,12 @@ https://github.com/NordicSemiconductor/IOS-nRF-Toolbox
 
 # This is probably what you're after:
 
-1. Flash SoftDevice protocol stack
-2. Compile bootloader and firmware
+1. Flash the SoftDevice protocol stack
+2. Compile the bootloader and the firmware
 3. Flash the bootloader
 4. Reset the device
 5. Create .zip distribution package (that includes at least the application)
-6. Install nRF Toolbox (Android/iOS/WP)
+6. Install nRF Toolbox (Android/iOS)
 7. Hit DFU OTA!
 8. After completed, hit it again! And again! No more cables needed ^^
 9. Now you can update SoftDevice and/or bootloader and/or application using DFU OTA. Cool, huh?
