@@ -161,9 +161,9 @@ void SVC_Handler(void)
     asm("movs  r0, #0x02\n"                    // Load 0x02 into R6 to prepare for exec return test.
         "mvns  r0, r0\n"                       // Invert R0 to obtain exec return code using PSP for ARM Cortex.
         "cmp   lr, r0\n"                       // Compare the link register with argument 0 (%0), which is exc_return. If equal then PSP was used, otherwise MSP was used before SVC.
-        "bne   UseMSP\n"                       // Branch to code fetching SVC arguments using MSP.
+        "bne.n UseMSP\n"                       // Branch to code fetching SVC arguments using MSP.
         "mrs   r1, psp\n"                      // Move PSP into R1.
-        "b     Call_C_SVC_Handler\t\n"         // Branch to Call_C_SVC_Handler below.
+        "b.n   Call_C_SVC_Handler\t\n"         // Branch to Call_C_SVC_Handler below.
         "UseMSP:  \n"                          //
         "mrs   r1, msp\n"                      // MSP was used, therefore Move MSP into R1.
         "Call_C_SVC_Handler:  \n"              //

@@ -65,13 +65,13 @@ Start the J-Link from command line by typing:
 
 SoftDevice is Nordic Semiconductor's Bluetooth Smart (or ANT) protocol stack. Sources are super secret, but the latest version is always bundled with the SDK. So, let's flash it:
 
-`J-Link>loadfile nRF52_SDK_0.9.2_dbc28c9/components/softdevice/s132/hex/s132_nrf52_1.0.0-3.alpha_softdevice.hex`
+`J-Link>loadfile nRF5_SDK_11.0.0-2.alpha_bc3f6a0/components/softdevice/s132/hex/s132_nrf52_2.0.0-7.alpha_softdevice.hex`
 
 If the J-Link asks to verify interface and speed, `swd` and `1000` (kHz) should be fine.
 
 After the SoftDevice is flashed successfully, flash the bootloader:
 
-`J-Link>loadfile bootloader/ruuvitag_b1/dual_bank_ble_s132/armgcc/_build/ruuvitag_b1_bootloader.hex`
+`J-Link>loadfile bootloader/ruuvitag_b2/dual_bank_ble_s132/armgcc/_build/ruuvitag_b2_bootloader.hex`
 
 After this no cables are needed, ever (unless the device needs to be rescued for some reason)! From now on, the FW (and/or the bootloader and/or the SoftDevice) can be updated Over-The-Air using Nordic's nRF Toolbox:
 
