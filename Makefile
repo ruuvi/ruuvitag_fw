@@ -4,9 +4,9 @@
 
 TOP := `pwd`
 
-SDK_VERSION := 0.9.2_dbc28c9
-SDK_URL     := https://developer.nordicsemi.com/nRF52_SDK/nRF52_SDK_v0.x.x
-SDK_FILE    := nRF52_SDK_$(SDK_VERSION).zip
+SDK_VERSION := 11.0.0-2.alpha_bc3f6a0
+SDK_URL     := https://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v11.x.x
+SDK_FILE    := nRF5_SDK_$(SDK_VERSION).zip
 
 SDK_DIR     := $(basename $(SDK_FILE))
 SDK_HOME    := $(TOP)/$(SDK_DIR)
@@ -30,11 +30,6 @@ $(SDK_FILE):
 	@echo downloading SDK zip...
 	$(DOWNLOAD_CMD) $(SDK_URL)/$(SDK_FILE)
 
-define patch_sdk_0.9.2_dbc28c9
-	@echo Patching SDK 0.9.2 files...
-	patch -p0 <sdk_patch/0001-dfu_app_handler.patch
-	patch -p0 <sdk_patch/0002-device_manager_cnfg.patch
-endef
 
 
 fw:
