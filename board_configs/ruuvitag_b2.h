@@ -49,9 +49,8 @@
 #define SPIM0_SCK_PIN   29  // SPI clock GPIO pin number.
 #define SPIM0_MOSI_PIN  25  // SPI Master Out Slave In GPIO pin number.
 #define SPIM0_MISO_PIN  28  // SPI Master In Slave Out GPIO pin number.
-#define SPIM0_SS_ACC_PIN    11  // SPI Slave Select GPIO pin number. (accelerometer)
-#define SPIM0_SS_HUMI_PIN    3  // SPI Slave Select GPIO pin number. (bme280)
-#define SPIM0_SS_FLASH_PIN    4  // SPI Slave Select GPIO pin number. (dataflash)
+#define SPIM0_SS_ACC_PIN    8  // SPI Slave Select GPIO pin number. (accelerometer)
+#define SPIM0_SS_HUMI_PIN    3  // SPI Slave Select GPIO pin number. (BME280)
 
 // Low frequency clock source to be used by the SoftDevice
 #define NRF_CLOCK_LFCLKSRC      NRF_CLOCK_LFCLKSRC_XTAL_20_PPM
