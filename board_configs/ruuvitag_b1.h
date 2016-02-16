@@ -38,7 +38,7 @@
 
 #define BSP_BUTTON_0_MASK (1<<BSP_BUTTON_0)
 
-#define BUTTONS_MASK   0x00002000 //13th bit
+#define BUTTONS_MASK   (BSP_BUTTON_0_MASK) // or 0x00002000, 13th bit
 
 #define RX_PIN_NUMBER  8
 #define TX_PIN_NUMBER  7
