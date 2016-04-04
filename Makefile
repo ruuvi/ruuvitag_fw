@@ -4,7 +4,7 @@
 
 TOP := `pwd`
 
-SDK_VERSION := 11.0.0-2.alpha_bc3f6a0
+SDK_VERSION := 11.0.0_89a8197
 SDK_URL     := https://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v11.x.x
 SDK_FILE    := nRF5_SDK_$(SDK_VERSION).zip
 

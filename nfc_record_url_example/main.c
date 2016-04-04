@@ -39,10 +39,10 @@ void nfc_callback(void *context, NfcEvent event, const char *data, size_t dataLe
     switch (event)
     {
         case NFC_EVENT_FIELD_ON:
-            LEDS_OFF(BSP_LED_0_MASK);
+            LEDS_ON(BSP_LED_0_MASK);
             break;
         case NFC_EVENT_FIELD_OFF:
-            LEDS_ON(BSP_LED_0_MASK);
+            LEDS_OFF(BSP_LED_0_MASK);
             break;
         default:
             break;
@@ -59,7 +59,7 @@ int main(void)
 
     /* Configure LED-pins as outputs */
     LEDS_CONFIGURE(BSP_LED_0_MASK);
-    LEDS_ON(BSP_LED_0_MASK);
+    LEDS_OFF(BSP_LED_0_MASK);
 
     /* Set up NFC */
     ret_val = nfcSetup(nfc_callback, NULL);

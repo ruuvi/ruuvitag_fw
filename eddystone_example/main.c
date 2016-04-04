@@ -182,13 +182,24 @@ void init_tlm_frame_buffer() {
     encoded_advdata[(*len_advdata)++] = 0x00;
 
     // Beacon temperature
-    eddystone_uint16(encoded_advdata, len_advdata, temperature_data_get());
+//    eddystone_uint16(encoded_advdata, len_advdata, temperature_data_get());
+    encoded_advdata[(*len_advdata)++] = 0x00;
+    encoded_advdata[(*len_advdata)++] = 0x00;
 
     // Advertising PDU count
-    eddystone_uint32(encoded_advdata, len_advdata, pdu_count);
+//    eddystone_uint32(encoded_advdata, len_advdata, pdu_count);
+    encoded_advdata[(*len_advdata)++] = 0x00;
+    encoded_advdata[(*len_advdata)++] = 0x00;
+    encoded_advdata[(*len_advdata)++] = 0x00;
+    encoded_advdata[(*len_advdata)++] = 0x00;
+
 
     // Time since power-on or reboot
-    *len_advdata += big32cpy(encoded_advdata + *len_advdata, pdu_count);
+//    *len_advdata += big32cpy(encoded_advdata + *len_advdata, pdu_count);
+    encoded_advdata[(*len_advdata)++] = 0x00;
+    encoded_advdata[(*len_advdata)++] = 0x00;
+    encoded_advdata[(*len_advdata)++] = 0x00;
+    encoded_advdata[(*len_advdata)++] = 0x00;
 
     encoded_advdata[0x07] = (*len_advdata) - 8; // Length	Service Data. Ibid. § 1.11
 }
@@ -260,7 +271,7 @@ static void power_manage(void) {
 // uid uid uri  uid uid uri
 void eddystone_interleave(bool radio_active) {
     if (radio_active) {
-        if (pdu_count % 1 == 10) {
+        if ((pdu_count + 1) % 6 == 0) {
             init_tlm_frame_buffer();
             eddystone_set_adv_data(EDDYSTONE_TLM);
         }

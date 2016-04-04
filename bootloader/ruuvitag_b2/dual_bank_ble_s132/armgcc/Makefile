@@ -4,7 +4,7 @@ export OUTPUT_FILENAME
 #MAKEFILE_NAME := $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 MAKEFILE_NAME := $(MAKEFILE_LIST)
 MAKEFILE_DIR := $(dir $(MAKEFILE_NAME) ) 
-SDK = ../../../../nRF5_SDK_11.0.0-2.alpha_bc3f6a0
+SDK = ../../../../nRF5_SDK_11.0.0_89a8197
 
 TEMPLATE_PATH = $(SDK)/components/toolchain/gcc
 ifeq ($(OS),Windows_NT)
