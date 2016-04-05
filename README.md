@@ -65,7 +65,7 @@ Start the J-Link from command line by typing:
 
 SoftDevice is Nordic Semiconductor's Bluetooth Smart (or ANT) protocol stack. Sources are super secret, but the latest version is always bundled with the SDK. So, let's flash it:
 
-`J-Link>loadfile nRF5_SDK_11.0.0-2.alpha_bc3f6a0/components/softdevice/s132/hex/s132_nrf52_2.0.0-7.alpha_softdevice.hex`
+`J-Link>loadfile nRF5_SDK_11.0.0_89a8197/components/softdevice/s132/hex/s132_nrf52_2.0.0_softdevice.hex`
 
 If the J-Link asks to verify interface and speed, `swd` and `1000` (kHz) should be fine.
 
