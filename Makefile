@@ -32,16 +32,16 @@ $(SDK_FILE):
 
 
 
-fw:
-	@echo build FW
-	$(MAKE) -C fw/ruuvitag_b1/s132/armgcc
+#fw:
+#	@echo build FW
+#	$(MAKE) -C fw/ruuvitag_b2/s132/armgcc
 
 bootloader:
 	@echo build bootloader
-	$(MAKE) -C bootloader/ruuvitag_b1/dual_bank_ble_s132/armgcc
+	$(MAKE) -C bootloader/ruuvitag_b2/dual_bank_ble_s132/armgcc
 
 clean:
-	@echo cleaning FW build files…
-	$(MAKE) -C fw/ruuvitag_b1/s132/armgcc clean
+#	@echo cleaning FW build files…
+#	$(MAKE) -C fw/ruuvitag_b2/s132/armgcc clean
 	@echo cleaning bootloader build files…
-	$(MAKE) -C bootloader/ruuvitag_b1/dual_bank_ble_s132/armgcc clean
+	$(MAKE) -C bootloader/ruuvitag_b2/dual_bank_ble_s132/armgcc clean
