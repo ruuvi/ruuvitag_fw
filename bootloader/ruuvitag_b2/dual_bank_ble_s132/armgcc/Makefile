@@ -91,6 +91,7 @@ INC_PATHS += -I$(SDK)/components/ble/ble_services/ble_dfu
 INC_PATHS += -I$(SDK)/components/drivers_nrf/hal
 INC_PATHS += -I$(SDK)/components/softdevice/s132/headers/nrf52
 INC_PATHS += -I$(SDK)/components/libraries/bootloader_dfu
+INC_PATHS += -I$(SDK)/components/toolchain/CMSIS/Include
 
 OBJECT_DIRECTORY = _build
 LISTING_DIRECTORY = $(OBJECT_DIRECTORY)
