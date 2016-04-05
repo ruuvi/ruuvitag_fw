@@ -63,6 +63,7 @@ $(SDK)/components/ble/common/ble_srv_common.c \
 $(SDK)/components/toolchain/system_nrf52.c \
 $(SDK)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
 $(SDK)/components/softdevice/common/softdevice_handler/softdevice_handler_appsh.c \
+$(SDK)/components/libraries/util/app_util_platform.c \
 
 #assembly files common to all targets
 ASM_SOURCE_FILES  = $(SDK)/components/toolchain/gcc/gcc_startup_nrf52.s
@@ -92,6 +93,7 @@ INC_PATHS += -I$(SDK)/components/drivers_nrf/hal
 INC_PATHS += -I$(SDK)/components/softdevice/s132/headers/nrf52
 INC_PATHS += -I$(SDK)/components/libraries/bootloader_dfu
 INC_PATHS += -I$(SDK)/components/toolchain/CMSIS/Include
+INC_PATHS += -I$(SDK)/components/libraries/util/app_util_platform
 
 OBJECT_DIRECTORY = _build
 LISTING_DIRECTORY = $(OBJECT_DIRECTORY)
