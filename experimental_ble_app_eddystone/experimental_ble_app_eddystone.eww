@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<workspace>
+  <project>
+    <path>$WS_DIR$\pca10036\s132\iar\experimental_ble_app_eddystone_s132_pca10036.ewp</path>
+  </project>
+  <project>
+    <path>$WS_DIR$\pca10040\s132\iar\experimental_ble_app_eddystone_s132_pca10040.ewp</path>
+  </project>
+  <project>
+    <path>$WS_DIR$\pca10028\s130\iar\experimental_ble_app_eddystone_s130_pca10028.ewp</path>
+  </project>
+  <project>
+    <path>$WS_DIR$\pca20006\s130\iar\experimental_ble_app_eddystone_s130_pca20006.ewp</path>
+  </project>
+  <batchBuild/>
+</workspace>
