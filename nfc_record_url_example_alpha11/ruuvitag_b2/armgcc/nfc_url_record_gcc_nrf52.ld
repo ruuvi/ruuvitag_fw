@@ -6,17 +6,17 @@ GROUP(-lgcc -lc -lnosys)
 MEMORY
 {
   FLASH (rx) : ORIGIN = 0x0, LENGTH = 0x80000
-  RAM (rwx) :  ORIGIN = 0x20000000, LENGTH = 0x10000
+  RAM (rwx) :  ORIGIN = 0x20000000, LENGTH = 0x8000
 }
 
 SECTIONS
 {
-  .fs_data :
+  .fs_data_out ALIGN(4):
   {
-    PROVIDE(__start_fs_data = .);
-    KEEP(*(.fs_data))
-    PROVIDE(__stop_fs_data = .);
-  } > RAM
-} INSERT AFTER .data;
+    PROVIDE( __start_fs_data = .);
+    KEEP(*(fs_data))
+    PROVIDE( __stop_fs_data = .);
+  } = 0
+}
 
 INCLUDE "nrf5x_common.ld"

@@ -24,12 +24,11 @@
 #include "boards.h"
 #include "app_error.h"
 
-/** @snippet [NFC URI usage_0] */
 static const char url[] =
     {'n', 'o', 'r', 'd', 'i', 'c', 's', 'e', 'm', 'i', '.', 'c', 'o', 'm'}; //URL "nordicsemi.com"
 
 uint8_t ndef_msg_buf[256];
-/** @snippet [NFC URI usage_0] */
+
 /**
  * @brief Callback function for handling NFC events.
  */
@@ -57,9 +56,6 @@ int main(void)
 {
     uint32_t  err_code;
     NfcRetval ret_val;
-    
-    err_code = NRF_LOG_INIT();
-    APP_ERROR_CHECK(err_code);
 
     /* Configure LED-pins as outputs */
     LEDS_CONFIGURE(BSP_LED_0_MASK);
@@ -72,7 +68,6 @@ int main(void)
         APP_ERROR_CHECK((uint32_t) ret_val);
     }
 
-    /** @snippet [NFC URI usage_1] */
     /* Provide information about available buffer size to encoding function */
     uint32_t len = sizeof(ndef_msg_buf);
 
@@ -84,7 +79,6 @@ int main(void)
                                    &len);
 
     APP_ERROR_CHECK(err_code);
-    /** @snippet [NFC URI usage_1] */
 
     /* Set created message as the NFC payload */
     ret_val = nfcSetPayload( (char*)ndef_msg_buf, len);
