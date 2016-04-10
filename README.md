@@ -1,11 +1,14 @@
-# RuuviTag nRF52 Bootloader & Firmware
+# RuuviTag nRF52 Bootloader & Example firmware projects
+[![RuuviTag](http://ruuvitag.com/assets/images/fb_ruuvitag.jpg)](http://ruuvitag.com)
 
 This repo has at the moment:
 
-* Bootloader project (unmodified dual_bank_ble_s132 bootloader example project, outputs .hex)
-* Firmware project (ble_app_template project with added device manager support + dfu ota support, outputs .hex)
+* Bootloader project (slightly modified dual_bank_ble_s132 bootloader example project, outputs .hex)
+* Multiple example firmware projects
 
 Instructions below are tested using OS X, but basically any Unix distribution should be fine. If you've compiled and flashed successfully (or unsuccessfully), please identify yourself on our Slack :)
+
+We also host some ready binaries so it's not necessary to setup a development environment if you would be happy to use those. So, please check a `builds` directory first. If you would like to modify the firmware code, continue reading:
 
 ### Prerequisites (to compile):
 
@@ -36,22 +39,26 @@ Instructions how to install (on OS X):
 
 `nrfutil version`
 
-How to use it:
+How to use it (to include the application code):
 
 `nrfutil dfu genpkg --application fw/ruuvitag_b1/s132/armgcc/_build/ruuvitag_b1_fw.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe /Users/lauri/Dropbox/RuuviTag_FW.zip`
 
-Or if want to create distribution package that includes both bootloader and fw:
+If want to create distribution package that includes both bootloader and application code:
 
 `nrfutil dfu genpkg --bootloader bootloader/ruuvitag_b1/dual_bank_ble_s132/armgcc/_build/ruuvitag_b1_bootloader.hex --application fw/ruuvitag_b1/s132/armgcc/_build/ruuvitag_b1_fw.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe /Users/lauri/Dropbox/RuuviTag_Bootloader_and_FW.zip`
 
+If you would like to create a package that includes SoftDevice + bootloader, use this command:
+
+`nrfutil dfu genpkg --softdevice nRF5_SDK_11.0.0_89a8197/components/softdevice/s132/hex/s132_nrf52_2.0.0_softdevice.hex --bootloader bootloader/ruuvitag_b2/dual_bank_ble_s132/armgcc/_build/ruuvitag_b2_bootloader.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe /Users/lauri/Dropbox/RuuviTag_SoftDevice_and_Bootloader.zip`
+
+Zip created at /Users/lauri/Dropbox/RuuviTag_SoftDevice_and_bootloader_sdk11.zip
+
 # Compiling
 
-`make` downloads Nordic Semiconductor's nRF52 SDK and extracts it. After that builds the bootloader and the FW.
+`make` downloads Nordic Semiconductor's nRF52 SDK and extracts it. After that builds the bootloader (and the FW if not commented in Makefile).
 `make clean` cleans the build directories.
 
-For more help, request an invite to Ruuvi's Slack channel!
-
-http://ruuvi.com/blog/ruuvi-slack-com.html
+For more help, please request an invite to Ruuvi Community's Slack channel by emailing us an informal request: slack@ruuvi.com
 
 # Flashing
 
@@ -73,7 +80,7 @@ After the SoftDevice is flashed successfully, flash the bootloader:
 
 `J-Link>loadfile bootloader/ruuvitag_b2/dual_bank_ble_s132/armgcc/_build/ruuvitag_b2_bootloader.hex`
 
-After this no cables are needed, ever (unless the device needs to be rescued for some reason)! From now on, the FW (and/or the bootloader and/or the SoftDevice) can be updated Over-The-Air using Nordic's nRF Toolbox:
+After this no cables are needed, ever (unless the device needs to be rescued for some reason)! From now on, the FW (and/or the bootloader and/or the SoftDevice) can be updated Over-The-Air using Nordic's nRF Toolbox (or MasterControl Panel):
 
 https://www.nordicsemi.com/eng/Products/nRFready-Demo-Apps/nRF-Toolbox-App
 
@@ -81,16 +88,14 @@ https://github.com/NordicSemiconductor/Android-nRF-Toolbox
 
 https://github.com/NordicSemiconductor/IOS-nRF-Toolbox
 
-# This is probably what you're after:
+# If you're a developer, this is probably what you're after:
 
 1. Flash the SoftDevice protocol stack
-2. Compile the bootloader and the firmware
+2. Compile the bootloader (and the application)
 3. Flash the bootloader
 4. Reset the device
-5. Create .zip distribution package (that includes at least the application)
+5. Create .zip distribution package (that includes at least the application code)
 6. Install nRF Toolbox (Android/iOS)
-7. Hit DFU OTA!
-8. After completed, hit it again! And again! No more cables needed ^^
+7. Press DFU OTA button
+8. After completed, press it again! And again! No more cables needed ^^
 9. Now you can update SoftDevice and/or bootloader and/or application using DFU OTA. Cool, huh?
-
-[![RuuviTag Factsheet](https://github.com/ruuvi/ruuvi_brand/blob/master/ruuvitag_factsheet_2015/ruuvitag_factsheet_2015.jpg)](http://ruuvi.com)
