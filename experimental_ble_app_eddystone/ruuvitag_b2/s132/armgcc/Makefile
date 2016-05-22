@@ -59,6 +59,7 @@ $(SDK)/examples/bsp/bsp.c \
 ../../../main.c \
 ../../../spi.c \
 ../../../bme280.c \
+../../../base91.c \
 $(SDK)/components/ble/common/ble_advdata.c \
 $(SDK)/components/ble/common/ble_conn_params.c \
 $(SDK)/components/ble/common/ble_srv_common.c \
