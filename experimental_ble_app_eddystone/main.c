@@ -28,10 +28,11 @@
 #include "bsp.h"
 #include "app_timer.h"
 #include "nrf_temp.h"
-#include "SEGGER_RTT.h"
 #include "bme280.h"
 #include "nrf_delay.h"
 #include "spi.h"
+#include "base91.h"
+#include "nrf_log.h"
 
 #define swap_u32(num) ((num>>24)&0xff) | ((num<<8)&0xff0000) | ((num>>8)&0xff00) | ((num<<24)&0xff000000);
 #define float2fix(a) ((int)((a)*256.0))         						  //Convert float to fix. a is a float
@@ -108,6 +109,11 @@ static uint8_t eddystone_tlm_data[] =   /**< Information advertised by the Eddys
     APP_EDDYSTONE_TLM_ADV_COUNT,    // Number of advertisements since power-up or reboot.
     APP_EDDYSTONE_TLM_SEC_COUNT     // Time since power-up or reboot. 0.1 s increments.
 };
+
+// BASE91
+static char *ibuf, *obuf;
+static struct basE91 b91;
+
 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -265,9 +271,11 @@ static void power_manage(void)
  * @brief Function for application main entry.
  */
 int main(void)
-{
+{    
 	char buffer [50];
-	SEGGER_RTT_WriteString(0, "Initializing Ruuvitag b2\n");
+    NRF_LOG_INIT();
+    NRF_LOG("Initializing Ruuvitag b2...\n");
+
     uint32_t err_code;
 	uint32_t frame_count = 0;
 	float temp = 0;
@@ -279,7 +287,7 @@ int main(void)
  
 	nrf_gpio_pin_clear(LED_2); 
 	
-	nrf_delay_ms(2000);
+	nrf_delay_ms(500);
 	
 
 	
@@ -293,8 +301,8 @@ int main(void)
 	settings.tStandby = 0;
 	
 	bme280_initialize(settings);
-	SEGGER_RTT_WriteString(0, "Bme280 initialized\n");
-	//SEGGER_RTT_printf(0, "Temperature %f!\n", readTemperature());
+    NRF_LOG_PRINTF(0, "BME280 init completed.\n");
+	NRF_LOG_PRINTF(0, "Temperature %f!\n", readTemperature());
 	
     APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
     err_code = bsp_init(BSP_INIT_LED, APP_TIMER_TICKS(100, APP_TIMER_PRESCALER), NULL);
@@ -305,19 +313,56 @@ int main(void)
     // Start execution.
     advertising_start();
 
+    // BASE91 INIT
+    basE91_init(&b91);
+
     // Enter main loop.
     for (;; )
     {				
 		temp = readTemperature();
 		sprintf (buffer, "Temperature: %f, Pressure: %f, Altitude: %f, Humidity: %f\n", temp, readPressure(), readAltitudeMeters(), readHumidity());
-		SEGGER_RTT_WriteString(0, buffer);
+		NRF_LOG_PRINTF(0, "Buffer: ", buffer);
 		memset(buffer, 0, sizeof(buffer));
-		//SEGGER_RTT_printf(0, "Temperature: %d, Pressure: %d, Altitude: %d, Humidity: %d\n", (int)temp, (int)readPressure(), (int)readAltitudeMeters(), (int)readHumidity());
+		NRF_LOG_PRINTF(0, "Temperature: %d, Pressure: %d, Altitude: %d, Humidity: %d\n", (int)temp, (int)readPressure(), (int)readAltitudeMeters(), (int)readHumidity());
 		power_manage();
 		advertising_update(temp, frame_count++, time++);
 		nrf_delay_ms(250);
 		advertise_uid();
 		nrf_delay_ms(250);
+        
+        
+        
+        // BASE91 ENCODING:
+        
+        // Dummy values for the encoder
+        char sensor_values[16] = {0x35, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39};
+        
+        ibuf = &sensor_values[0];
+        
+        size_t itotal = 0;
+	    size_t ototal = 0;
+	    size_t s = 16;
+        
+        NRF_LOG("Values to be encoded (HEX): ");
+        for(int i=0; i<s; i++) { NRF_LOG_HEX_CHAR(ibuf[i]); }
+        NRF_LOG("\n");
+        
+        while (s > 0) {
+            itotal += s;
+            s = basE91_encode(&b91, ibuf, s, obuf);
+            ototal += s;
+        }
+	    s = basE91_encode_end(&b91, obuf);	/* empty bit queue */
+	    ototal += s;
+               
+        //basE91_encode(&b91, ibuf, ibuf_size, obuf);
+        //basE91_encode_end(&b91, obuf);	/* empty bit queue */
+
+        NRF_LOG("Encoded data (HEX): ");
+        for(int i=0; i<ototal; i++) { NRF_LOG_HEX_CHAR(obuf[i]); }
+        NRF_LOG("\n");  
+        
+        // END OF BASE91 ENCODING
     }
 }
 

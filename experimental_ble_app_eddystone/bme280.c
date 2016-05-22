@@ -1,21 +1,21 @@
 /******************************************************************************
 bme280.c
-BME280 for Ruuvitag
+BME280 for RuuviTag
 Vesa Koskinen
 May 8, 2016
 
 This code is ported from Sparkfun Arduino library: https://github.com/sparkfun/SparkFun_BME280_Arduino_Library/ 
-which was lisenced under the [MIT License](http://opensource.org/licenses/MIT).
+which was licensed under the [MIT License](http://opensource.org/licenses/MIT).
 ******************************************************************************/
 
 
 #include "bme280.h"
 #include "boards.h"
-#include "SEGGER_RTT.h"
 #include "app_error.h"
 #include "app_util_platform.h"
 #include "math.h"
 #include "spi.h"
+#include "nrf_log.h"
 	
 BME280Calibration calibration;
 BME280Settings settings;
@@ -76,7 +76,7 @@ uint8_t bme280_initialize(BME280Settings SettingsParam)
 	chipid = readRegister(0xD0);
 	if (chipid != 0x60)
 	{
-		SEGGER_RTT_printf(0, " Register chipip failed: %d\r\n", chipid);
+		NRF_LOG_PRINTF(0, " Register chip-id failed: %d\r\n", chipid);
 		return 1;
 	}
 	
@@ -85,24 +85,24 @@ uint8_t bme280_initialize(BME280Settings SettingsParam)
 
 void printCalibration(void)
 {
-	SEGGER_RTT_printf(0, "calibration.dig_T1: %d\r\n", calibration.dig_T1); 
-	SEGGER_RTT_printf(0, "calibration.dig_T2: %d\r\n", calibration.dig_T2); 
-	SEGGER_RTT_printf(0, "calibration.dig_T3: %d\r\n", calibration.dig_T3); 
-	SEGGER_RTT_printf(0, "calibration.dig_P1: %d\r\n", calibration.dig_P1); 
-	SEGGER_RTT_printf(0, "calibration.dig_P2: %d\r\n", calibration.dig_P2); 
-	SEGGER_RTT_printf(0, "calibration.dig_P3: %d\r\n", calibration.dig_P3); 
-	SEGGER_RTT_printf(0, "calibration.dig_P4: %d\r\n", calibration.dig_P4); 
-	SEGGER_RTT_printf(0, "calibration.dig_P5: %d\r\n", calibration.dig_P5); 
-	SEGGER_RTT_printf(0, "calibration.dig_P6: %d\r\n", calibration.dig_P6); 
-	SEGGER_RTT_printf(0, "calibration.dig_P7: %d\r\n", calibration.dig_P7); 
-	SEGGER_RTT_printf(0, "calibration.dig_P8: %d\r\n", calibration.dig_P8); 
-	SEGGER_RTT_printf(0, "calibration.dig_P9: %d\r\n", calibration.dig_P9); 
-	SEGGER_RTT_printf(0, "calibration.dig_H1: %d\r\n", calibration.dig_H1); 
-	SEGGER_RTT_printf(0, "calibration.dig_H2: %d\r\n", calibration.dig_H2); 
-	SEGGER_RTT_printf(0, "calibration.dig_H3: %d\r\n", calibration.dig_H3); 
-	SEGGER_RTT_printf(0, "calibration.dig_H4: %d\r\n", calibration.dig_H4); 
-	SEGGER_RTT_printf(0, "calibration.dig_H5: %d\r\n", calibration.dig_H5); 
-	SEGGER_RTT_printf(0, "calibration.dig_H6: %d\r\n", calibration.dig_H6);
+	NRF_LOG_PRINTF(0, "calibration.dig_T1: %d\r\n", calibration.dig_T1); 
+	NRF_LOG_PRINTF(0, "calibration.dig_T2: %d\r\n", calibration.dig_T2); 
+	NRF_LOG_PRINTF(0, "calibration.dig_T3: %d\r\n", calibration.dig_T3); 
+	NRF_LOG_PRINTF(0, "calibration.dig_P1: %d\r\n", calibration.dig_P1); 
+	NRF_LOG_PRINTF(0, "calibration.dig_P2: %d\r\n", calibration.dig_P2); 
+	NRF_LOG_PRINTF(0, "calibration.dig_P3: %d\r\n", calibration.dig_P3); 
+	NRF_LOG_PRINTF(0, "calibration.dig_P4: %d\r\n", calibration.dig_P4); 
+	NRF_LOG_PRINTF(0, "calibration.dig_P5: %d\r\n", calibration.dig_P5); 
+	NRF_LOG_PRINTF(0, "calibration.dig_P6: %d\r\n", calibration.dig_P6); 
+	NRF_LOG_PRINTF(0, "calibration.dig_P7: %d\r\n", calibration.dig_P7); 
+	NRF_LOG_PRINTF(0, "calibration.dig_P8: %d\r\n", calibration.dig_P8); 
+	NRF_LOG_PRINTF(0, "calibration.dig_P9: %d\r\n", calibration.dig_P9); 
+	NRF_LOG_PRINTF(0, "calibration.dig_H1: %d\r\n", calibration.dig_H1); 
+	NRF_LOG_PRINTF(0, "calibration.dig_H2: %d\r\n", calibration.dig_H2); 
+	NRF_LOG_PRINTF(0, "calibration.dig_H3: %d\r\n", calibration.dig_H3); 
+	NRF_LOG_PRINTF(0, "calibration.dig_H4: %d\r\n", calibration.dig_H4); 
+	NRF_LOG_PRINTF(0, "calibration.dig_H5: %d\r\n", calibration.dig_H5); 
+	NRF_LOG_PRINTF(0, "calibration.dig_H6: %d\r\n", calibration.dig_H6);
 }
 
 float readPressure( void )
