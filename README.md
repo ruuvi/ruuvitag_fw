@@ -3,10 +3,10 @@
 
 This repo has at the moment:
 
-* Bootloader project (slightly modified dual_bank_ble_s132 bootloader example project, outputs .hex)
+* Bootloader project (almost unmodified dual_bank_ble_s132 bootloader example project, outputs .hex)
 * Multiple example firmware projects
 
-Instructions below are tested using OS X, but basically any Unix distribution should be fine. If you've compiled and flashed successfully (or unsuccessfully), please identify yourself on our Slack :)
+Instructions below are tested using OS X, but basically any Unix distribution (or even Windows) should be fine. If you've compiled and flashed successfully (or unsuccessfully), please identify yourself on our Slack :)
 
 We also host some ready binaries so it's not necessary to setup a development environment if you would be happy to use those. So, please check a `builds` directory first. If you would like to modify the firmware code, continue reading:
 
@@ -41,7 +41,7 @@ Instructions how to install (on OS X):
 
 How to use it (to include the application code):
 
-`nrfutil dfu genpkg --application fw/ruuvitag_b1/s132/armgcc/_build/ruuvitag_b1_fw.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe /Users/lauri/Dropbox/RuuviTag_FW.zip`
+`nrfutil dfu genpkg --application path-of-your-app-code-hex-file.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe /Users/lauri/Dropbox/RuuviTag_ApplicationCode.zip`
 
 If want to create distribution package that includes both bootloader and application code:
 
@@ -68,13 +68,11 @@ Download and install latest J-Link https://www.segger.com/jlink-software.html
 
 Start the J-Link from command line by typing:
 
-`JLinkExe -device nrf52`
+`JLinkExe -device nrf52 -if swd -speed 1000`
 
 SoftDevice is Nordic Semiconductor's Bluetooth Smart (or ANT) protocol stack. Sources are super secret, but the latest version is always bundled with the SDK. So, let's flash it:
 
 `J-Link>loadfile nRF5_SDK_11.0.0_89a8197/components/softdevice/s132/hex/s132_nrf52_2.0.0_softdevice.hex`
-
-If the J-Link asks to verify interface and speed, `swd` and `1000` (kHz) should be fine.
 
 After the SoftDevice is flashed successfully, flash the bootloader:
 
