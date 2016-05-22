@@ -54,8 +54,11 @@ $(SDK)/components/drivers_nrf/delay/nrf_delay.c \
 $(SDK)/components/drivers_nrf/common/nrf_drv_common.c \
 $(SDK)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c \
 $(SDK)/components/drivers_nrf/uart/nrf_drv_uart.c \
+$(SDK)/components/drivers_nrf/spi_master/nrf_drv_spi.c \
 $(SDK)/examples/bsp/bsp.c \
 ../../../main.c \
+../../../spi.c \
+../../../bme280.c \
 $(SDK)/components/ble/common/ble_advdata.c \
 $(SDK)/components/ble/common/ble_conn_params.c \
 $(SDK)/components/ble/common/ble_srv_common.c \
@@ -89,6 +92,7 @@ INC_PATHS += -I$(SDK)/components/softdevice/s132/headers/nrf52
 INC_PATHS += -I$(SDK)/components/toolchain
 INC_PATHS += -I$(SDK)/components/drivers_nrf/hal
 INC_PATHS += -I$(SDK)/components/libraries/button
+INC_PATHS += -I$(SDK)/components/drivers_nrf/spi_master
 
 OBJECT_DIRECTORY = _build
 LISTING_DIRECTORY = $(OBJECT_DIRECTORY)
@@ -121,6 +125,7 @@ CFLAGS += -DNRF52_PAN_20
 CFLAGS += -DNRF52_PAN_64
 CFLAGS += -DNRF52_PAN_62
 CFLAGS += -DNRF52_PAN_63
+CFLAGS += -DNRF_LOG_USES_RTT
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs --std=gnu99
 CFLAGS += -Wall -Werror -O3 -g3
@@ -163,6 +168,7 @@ ASMFLAGS += -DNRF52_PAN_20
 ASMFLAGS += -DNRF52_PAN_64
 ASMFLAGS += -DNRF52_PAN_62
 ASMFLAGS += -DNRF52_PAN_63
+ASMFLAGS += -DNRF_LOG_USES_RTT
 
 #default target - first one defined
 default: clean ruuvitag_b2_eddystone
