@@ -61,9 +61,7 @@
 // Eddystone URL data
 #define APP_EDDYSTONE_URL_FRAME_TYPE    0x10                              /**< URL Frame type is fixed at 0x10. */
 #define APP_EDDYSTONE_URL_SCHEME        0x00                              /**< 0x00 = "http://www" URL prefix scheme according to specification. */
-#define APP_EDDYSTONE_URL_URL           0x6e, 0x6f, 0x72, 0x64, \
-                                        0x69, 0x63, 0x73, 0x65, \
-                                        0x6d,0x69, 0x00                   /**< "nordicsemi.com". Last byte suffix 0x00 = ".com" according to specification. */ 
+
 // Eddystone TLM data
 #define APP_EDDYSTONE_TLM_FRAME_TYPE    0x20                              /**< TLM frame type is fixed at 0x20. */
 #define APP_EDDYSTONE_TLM_VERSION       0x00                              /**< TLM version might change in the future to accommodate other data according to specification. */
@@ -81,38 +79,12 @@ volatile uint32_t time = 0;
 
 static ble_gap_adv_params_t m_adv_params;                                 /**< Parameters to be passed to the stack when starting advertising. */
 
-//static uint8_t eddystone_url_data[] =   /**< Information advertised by the Eddystone URL frame type. */
-//{
-//    APP_EDDYSTONE_URL_FRAME_TYPE,   // Eddystone URL frame type.
-//    APP_EDDYSTONE_RSSI,             // RSSI value at 0 m.
-//    APP_EDDYSTONE_URL_SCHEME,       // Scheme or prefix for URL ("http", "http://www", etc.)
-//    APP_EDDYSTONE_URL_URL           // URL with a maximum length of 17 bytes. Last byte is suffix (".com", ".org", etc.)
-//};
-
-/** @snippet [Eddystone UID data] */
-static uint8_t eddystone_uid_data[] =   /**< Information advertised by the Eddystone UID frame type. */
-{
-    APP_EDDYSTONE_UID_FRAME_TYPE,   // Eddystone UID frame type.
-    APP_EDDYSTONE_RSSI,             // RSSI value at 0 m.
-    APP_EDDYSTONE_UID_NAMESPACE,    // 10-byte namespace value. Similar to Beacon Major.
-    APP_EDDYSTONE_UID_ID,           // 6-byte ID value. Similar to Beacon Minor.
-    APP_EDDYSTONE_UID_RFU           // Reserved for future use.
-};
-/** @snippet [Eddystone UID data] */
-
-static uint8_t eddystone_tlm_data[] =   /**< Information advertised by the Eddystone TLM frame type. */
-{
-    APP_EDDYSTONE_TLM_FRAME_TYPE,   // Eddystone TLM frame type.
-    APP_EDDYSTONE_TLM_VERSION,      // Eddystone TLM version.
-    APP_EDDYSTONE_TLM_BATTERY,      // Battery voltage in mV/bit.
-    APP_EDDYSTONE_TLM_TEMPERATURE,  // Temperature [C].
-    APP_EDDYSTONE_TLM_ADV_COUNT,    // Number of advertisements since power-up or reboot.
-    APP_EDDYSTONE_TLM_SEC_COUNT     // Time since power-up or reboot. 0.1 s increments.
-};
 
 // BASE91
-static char *ibuf, *obuf;
 static struct basE91 b91;
+char url_buffer[19] = {'r', 'u', 'u', '.', 'v', 'i', '#'};
+size_t enc_data_len = 0;
+
 
 
 /**@brief Callback function for asserts in the SoftDevice.
@@ -131,27 +103,21 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
     app_error_handler(DEAD_BEEF, line_num, p_file_name);
 }
 
-/**@brief Function to update telemetry information
- *
- */
-static void advertising_update(float temperature, uint32_t frame_ct, uint32_t time)
+
+// Configure Eddystone-URL frame
+static void advertise_url_init(void)
 {
-	uint32_t      	err_code;
-	uint32_t 		frame_ct_swapped = swap_u32(frame_ct);
-	uint32_t 		time_swapped = swap_u32(time);
-	uint16_t 		temp_fix = float2fix((double)temperature);
-    ble_advdata_t 	advdata;
-    uint8_t       	flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
-    ble_uuid_t    	adv_uuids[] = {{APP_EDDYSTONE_UUID, BLE_UUID_TYPE_BLE}};
+    uint32_t      err_code;
+    ble_advdata_t advdata;
+    uint8_t       flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+    ble_uuid_t    adv_uuids[] = {{APP_EDDYSTONE_UUID, BLE_UUID_TYPE_BLE}};
 
     uint8_array_t eddystone_data_array;                             // Array for Service Data structure.
 /** @snippet [Eddystone data array] */
-    eddystone_data_array.p_data = (uint8_t *) eddystone_tlm_data;   // Pointer to the data to advertise.
-	eddystone_data_array.p_data[4] = temp_fix >> 8;
-	eddystone_data_array.p_data[5] = temp_fix;
-	memcpy(&eddystone_data_array.p_data[6], &frame_ct_swapped, 4);
-	memcpy(&eddystone_data_array.p_data[10], &time_swapped, 4);
-    eddystone_data_array.size = sizeof(eddystone_tlm_data);         // Size of the data to advertise.
+    eddystone_data_array.p_data = (uint8_t *) url_buffer;   // Pointer to the data to advertise.
+    // eddystone_data_array.size = sizeof(url_buffer);         // Size of the data to advertise.
+    eddystone_data_array.size = 10 + enc_data_len;         // Size of the data to advertise.
+
 /** @snippet [Eddystone data array] */
 
     ble_advdata_service_data_t service_data;                        // Structure to hold Service Data.
@@ -170,47 +136,24 @@ static void advertising_update(float temperature, uint32_t frame_ct, uint32_t ti
 
     err_code = ble_advdata_set(&advdata, NULL);
     APP_ERROR_CHECK(err_code);
-}
 
-static void advertise_uid(void)
-{
-	uint32_t      	err_code;
-    ble_advdata_t 	advdata;
-    uint8_t       	flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
-    ble_uuid_t    	adv_uuids[] = {{APP_EDDYSTONE_UUID, BLE_UUID_TYPE_BLE}};
+    // Initialize advertising parameters (used when starting advertising).
+    memset(&m_adv_params, 0, sizeof(m_adv_params));
 
-    uint8_array_t eddystone_data_array;                             // Array for Service Data structure.
-/** @snippet [Eddystone data array] */
-    eddystone_data_array.p_data = (uint8_t *) eddystone_uid_data;   // Pointer to the data to advertise.
-    eddystone_data_array.size = sizeof(eddystone_uid_data);         // Size of the data to advertise.
-/** @snippet [Eddystone data array] */
-
-    ble_advdata_service_data_t service_data;                        // Structure to hold Service Data.
-    service_data.service_uuid = APP_EDDYSTONE_UUID;                 // Eddystone UUID to allow discoverability on iOS devices.
-    service_data.data = eddystone_data_array;                       // Array for service advertisement data.
-
-    // Build and set advertising data.
-    memset(&advdata, 0, sizeof(advdata));
-
-    advdata.name_type               = BLE_ADVDATA_NO_NAME;
-    advdata.flags                   = flags;
-    advdata.uuids_complete.uuid_cnt = sizeof(adv_uuids) / sizeof(adv_uuids[0]);
-    advdata.uuids_complete.p_uuids  = adv_uuids;
-    advdata.p_service_data_array    = &service_data;                // Pointer to Service Data structure.
-    advdata.service_data_count      = 1;
-
-    err_code = ble_advdata_set(&advdata, NULL);
-    APP_ERROR_CHECK(err_code);
+    m_adv_params.type        = BLE_GAP_ADV_TYPE_ADV_NONCONN_IND;
+    m_adv_params.p_peer_addr = NULL;                                // Undirected advertisement.
+    m_adv_params.fp          = BLE_GAP_ADV_FP_ANY;
+    m_adv_params.interval    = NON_CONNECTABLE_ADV_INTERVAL;
+    m_adv_params.timeout     = APP_CFG_NON_CONN_ADV_TIMEOUT;
 }
 
 
-/**@brief Function for starting advertising.
- */
+
+
+/**@brief Function for starting advertising **/
 static void advertising_start(void)
 {
     uint32_t err_code;
-	
-	
     // Initialize advertising parameters (used when starting advertising).
     memset(&m_adv_params, 0, sizeof(m_adv_params));
 
@@ -229,7 +172,6 @@ static void advertising_start(void)
 
 
 /**@brief Function for initializing the BLE stack.
- *
  * @details Initializes the SoftDevice and the BLE event interrupt.
  */
 static void ble_stack_init(void)
@@ -260,11 +202,18 @@ static void ble_stack_init(void)
  */
 static void power_manage(void)
 {
-	   // int32_t volatile temp;
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
-	
 }
+
+struct ruuvi_sensor_t
+{
+uint8_t     format;         // Includes time format
+uint8_t     humidity;      	// one lsb is 0.5%
+uint16_t	temperature;    // Signed 8.8 fixed-point notation.
+uint16_t    pressure;       // Todo
+uint16_t    time;           // Seconds, minutes or hours from beginning
+};
 
 
 /**
@@ -272,27 +221,32 @@ static void power_manage(void)
  */
 int main(void)
 {    
-	char buffer [50];
     NRF_LOG_INIT();
-    NRF_LOG("Initializing Ruuvitag b2...\n");
+    NRF_LOG("Initializing RuuviTag b2...\n");
 
     uint32_t err_code;
-	uint32_t frame_count = 0;
-	float temp = 0;
+	float temperature = 0;
+	float pressure = 0;
+	float humidity = 0;
+    float temperature_tot = 0;
+    float pressure_tot = 0;
+    float humidity_tot = 0;   
+    float temperature_temp = 0;
+    float pressure_temp = 0;
+    float humidity_temp = 0;
+    uint8_t mainloop_count = 0;
+    
+	struct ruuvi_sensor_t sensordata;
 	
 	spi_initialize();
 	
 	nrf_gpio_pin_dir_set(LED_2, NRF_GPIO_PIN_DIR_OUTPUT);
 	nrf_gpio_cfg_output(LED_2); 
- 
 	nrf_gpio_pin_clear(LED_2); 
-	
-	nrf_delay_ms(500);
-	
-
+    
+	nrf_delay_ms(100);
 	
 	BME280Settings settings;
-	
 	settings.humidOverSample = 1;
 	settings.pressOverSample = 1;
 	settings.tempOverSample = 1;
@@ -310,59 +264,127 @@ int main(void)
     ble_stack_init();
 
     LEDS_ON(LEDS_MASK);
-    // Start execution.
-    advertising_start();
 
     // BASE91 INIT
     basE91_init(&b91);
+	
+    
+    
+	// Encode value 0xFFFFFFFFFFFFFFFF:
+	// long long temp2 = 0xFFFFFFFFFFFFFFFF;
+	// size_t s;
+	char buffer_base91_out [50] = {0};
+    
+#if 0
+	s =	basE91_encode(&b91, &temp2, sizeof(long long), buffer_base91_out);
+	s += basE91_encode_end(&b91, buffer_base91_out+s);
 
+	NRF_LOG("Decoded value 0xFFFFFFFFFFFFFFFF to: ");
+	NRF_LOG(buffer_base91_out);
+	NRF_LOG("\n\r");
+	
+	nrf_delay_ms(1000);    
+#endif
+    
+
+    // Fill the URL buffer (No sensor readings yet) 
+    url_buffer[0] = APP_EDDYSTONE_URL_FRAME_TYPE; // Eddystone URL frame type
+    url_buffer[1] = APP_EDDYSTONE_RSSI; // RSSI value at 0 m
+    url_buffer[2] = APP_EDDYSTONE_URL_SCHEME; // Scheme or prefix for URL ("http", "http://www", etc.)
+    url_buffer[3] = 0x72; // r
+    url_buffer[4] = 0x75; // u
+    url_buffer[5] = 0x75; // u
+    url_buffer[6] = 0x2e; // .
+    url_buffer[7] = 0x76; // v
+    url_buffer[8] = 0x69; // i
+    url_buffer[9] = 0x23; // #        // URL with a maximum length of 17 bytes. Last byte is suffix (".com", ".org", etc.)
+    url_buffer[10] = 0x2e; // .
+    url_buffer[11] = 0x2e; // .
+    url_buffer[12] = 0x2e; // .
+    url_buffer[13] = 0x2e; // .
+    url_buffer[14] = 0x2e; // .
+    url_buffer[15] = 0x2e; // .
+    url_buffer[16] = 0x2e; // .
+    url_buffer[17] = 0x2e; // .
+    url_buffer[18] = 0x2e; // .
+    
+    
+    advertise_url_init(); // Initialize URL buffer etc.
+    advertising_start(); // Start execution
+    
+    time = 0; // Reset time counter
+    
     // Enter main loop.
-    for (;; )
-    {				
-		temp = readTemperature();
-		sprintf (buffer, "Temperature: %f, Pressure: %f, Altitude: %f, Humidity: %f\n", temp, readPressure(), readAltitudeMeters(), readHumidity());
-		NRF_LOG_PRINTF(0, "Buffer: ", buffer);
-		memset(buffer, 0, sizeof(buffer));
-		NRF_LOG_PRINTF(0, "Temperature: %d, Pressure: %d, Altitude: %d, Humidity: %d\n", (int)temp, (int)readPressure(), (int)readAltitudeMeters(), (int)readHumidity());
-		power_manage();
-		advertising_update(temp, frame_count++, time++);
-		nrf_delay_ms(250);
-		advertise_uid();
-		nrf_delay_ms(250);
+    for (;;)
+    {	        
+        power_manage();
         
+        nrf_delay_ms(1000);    
         
-        
-        // BASE91 ENCODING:
-        
-        // Dummy values for the encoder
-        char sensor_values[16] = {0x35, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39, 0x39};
-        
-        ibuf = &sensor_values[0];
-        
-        size_t itotal = 0;
-	    size_t ototal = 0;
-	    size_t s = 16;
-        
-        NRF_LOG("Values to be encoded (HEX): ");
-        for(int i=0; i<s; i++) { NRF_LOG_HEX_CHAR(ibuf[i]); }
-        NRF_LOG("\n");
-        
-        while (s > 0) {
-            itotal += s;
-            s = basE91_encode(&b91, ibuf, s, obuf);
-            ototal += s;
+        /** Measure n times and calculate average **/
+        temperature_tot = 0;
+        pressure_tot = 0;
+        humidity_tot = 0;
+        for (int i = 0; i<10; i++) {
+            temperature_tot += readTemperature();
+            pressure_tot += readPressure();
+            humidity_tot += readHumidity();
+            nrf_delay_ms(100);
         }
-	    s = basE91_encode_end(&b91, obuf);	/* empty bit queue */
-	    ototal += s;
-               
-        //basE91_encode(&b91, ibuf, ibuf_size, obuf);
-        //basE91_encode_end(&b91, obuf);	/* empty bit queue */
-
-        NRF_LOG("Encoded data (HEX): ");
-        for(int i=0; i<ototal; i++) { NRF_LOG_HEX_CHAR(obuf[i]); }
-        NRF_LOG("\n");  
+        temperature = temperature_tot / 10;
+        pressure = pressure_tot / 10;
+        humidity = humidity_tot / 10;
         
-        // END OF BASE91 ENCODING
+        
+        // Check if need to encode only if the same URL is sent already for 5 mainloop cycles
+        if ((mainloop_count >= 5))
+        {
+            // Encode only if the values has changed. Otherwise advertise the old value
+            if ((temperature != temperature_temp) || (pressure != pressure_temp) || (humidity != humidity_temp))
+            {
+                // Fill the data structure here
+                sensordata.format 		= 1;
+                sensordata.temperature 	= float2fix((double)temperature);
+                sensordata.humidity 	= (uint8_t)(humidity*2);
+                sensordata.pressure		= (uint16_t)((double)pressure-50000.0); // We need some extra conversion here
+                sensordata.time			= time;
+                
+                // Encode using Base91 library
+                memset(&buffer_base91_out, 0, sizeof(buffer_base91_out)); 
+                enc_data_len =	basE91_encode(&b91, &sensordata, sizeof(sensordata), buffer_base91_out);
+                enc_data_len += basE91_encode_end(&b91, buffer_base91_out + enc_data_len);
+                memset(&b91, 0, sizeof(b91));
+
+                // Fill the URL buffer
+                url_buffer[0] = APP_EDDYSTONE_URL_FRAME_TYPE;
+                url_buffer[1] = APP_EDDYSTONE_RSSI;
+                url_buffer[2] = APP_EDDYSTONE_URL_SCHEME;
+                url_buffer[3] = 0x72; // r
+                url_buffer[4] = 0x75; // u
+                url_buffer[5] = 0x75; // u
+                url_buffer[6] = 0x2e; // .
+                url_buffer[7] = 0x76; // v
+                url_buffer[8] = 0x69; // i
+                url_buffer[9] = 0x23; // #        
+
+                /** We've got 18-7=11 characters available.
+                    Encoding 64 bits using Base91 produces max 9 value. All good. **/
+                memcpy(&url_buffer[10], &buffer_base91_out, enc_data_len);
+                
+                if (enc_data_len != 9) advertise_url_init(); // Initialize again
+                
+                // Remember the sent values so that we can compare later do we want to encode again or not
+                temperature_temp = temperature;
+                pressure_temp = pressure;
+                humidity_temp = humidity;
+                mainloop_count = 1;
+            }
+        } 
+        else
+        {
+            mainloop_count++;
+        }
+        time++;
     }
 }
 
