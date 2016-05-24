@@ -65,6 +65,7 @@ $(SDK)/components/ble/common/ble_conn_params.c \
 $(SDK)/components/ble/common/ble_srv_common.c \
 $(SDK)/components/toolchain/system_nrf52.c \
 $(SDK)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
+#$(SDK)/components/drivers_nrf/timer/nrf_drv_timer.c \
 
 #assembly files common to all targets
 ASM_SOURCE_FILES  = $(SDK)/components/toolchain/gcc/gcc_startup_nrf52.s
@@ -94,6 +95,7 @@ INC_PATHS += -I$(SDK)/components/toolchain
 INC_PATHS += -I$(SDK)/components/drivers_nrf/hal
 INC_PATHS += -I$(SDK)/components/libraries/button
 INC_PATHS += -I$(SDK)/components/drivers_nrf/spi_master
+#INC_PATHS += -I$(SDK)/components/drivers_nrf/timer
 
 OBJECT_DIRECTORY = _build
 LISTING_DIRECTORY = $(OBJECT_DIRECTORY)
