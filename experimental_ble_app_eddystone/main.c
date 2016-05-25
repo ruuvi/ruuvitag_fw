@@ -60,7 +60,7 @@
 
 // Eddystone URL data
 #define APP_EDDYSTONE_URL_FRAME_TYPE    0x10                              /**< URL Frame type is fixed at 0x10. */
-#define APP_EDDYSTONE_URL_SCHEME        0x00                              /**< 0x00 = "http://www" URL prefix scheme according to specification. */
+#define APP_EDDYSTONE_URL_SCHEME        0x02                              /**< 0x02 = "http://" URL prefix scheme according to specification. */
 
 // Eddystone TLM data
 #define APP_EDDYSTONE_TLM_FRAME_TYPE    0x20                              /**< TLM frame type is fixed at 0x20. */
@@ -116,7 +116,7 @@ static void advertise_url_init(void)
 /** @snippet [Eddystone data array] */
     eddystone_data_array.p_data = (uint8_t *) url_buffer;   // Pointer to the data to advertise.
     // eddystone_data_array.size = sizeof(url_buffer);         // Size of the data to advertise.
-    eddystone_data_array.size = 10 + enc_data_len;         // Size of the data to advertise.
+    eddystone_data_array.size = 11 + enc_data_len;         // Size of the data to advertise.
 
 /** @snippet [Eddystone data array] */
 
@@ -206,6 +206,7 @@ static void power_manage(void)
     APP_ERROR_CHECK(err_code);
 }
 
+// Sensor values
 struct ruuvi_sensor_t
 {
 uint8_t     format;         // Includes time format
@@ -213,6 +214,16 @@ uint8_t     humidity;      	// one lsb is 0.5%
 uint16_t	temperature;    // Signed 8.8 fixed-point notation.
 uint16_t    pressure;       // Todo
 uint16_t    time;           // Seconds, minutes or hours from beginning
+};
+
+// Last sent values
+struct temp_ruuvi_sensor_t
+{
+uint8_t     format; 
+uint8_t     humidity;  
+uint16_t	temperature; 
+uint16_t    pressure;
+uint16_t    time;  
 };
 
 
@@ -231,12 +242,14 @@ int main(void)
     float temperature_tot = 0;
     float pressure_tot = 0;
     float humidity_tot = 0;   
-    float temperature_temp = 0;
-    float pressure_temp = 0;
-    float humidity_temp = 0;
+    //float temperature_temp = 0;
+    //float pressure_temp = 0;
+    //float humidity_temp = 0;
     uint8_t mainloop_count = 0;
+    char log_buffer[100] = {0};
     
 	struct ruuvi_sensor_t sensordata;
+    struct temp_ruuvi_sensor_t sensortemp;
 	
 	spi_initialize();
 	
@@ -255,8 +268,8 @@ int main(void)
 	settings.tStandby = 0;
 	
 	bme280_initialize(settings);
-    NRF_LOG_PRINTF(0, "BME280 init completed.\n");
-	NRF_LOG_PRINTF(0, "Temperature %f!\n", readTemperature());
+    //NRF_LOG_PRINTF(0, "BME280 init completed.\n");
+	//NRF_LOG_PRINTF(0, "Temperature %f!\n", readTemperature());
 	
     APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
     err_code = bsp_init(BSP_INIT_LED, APP_TIMER_TICKS(100, APP_TIMER_PRESCALER), NULL);
@@ -269,24 +282,8 @@ int main(void)
     basE91_init(&b91);
 	
     
-    
-	// Encode value 0xFFFFFFFFFFFFFFFF:
-	// long long temp2 = 0xFFFFFFFFFFFFFFFF;
-	// size_t s;
 	char buffer_base91_out [50] = {0};
     
-#if 0
-	s =	basE91_encode(&b91, &temp2, sizeof(long long), buffer_base91_out);
-	s += basE91_encode_end(&b91, buffer_base91_out+s);
-
-	NRF_LOG("Decoded value 0xFFFFFFFFFFFFFFFF to: ");
-	NRF_LOG(buffer_base91_out);
-	NRF_LOG("\n\r");
-	
-	nrf_delay_ms(1000);    
-#endif
-    
-
     // Fill the URL buffer (No sensor readings yet) 
     url_buffer[0] = APP_EDDYSTONE_URL_FRAME_TYPE; // Eddystone URL frame type
     url_buffer[1] = APP_EDDYSTONE_RSSI; // RSSI value at 0 m
@@ -307,9 +304,10 @@ int main(void)
     url_buffer[16] = 0x2e; // .
     url_buffer[17] = 0x2e; // .
     url_buffer[18] = 0x2e; // .
+    url_buffer[19] = 0x2e; // .
     
     
-    advertise_url_init(); // Initialize URL buffer etc.
+    advertise_url_init(); // Initialize Eddystone-URL
     advertising_start(); // Start execution
     
     time = 0; // Reset time counter
@@ -334,20 +332,32 @@ int main(void)
         temperature = temperature_tot / 10;
         pressure = pressure_tot / 10;
         humidity = humidity_tot / 10;
+ 
+        // Fill the data structure here
+        sensordata.format 		= 1;
+        sensordata.humidity 	= (uint8_t)(humidity*2);
+        sensordata.temperature 	= float2fix((double)temperature);
+        sensordata.pressure		= (uint16_t)((double)pressure-50000.0);
+        sensordata.time			= time;
+        
         
         
         // Check if need to encode only if the same URL is sent already for 5 mainloop cycles
         if ((mainloop_count >= 5))
         {
             // Encode only if the values has changed. Otherwise advertise the old value
-            if ((temperature != temperature_temp) || (pressure != pressure_temp) || (humidity != humidity_temp))
+            if ((sensordata.temperature != sensortemp.temperature)
+                || (sensordata.pressure != sensortemp.pressure) 
+                || (sensordata.humidity != sensortemp.humidity))
             {
-                // Fill the data structure here
-                sensordata.format 		= 1;
-                sensordata.temperature 	= float2fix((double)temperature);
-                sensordata.humidity 	= (uint8_t)(humidity*2);
-                sensordata.pressure		= (uint16_t)((double)pressure-50000.0); // We need some extra conversion here
-                sensordata.time			= time;
+                sprintf(log_buffer, "Humidity: %f, Temperature: %f, Pressure: %f\n", humidity, temperature, pressure);
+                NRF_LOG(log_buffer);
+	            NRF_LOG("\n\r");
+                
+                sprintf (log_buffer, "Format: %d, Humi: %d, Temp: %d, Press: %d, Time: %d\n", sensordata.format, sensordata.humidity, sensordata.temperature, sensordata.pressure, sensordata.time);
+                NRF_LOG(log_buffer);
+	            NRF_LOG("\n\r");
+
                 
                 // Encode using Base91 library
                 memset(&buffer_base91_out, 0, sizeof(buffer_base91_out)); 
@@ -365,18 +375,23 @@ int main(void)
                 url_buffer[6] = 0x2e; // .
                 url_buffer[7] = 0x76; // v
                 url_buffer[8] = 0x69; // i
-                url_buffer[9] = 0x23; // #        
+                url_buffer[9] = 0x2f; // i
+                url_buffer[10] = 0x23; // #        
 
                 /** We've got 18-7=11 characters available.
                     Encoding 64 bits using Base91 produces max 9 value. All good. **/
                 memcpy(&url_buffer[10], &buffer_base91_out, enc_data_len);
                 
+                NRF_LOG("Encoded: ");
+	            NRF_LOG(buffer_base91_out);
+	            NRF_LOG("\n\r");
+                
                 if (enc_data_len != 9) advertise_url_init(); // Initialize again
                 
                 // Remember the sent values so that we can compare later do we want to encode again or not
-                temperature_temp = temperature;
-                pressure_temp = pressure;
-                humidity_temp = humidity;
+                sensortemp.humidity = sensordata.humidity;
+                sensortemp.temperature = sensordata.temperature;
+                sensortemp.pressure = sensordata.pressure;
                 mainloop_count = 1;
             }
         } 
