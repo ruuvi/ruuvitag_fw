@@ -60,7 +60,7 @@
 
 // Eddystone URL data
 #define APP_EDDYSTONE_URL_FRAME_TYPE    0x10                              /**< URL Frame type is fixed at 0x10. */
-#define APP_EDDYSTONE_URL_SCHEME        0x02                              /**< 0x02 = "http://" URL prefix scheme according to specification. */
+#define APP_EDDYSTONE_URL_SCHEME        0x03                              /**< 0x03 = "https://" URL prefix scheme according to specification. */
 
 // Eddystone TLM data
 #define APP_EDDYSTONE_TLM_FRAME_TYPE    0x20                              /**< TLM frame type is fixed at 0x20. */
@@ -116,7 +116,7 @@ static void advertise_url_init(void)
 /** @snippet [Eddystone data array] */
     eddystone_data_array.p_data = (uint8_t *) url_buffer;   // Pointer to the data to advertise.
     // eddystone_data_array.size = sizeof(url_buffer);         // Size of the data to advertise.
-    eddystone_data_array.size = 11 + enc_data_len;         // Size of the data to advertise.
+    eddystone_data_array.size = 10 + enc_data_len;         // Size of the data to advertise.
 
 /** @snippet [Eddystone data array] */
 
@@ -304,7 +304,6 @@ int main(void)
     url_buffer[16] = 0x2e; // .
     url_buffer[17] = 0x2e; // .
     url_buffer[18] = 0x2e; // .
-    url_buffer[19] = 0x2e; // .
     
     
     advertise_url_init(); // Initialize Eddystone-URL
@@ -375,8 +374,7 @@ int main(void)
                 url_buffer[6] = 0x2e; // .
                 url_buffer[7] = 0x76; // v
                 url_buffer[8] = 0x69; // i
-                url_buffer[9] = 0x2f; // i
-                url_buffer[10] = 0x23; // #        
+                url_buffer[9] = 0x23; // #        
 
                 /** We've got 18-7=11 characters available.
                     Encoding 64 bits using Base91 produces max 9 value. All good. **/
