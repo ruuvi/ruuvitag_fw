@@ -1,4 +1,4 @@
-PROJECT_NAME := dfu_dual_bank_ble_s132_ruuvitag_b2
+PROJECT_NAME := dfu_dual_bank_ble_s132_ruuvitag_b3
 
 export OUTPUT_FILENAME
 #MAKEFILE_NAME := $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
@@ -105,7 +105,7 @@ BUILD_DIRECTORIES := $(sort $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY) $(LIS
 #flags common to all targets
 CFLAGS  = -DNRF52
 CFLAGS += -DBOARD_CUSTOM
-CFLAGS += -DBOARD_RUUVITAG_B2
+CFLAGS += -DBOARD_RUUVITAG_B3
 CFLAGS += -DNRF52_PAN_12
 CFLAGS += -DNRF52_PAN_15
 CFLAGS += -DNRF52_PAN_58
@@ -149,7 +149,7 @@ LDFLAGS += --specs=nano.specs -lc -lnosys
 ASMFLAGS += -x assembler-with-cpp
 ASMFLAGS += -DNRF52
 ASMFLAGS += -DBOARD_CUSTOM
-ASMFLAGS += -DBOARD_RUUVITAG_B2
+ASMFLAGS += -DBOARD_RUUVITAG_B3
 ASMFLAGS += -DNRF52_PAN_12
 ASMFLAGS += -DNRF52_PAN_15
 ASMFLAGS += -DNRF52_PAN_58
@@ -172,17 +172,17 @@ ASMFLAGS += -DSOFTDEVICE_PRESENT
 ASMFLAGS += -DNRF52_PAN_62
 ASMFLAGS += -DNRF52_PAN_63
 #default target - first one defined
-default: clean ruuvitag_b2_bootloader
+default: clean ruuvitag_b3_bootloader
 
 #building all targets
 all: clean
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e cleanobj
-	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e ruuvitag_b2_bootloader
+	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e ruuvitag_b3_bootloader
 
 #target for printing all targets
 help:
 	@echo following targets are available:
-	@echo 	ruuvitag_b2_bootloader
+	@echo 	ruuvitag_b3_bootloader
 
 
 C_SOURCE_FILE_NAMES = $(notdir $(C_SOURCE_FILES))
@@ -198,9 +198,9 @@ vpath %.s $(ASM_PATHS)
 
 OBJECTS = $(C_OBJECTS) $(ASM_OBJECTS)
 
-ruuvitag_b2_bootloader: OUTPUT_FILENAME := ruuvitag_b2_bootloader
-ruuvitag_b2_bootloader: LINKER_SCRIPT=../../../dfu_gcc_nrf52.ld
-ruuvitag_b2_bootloader: $(BUILD_DIRECTORIES) $(OBJECTS)
+ruuvitag_b3_bootloader: OUTPUT_FILENAME := ruuvitag_b3_bootloader
+ruuvitag_b3_bootloader: LINKER_SCRIPT=../../../dfu_gcc_nrf52.ld
+ruuvitag_b3_bootloader: $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo Linking target: $(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME).out
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e finalize

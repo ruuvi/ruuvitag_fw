@@ -13,7 +13,7 @@ SDK_HOME    := $(TOP)/$(SDK_DIR)
 
 DOWNLOAD_CMD ?= curl -O
 
-export SDK_HOME
+export $(SDK_HOME)
 
 .PHONY: all bootstrap fw bootloader
 
@@ -39,6 +39,7 @@ $(SDK_FILE):
 bootloader:
 	@echo build bootloader
 	$(MAKE) -C bootloader/ruuvitag_b2/dual_bank_ble_s132/armgcc
+	$(MAKE) -C bootloader/ruuvitag_b3/dual_bank_ble_s132/armgcc
 
 clean:
 #	@echo cleaning FW build files…
