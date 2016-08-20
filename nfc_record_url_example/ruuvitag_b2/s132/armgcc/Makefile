@@ -4,7 +4,7 @@ export OUTPUT_FILENAME
 #MAKEFILE_NAME := $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 MAKEFILE_NAME := $(MAKEFILE_LIST)
 MAKEFILE_DIR := $(dir $(MAKEFILE_NAME) ) 
-SDK = ../../../nRF5_SDK_11.0.0_89a8197
+SDK = ../../../../nRF5_SDK_11.0.0_89a8197
 
 TEMPLATE_PATH = $(SDK)/components/toolchain/gcc
 ifeq ($(OS),Windows_NT)
@@ -24,14 +24,14 @@ NO_ECHO := @
 endif
 
 # Toolchain commands
-CC              := '$(GNU_PREFIX)-gcc'
-AS              := '$(GNU_PREFIX)-as'
-AR              := '$(GNU_PREFIX)-ar' -r
-LD              := '$(GNU_PREFIX)-ld'
-NM              := '$(GNU_PREFIX)-nm'
-OBJDUMP         := '$(GNU_PREFIX)-objdump'
-OBJCOPY         := '$(GNU_PREFIX)-objcopy'
-SIZE            := '$(GNU_PREFIX)-size'
+CC              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc'
+AS              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-as'
+AR              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ar' -r
+LD              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ld'
+NM              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-nm'
+OBJDUMP         := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objdump'
+OBJCOPY         := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objcopy'
+SIZE            := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-size'
 
 #function for removing duplicates in a list
 remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-out $(firstword $1),$1))))
@@ -52,7 +52,7 @@ $(SDK)/components/drivers_nrf/common/nrf_drv_common.c \
 $(SDK)/components/drivers_nrf/uart/nrf_drv_uart.c \
 $(SDK)/components/drivers_nrf/nrf_soc_nosd/nrf_nvic.c \
 $(SDK)/components/drivers_nrf/nrf_soc_nosd/nrf_soc.c \
-../../main.c \
+../../../main.c \
 $(SDK)/external/segger_rtt/RTT_Syscalls_GCC.c \
 $(SDK)/external/segger_rtt/SEGGER_RTT.c \
 $(SDK)/external/segger_rtt/SEGGER_RTT_printf.c \
@@ -70,14 +70,14 @@ ASM_SOURCE_FILES  = $(SDK)/components/toolchain/gcc/gcc_startup_nrf52.s
 LIBS  = $(SDK)/components/nfc/t2t_lib/nfc_t2t_lib_gcc.a
 
 #includes common to all targets
-INC_PATHS  = -I../../../board_configs
-INC_PATHS += -I../../config
+INC_PATHS  = -I../../../../board_configs
+INC_PATHS += -I../../../config
+INC_PATHS += -I../../..
 INC_PATHS += -I$(SDK)/examples/bsp
 INC_PATHS += -I$(SDK)/components/device
 INC_PATHS += -I$(SDK)/components/drivers_nrf/hal
 INC_PATHS += -I$(SDK)/components/nfc/ndef/generic/record
 INC_PATHS += -I$(SDK)/components/toolchain/CMSIS/Include
-INC_PATHS += -I../..
 INC_PATHS += -I$(SDK)/components/libraries/util
 INC_PATHS += -I$(SDK)/components/drivers_nrf/uart
 INC_PATHS += -I$(SDK)/components/drivers_nrf/config
@@ -103,7 +103,7 @@ OUTPUT_BINARY_DIRECTORY = $(OBJECT_DIRECTORY)
 BUILD_DIRECTORIES := $(sort $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY) $(LISTING_DIRECTORY) )
 
 #flags common to all targets
-CFLAGS  = -DNRF_LOG_USES_UART=1
+CFLAGS  = -DNRF_LOG_USES_UART=0
 CFLAGS += -DNRF52_PAN_12
 CFLAGS += -DNRF52_PAN_15
 CFLAGS += -DNRF52_PAN_58
@@ -142,7 +142,7 @@ LDFLAGS += --specs=nano.specs -lc -lnosys
 
 # Assembler flags
 ASMFLAGS += -x assembler-with-cpp
-ASMFLAGS += -DNRF_LOG_USES_UART=1
+ASMFLAGS += -DNRF_LOG_USES_UART=0
 ASMFLAGS += -DNRF52_PAN_12
 ASMFLAGS += -DNRF52_PAN_15
 ASMFLAGS += -DNRF52_PAN_58
