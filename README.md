@@ -17,15 +17,15 @@ We also host some ready binaries so it's not necessary to setup a development en
 Extract the GCC tarball. Other destinations are also ok, but this one is used often:
 `sudo mkdir -p /usr/local && cd /usr/local && sudo tar xjf ~/Downloads/gcc-arm-none-eabi-4_xxxxxxxx.tar.bz2`
 
-To add to path create a file `/etc/paths.d/arm-gcc` with content:
-
-`/usr/local/gcc-arm-none-eabi-4_9-2015q3/bin`
+Toolchain path is defined in SDK Makefile, so adding the gcc-arm-none-eabi binaries to path is unnecessary.
 
 ### Prerequisites (to create DFU distribution .zip packages)
 
 Instructions how to install (on OS X):
 
 `git clone https://github.com/NordicSemiconductor/pc-nrfutil.git`
+
+`git checkout 0_5_2`
 
 `cd pc-nrfutil`
 
@@ -38,6 +38,7 @@ Instructions how to install (on OS X):
 `sudo python setup.py install`
 
 `nrfutil version`
+`> nrfutil version 0.5.2`
 
 How to use it (to include the application code):
 
@@ -55,7 +56,13 @@ Zip created at /Users/lauri/Dropbox/RuuviTag_SoftDevice_and_bootloader_sdk11.zip
 
 # Compiling
 
-`make` downloads Nordic Semiconductor's nRF52 SDK and extracts it. After that builds the bootloader (and the FW if not commented in Makefile).
+`make` downloads Nordic Semiconductor's nRF52 SDK and extracts it. First time use will probably fail as SDK Makefile defines the path of toolchain, and the default path might differ from your system. 
+
+Modify $SDK/components/toolchain/gcc/Makefile.posix (on Linux and OSX) or Makefile.windows on windows
+to point to your gcc-arm install location. 
+
+Second time running `make` builds all the sources, currently B2 and B3 bootloaders and nfc-record-url example. 
+
 `make clean` cleans the build directories.
 
 For more help, please request an invite to Ruuvi Community's Slack channel by emailing us an informal request: slack@ruuvi.com

@@ -232,13 +232,15 @@ uint16_t    time;
  */
 int main(void)
 {    
-    NRF_LOG_INIT();
-    NRF_LOG("Initializing RuuviTag b2...\n");
+    uint32_t err_code = NRF_LOG_INIT(); //XXX UNUSED
+    if(!err_code)
+    {
+        NRF_LOG("Initializing RuuviTag b2...\n");
+    }
 
-    uint32_t err_code;
-	float temperature = 0;
-	float pressure = 0;
-	float humidity = 0;
+    float temperature = 0;
+    float pressure = 0;
+    float humidity = 0;
     float temperature_tot = 0;
     float pressure_tot = 0;
     float humidity_tot = 0;   

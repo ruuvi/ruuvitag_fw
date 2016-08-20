@@ -13,7 +13,7 @@ SDK_HOME    := $(TOP)/$(SDK_DIR)
 
 DOWNLOAD_CMD ?= curl -O
 
-export SDK_HOME
+export $(SDK_HOME)
 
 .PHONY: all bootstrap fw bootloader
 
@@ -32,16 +32,23 @@ $(SDK_FILE):
 
 
 
-#fw:
-#	@echo build FW
-#	$(MAKE) -C fw/ruuvitag_b2/s132/armgcc
+fw:
+	@echo build FW
+	$(MAKE) -C nfc_record_url_example/ruuvitag_b2/s132/armgcc
+	$(MAKE) -C nfc_record_url_example/ruuvitag_b3/s132/armgcc
+	$(MAKE) -C experimental_ble_app_eddystone/ruuvitag_b2/s132/armgcc
+	$(MAKE) -C experimental_ble_app_eddystone/ruuvitag_b3/s132/armgcc
 
 bootloader:
 	@echo build bootloader
 	$(MAKE) -C bootloader/ruuvitag_b2/dual_bank_ble_s132/armgcc
+	$(MAKE) -C bootloader/ruuvitag_b3/dual_bank_ble_s132/armgcc
 
 clean:
-#	@echo cleaning FW build files…
-#	$(MAKE) -C fw/ruuvitag_b2/s132/armgcc clean
-	@echo cleaning bootloader build files…
+	@echo cleaning B2 build files…
+	$(MAKE) -C nfc_record_url_example/ruuvitag_b2/s132/armgcc clean
 	$(MAKE) -C bootloader/ruuvitag_b2/dual_bank_ble_s132/armgcc clean
+
+	@echo cleaning B3 build files…
+	$(MAKE) -C nfc_record_url_example/ruuvitag_b3/s132/armgcc clean
+	$(MAKE) -C bootloader/ruuvitag_b3/dual_bank_ble_s132/armgcc clean
