@@ -24,14 +24,14 @@ NO_ECHO := @
 endif
 
 # Toolchain commands
-CC              := '$(GNU_PREFIX)-gcc'
-AS              := '$(GNU_PREFIX)-as'
-AR              := '$(GNU_PREFIX)-ar' -r
-LD              := '$(GNU_PREFIX)-ld'
-NM              := '$(GNU_PREFIX)-nm'
-OBJDUMP         := '$(GNU_PREFIX)-objdump'
-OBJCOPY         := '$(GNU_PREFIX)-objcopy'
-SIZE            := '$(GNU_PREFIX)-size'
+CC              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc'
+AS              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-as'
+AR              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ar' -r
+LD              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-ld'
+NM              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-nm'
+OBJDUMP         := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objdump'
+OBJCOPY         := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-objcopy'
+SIZE            := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-size'
 
 #function for removing duplicates in a list
 remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-out $(firstword $1),$1))))
@@ -56,15 +56,15 @@ $(SDK)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c \
 $(SDK)/components/drivers_nrf/uart/nrf_drv_uart.c \
 $(SDK)/components/drivers_nrf/spi_master/nrf_drv_spi.c \
 $(SDK)/examples/bsp/bsp.c \
-../../../main.c \
-../../../spi.c \
-../../../bme280.c \
-../../../base91.c \
 $(SDK)/components/ble/common/ble_advdata.c \
 $(SDK)/components/ble/common/ble_conn_params.c \
 $(SDK)/components/ble/common/ble_srv_common.c \
 $(SDK)/components/toolchain/system_nrf52.c \
 $(SDK)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
+../../../main.c \
+../../../spi.c \
+../../../bme280.c \
+../../../base91.c 
 #$(SDK)/components/drivers_nrf/timer/nrf_drv_timer.c \
 
 #assembly files common to all targets
@@ -105,7 +105,8 @@ OUTPUT_BINARY_DIRECTORY = $(OBJECT_DIRECTORY)
 BUILD_DIRECTORIES := $(sort $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY) $(LISTING_DIRECTORY) )
 
 #flags common to all targets
-CFLAGS  = -DNRF52
+CFLAGS  = -DNRF_LOG_USES_UART=0
+CFLAGS += -DNRF52
 CFLAGS += -DSOFTDEVICE_PRESENT
 CFLAGS += -DBOARD_CUSTOM
 CFLAGS += -DBOARD_RUUVITAG_B2
@@ -127,7 +128,6 @@ CFLAGS += -DNRF52_PAN_20
 CFLAGS += -DNRF52_PAN_64
 CFLAGS += -DNRF52_PAN_62
 CFLAGS += -DNRF52_PAN_63
-CFLAGS += -DNRF_LOG_USES_RTT
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs --std=gnu99
 CFLAGS += -Wall -Werror -O3 -g3
@@ -146,6 +146,7 @@ LDFLAGS += -Wl,--gc-sections
 LDFLAGS += --specs=nano.specs -lc -lnosys
 
 # Assembler flags
+ASMFLAGS += -DNRF_LOG_USES_UART=0
 ASMFLAGS += -x assembler-with-cpp
 ASMFLAGS += -DNRF52
 ASMFLAGS += -DSOFTDEVICE_PRESENT
@@ -169,7 +170,6 @@ ASMFLAGS += -DNRF52_PAN_20
 ASMFLAGS += -DNRF52_PAN_64
 ASMFLAGS += -DNRF52_PAN_62
 ASMFLAGS += -DNRF52_PAN_63
-ASMFLAGS += -DNRF_LOG_USES_RTT
 
 #default target - first one defined
 default: clean ruuvitag_b2_eddystone

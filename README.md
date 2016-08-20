@@ -25,6 +25,8 @@ Instructions how to install (on OS X):
 
 `git clone https://github.com/NordicSemiconductor/pc-nrfutil.git`
 
+`git checkout 0_5_2`
+
 `cd pc-nrfutil`
 
 `curl -O https://bootstrap.pypa.io/get-pip.py`
@@ -36,6 +38,7 @@ Instructions how to install (on OS X):
 `sudo python setup.py install`
 
 `nrfutil version`
+`> nrfutil version 0.5.2`
 
 How to use it (to include the application code):
 

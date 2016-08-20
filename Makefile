@@ -36,6 +36,8 @@ fw:
 	@echo build FW
 	$(MAKE) -C nfc_record_url_example/ruuvitag_b2/s132/armgcc
 	$(MAKE) -C nfc_record_url_example/ruuvitag_b3/s132/armgcc
+	$(MAKE) -C experimental_ble_app_eddystone/ruuvitag_b2/s132/armgcc
+	$(MAKE) -C experimental_ble_app_eddystone/ruuvitag_b3/s132/armgcc
 
 bootloader:
 	@echo build bootloader

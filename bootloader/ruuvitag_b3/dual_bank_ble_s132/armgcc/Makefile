@@ -17,11 +17,11 @@ MK := mkdir
 RM := rm -rf
 
 #echo suspend
-#ifeq ("$(VERBOSE)","1")
-#NO_ECHO := 
-#else
-#NO_ECHO := @
-#endif
+ifeq ("$(VERBOSE)","1")
+NO_ECHO := 
+else
+NO_ECHO := @
+endif
 
 # Toolchain commands
 CC              := '$(GNU_INSTALL_ROOT)/bin/$(GNU_PREFIX)-gcc'

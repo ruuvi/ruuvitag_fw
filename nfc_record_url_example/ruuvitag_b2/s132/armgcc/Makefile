@@ -174,7 +174,7 @@ all: clean
 #target for printing all targets
 help:
 	@echo following targets are available:
-	@echo 	ruuvitag_b2_nfc_record_url_example
+	@echo ruuvitag_b2_nfc_record_url_example
 
 C_SOURCE_FILE_NAMES = $(notdir $(C_SOURCE_FILES))
 C_PATHS = $(call remduplicates, $(dir $(C_SOURCE_FILES) ) )
