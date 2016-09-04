@@ -56,7 +56,7 @@ void spi_transfer_bme280(uint8_t *to_write, uint8_t count, uint8_t *to_read)
  */
 void spi_initialize(void)
 {
-	nrf_drv_spi_config_t spi_config = NRF_DRV_SPI_DEFAULT_CONFIG(SPI_INSTANCE);
+	nrf_drv_spi_config_t spi_config = NRF_DRV_SPI_DEFAULT_CONFIG;
 	spi_config.sck_pin = SPIM0_SCK_PIN;
 	spi_config.miso_pin = SPIM0_MISO_PIN;
 	spi_config.mosi_pin = SPIM0_MOSI_PIN;

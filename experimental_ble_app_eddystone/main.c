@@ -32,7 +32,10 @@
 #include "nrf_delay.h"
 #include "spi.h"
 #include "base91.h"
+
+#define NRF_LOG_MODULE_NAME "APP"
 #include "nrf_log.h"
+#include "nrf_log_ctrl.h"
 
 #define swap_u32(num) ((num>>24)&0xff) | ((num<<8)&0xff0000) | ((num>>8)&0xff00) | ((num<<24)&0xff000000);
 #define float2fix(a) ((int)((a)*256.0))         						  //Convert float to fix. a is a float
@@ -47,7 +50,7 @@
 
 // Eddystone common data
 #define APP_EDDYSTONE_UUID              0xFEAA                            /**< UUID for Eddystone beacons according to specification. */
-#define APP_EDDYSTONE_RSSI              240                              /**< 0xEE = -18 dB is the approximate signal strength at 0 m. */
+#define APP_EDDYSTONE_RSSI              0xEE                              /**< 0xEE = -18 dB is the approximate signal strength at 0 m. */
 
 // Eddystone UID data
 #define APP_EDDYSTONE_UID_FRAME_TYPE    0x00                              /**< UID frame type is fixed at 0x00. */
@@ -232,10 +235,10 @@ uint16_t    time;
  */
 int main(void)
 {    
-    uint32_t err_code = NRF_LOG_INIT(); //XXX UNUSED
+    uint8_t err_code = NRF_LOG_INIT(NULL); //XXX UNUSED
     if(!err_code)
     {
-        NRF_LOG("Initializing RuuviTag b2...\n");
+        NRF_LOG_INFO("Initializing RuuviTag b2...\n");
     }
 
     float temperature = 0;
@@ -248,7 +251,6 @@ int main(void)
     //float pressure_temp = 0;
     //float humidity_temp = 0;
     uint8_t mainloop_count = 0;
-    char log_buffer[100] = {0};
     
 	struct ruuvi_sensor_t sensordata;
     struct temp_ruuvi_sensor_t sensortemp;
@@ -351,13 +353,8 @@ int main(void)
                 || (sensordata.pressure != sensortemp.pressure) 
                 || (sensordata.humidity != sensortemp.humidity))
             {
-                sprintf(log_buffer, "Humidity: %f, Temperature: %f, Pressure: %f\n", humidity, temperature, pressure);
-                NRF_LOG(log_buffer);
-	            NRF_LOG("\n\r");
-                
-                sprintf (log_buffer, "Format: %d, Humi: %d, Temp: %d, Press: %d, Time: %d\n", sensordata.format, sensordata.humidity, sensordata.temperature, sensordata.pressure, sensordata.time);
-                NRF_LOG(log_buffer);
-	            NRF_LOG("\n\r");
+
+
 
                 
                 // Encode using Base91 library
@@ -382,9 +379,6 @@ int main(void)
                     Encoding 64 bits using Base91 produces max 9 value. All good. **/
                 memcpy(&url_buffer[10], &buffer_base91_out, enc_data_len);
                 
-                NRF_LOG("Encoded: ");
-	            NRF_LOG(buffer_base91_out);
-	            NRF_LOG("\n\r");
                 
                 if (enc_data_len != 9) advertise_url_init(); // Initialize again
                 
