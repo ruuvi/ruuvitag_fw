@@ -42,12 +42,16 @@ ui_*.h
 # Private data
 keys
 
-# Other ignores
+# Build directories
 
 _build
+
+#SDKs
 nRF52_SDK_0.9.2_dbc28c9
 nRF52_SDK_0.9.2_dbc28c9.zip
 nRF5_SDK_11.0.0-2.alpha_bc3f6a0
 nRF5_SDK_11.0.0-2.alpha_bc3f6a0.zip
 nRF5_SDK_11.0.0_89a8197
 nRF5_SDK_11.0.0_89a8197.zip
+nRF5_SDK_12.0.0_12f24da
+nRF5_SDK_12.0.0_12f24da.zip
