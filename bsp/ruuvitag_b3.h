@@ -29,6 +29,11 @@
 #define BSP_BUTTON_0_MASK (1<<BSP_BUTTON_0)
 #define BUTTONS_MASK   (BSP_BUTTON_0_MASK) // or 0x00002000, 13th bit
 
+// XXX A workaround to use Nordic SDK 12.0.0 DFU bootloader code which relies on BSP_BUTTON_3
+// and BSP_LED_2
+#define BSP_BUTTON_3 BUTTON_1 
+#define BSP_LED_2 LED_1
+
 #define HWFC           false
 
 #define SPIM0_SCK_PIN     29  // SPI clock

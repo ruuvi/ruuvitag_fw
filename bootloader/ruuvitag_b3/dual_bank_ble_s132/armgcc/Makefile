@@ -5,7 +5,7 @@ OUTPUT_DIRECTORY := _build
 SDK_ROOT := $(abspath ../../../../nRF5_SDK_12.0.0_12f24da)
 PROJ_DIR := $(abspath ../../..)
 
-$(OUTPUT_DIRECTORY)/nrf52832_xxaa_s132.out: \
+$(OUTPUT_DIRECTORY)/ruuvitag_b3_bootloader.out: \
   LINKER_SCRIPT  := $(SDK_ROOT)/examples/dfu/bootloader_secure/secure_dfu_gcc_nrf52.ld
 # Source files common to all targets
 SRC_FILES += \
@@ -165,7 +165,6 @@ ASMFLAGS += -DNRF52_PAN_62
 ASMFLAGS += -DNRF52_PAN_63
 
 # Linker flags
-LDFLAGS += -Xlinker -Map=$(LISTING_DIRECTORY)/$(OUTPUT_FILENAME).map
 LDFLAGS += -mthumb -mabi=aapcs -L $(TEMPLATE_PATH) -T$(LINKER_SCRIPT)
 LDFLAGS += -mcpu=cortex-m4
 LDFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
@@ -174,13 +173,6 @@ LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs -lc -lnosys
 
-
-
-
-
-
-
-.PHONY: $(TARGETS) default all clean help flash 
 
 # Default target - first one defined
 default: clean ruuvitag_b3_bootloader

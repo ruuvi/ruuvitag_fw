@@ -39,6 +39,9 @@ ui_*.h
 *.qmlproject.user
 *.qmlproject.user.*
 
+# Private data
+keys
+
 # Other ignores
 
 _build
