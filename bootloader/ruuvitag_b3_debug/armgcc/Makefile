@@ -1,15 +1,20 @@
-PROJECT_NAME := dfu_dual_bank_ble_s132_ruuvitag_b3
+PROJECT_NAME     := bootloader_dfu_ble_s132_ruuvitag_b3_debug
 TARGETS          := ruuvitag_b3_bootloader
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := $(abspath ../../../../nRF5_SDK_12.0.0_12f24da)
-PROJ_DIR := $(abspath ../../..)
+SDK_ROOT := $(abspath ../../../nRF5_SDK_12.0.0_12f24da)
+PROJ_DIR := $(abspath ../..)
 
 $(OUTPUT_DIRECTORY)/ruuvitag_b3_bootloader.out: \
-  LINKER_SCRIPT  := $(SDK_ROOT)/examples/dfu/bootloader_secure/secure_dfu_gcc_nrf52.ld
+  LINKER_SCRIPT  := secure_dfu_gcc_nrf52_debug.ld
 # Source files common to all targets
 SRC_FILES += \
+  $(PROJ_DIR)/dfu_public_key.c \
   $(PROJ_DIR)/main.c \
+  $(SDK_ROOT)/examples/dfu/bootloader_secure/dfu-cc.pb.c \
+  $(SDK_ROOT)/examples/dfu/bootloader_secure/dfu_req_handling.c \
+  $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
+  $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
   $(SDK_ROOT)/components/libraries/util/app_error_weak.c \
   $(SDK_ROOT)/components/libraries/fifo/app_fifo.c \
   $(SDK_ROOT)/components/libraries/scheduler/app_scheduler.c \
@@ -23,18 +28,18 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \
   $(SDK_ROOT)/components/libraries/crypto/nrf_crypto.c \
   $(SDK_ROOT)/components/libraries/sha256/sha256.c \
+  $(SDK_ROOT)/external/nano-pb/pb_common.c \
+  $(SDK_ROOT)/external/nano-pb/pb_decode.c \
   $(SDK_ROOT)/components/drivers_nrf/common/nrf_drv_common.c \
   $(SDK_ROOT)/components/drivers_nrf/rng/nrf_drv_rng.c \
   $(SDK_ROOT)/components/drivers_nrf/hal/nrf_nvmc.c \
   $(SDK_ROOT)/components/libraries/bootloader/ble_dfu/nrf_ble_dfu.c \
-  $(SDK_ROOT)/examples/dfu/bootloader_secure/dfu-cc.pb.c \
-  $(SDK_ROOT)/examples/dfu/bootloader_secure/dfu_public_key.c \
-  $(SDK_ROOT)/examples/dfu/bootloader_secure/dfu_req_handling.c \
+  $(SDK_ROOT)/external/segger_rtt/RTT_Syscalls_GCC.c \
+  $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
+  $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
   $(SDK_ROOT)/components/ble/common/ble_advdata.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_params.c \
   $(SDK_ROOT)/components/ble/common/ble_srv_common.c \
-  $(SDK_ROOT)/external/nano-pb/pb_common.c \
-  $(SDK_ROOT)/external/nano-pb/pb_decode.c \
   $(SDK_ROOT)/components/toolchain/gcc/gcc_startup_nrf52.S \
   $(SDK_ROOT)/components/toolchain/system_nrf52.c \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
@@ -51,9 +56,9 @@ SRC_FILES += \
 
 # Include folders common to all targets
 INC_FOLDERS += \
-  $(PROJ_DIR) \
-  $(PROJ_DIR)/config \
   $(PROJ_DIR)/../bsp \
+  $(PROJ_DIR) \
+  $(PROJ_DIR)/ruuvitag_b3_debug/config \
   $(SDK_ROOT)/components/toolchain/cmsis/include \
   $(SDK_ROOT)/components/drivers_nrf/rng \
   $(SDK_ROOT)/components/toolchain \
@@ -74,7 +79,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/drivers_nrf/delay \
   $(SDK_ROOT)/components/ble/common \
   $(SDK_ROOT)/components/libraries/fifo \
-  $(SDK_ROOT)/components/libraries/bootloader/ble_dfu \
+  $(SDK_ROOT)/components/libraries/bootloader/ble_dfu/includes \
   $(SDK_ROOT)/components/libraries/svc \
   $(SDK_ROOT)/components/libraries/log \
   $(SDK_ROOT)/components/libraries/hci \
@@ -87,6 +92,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/bootloader/ble_dfu \
   $(SDK_ROOT)/external/nano-pb \
   $(SDK_ROOT)/components/libraries/ecc \
+  $(SDK_ROOT)/external/segger_rtt \
   $(SDK_ROOT)/components/toolchain/gcc \
 
 # Libraries common to all targets
@@ -100,6 +106,7 @@ CFLAGS += -DSVC_INTERFACE_CALL_AS_NORMAL_FUNCTION
 CFLAGS += -DBOARD_CUSTOM
 CFLAGS += -DBOARD_RUUVITAG_B3
 CFLAGS += -DNRF52832
+CFLAGS += -DNRF_DFU_DEBUG_VERSION
 CFLAGS += -DNRF52_PAN_12
 CFLAGS += -DNRF52_PAN_15
 CFLAGS += -DNRF52_PAN_58
@@ -142,6 +149,7 @@ ASMFLAGS += -DSVC_INTERFACE_CALL_AS_NORMAL_FUNCTION
 ASMFLAGS += -DBOARD_CUSTOM
 ASMFLAGS += -DBOARD_RUUVITAG_B3
 ASMFLAGS += -DNRF52832
+ASMFLAGS += -DNRF_DFU_DEBUG_VERSION
 ASMFLAGS += -DNRF52_PAN_12
 ASMFLAGS += -DNRF52_PAN_15
 ASMFLAGS += -DNRF52_PAN_58
@@ -174,8 +182,14 @@ LDFLAGS += -Wl,--gc-sections
 LDFLAGS += --specs=nano.specs -lc -lnosys
 
 
+
+
+
+
+
+.PHONY: $(TARGETS) default all clean help flash 
 # Default target - first one defined
-default: clean ruuvitag_b3_bootloader
+default: ruuvitag_b3_bootloader
 
 # Print all targets that can be built
 help:

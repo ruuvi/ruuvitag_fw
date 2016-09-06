@@ -39,9 +39,9 @@ fw:
 
 bootloader:
 	@echo build bootloader
-	$(MAKE) -C bootloader/ruuvitag_b3/dual_bank_ble_s132/armgcc
+	$(MAKE) -C bootloader/ruuvitag_b3_debug/armgcc
 
 clean:
 	@echo cleaning B3 build files…
 	$(MAKE) -C nfc_record_url_example/ruuvitag_b3/s132/armgcc clean
-	$(MAKE) -C bootloader/ruuvitag_b3/dual_bank_ble_s132/armgcc clean
+	$(MAKE) -C bootloader/ruuvitag_b3_debug/armgcc clean

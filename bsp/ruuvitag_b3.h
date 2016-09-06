@@ -34,6 +34,8 @@
 #define BSP_BUTTON_3 BUTTON_1 
 #define BSP_LED_2 LED_1
 
+#define RX_PIN_NUMBER  4
+#define TX_PIN_NUMBER  5
 #define HWFC           false
 
 #define SPIM0_SCK_PIN     29  // SPI clock
