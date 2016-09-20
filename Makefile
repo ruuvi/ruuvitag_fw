@@ -34,14 +34,15 @@ $(SDK_FILE):
 
 fw:
 	@echo build FW
-	$(MAKE) -C nfc_record_url_example/ruuvitag_b3/s132/armgcc
-	$(MAKE) -C experimental_ble_app_eddystone/ruuvitag_b3/s132/armgcc
+	$(MAKE) -C ruuvi_examples/ble_app_beacon/ruuvitag_b3/s132/armgcc
 
 bootloader:
 	@echo build bootloader
 	$(MAKE) -C bootloader/ruuvitag_b3_debug/armgcc
+	$(MAKE) -C bootloader/ruuvitag_b3_production/armgcc
 
 clean:
 	@echo cleaning B3 build files…
-	$(MAKE) -C nfc_record_url_example/ruuvitag_b3/s132/armgcc clean
+	$(MAKE) -C ruuvi_examples/ble_app_beacon/ruuvitag_b3/s132/armgcc clean
 	$(MAKE) -C bootloader/ruuvitag_b3_debug/armgcc clean
+	$(MAKE) -C bootloader/ruuvitag_b3_production/armgcc clean
