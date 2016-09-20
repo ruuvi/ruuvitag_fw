@@ -19,7 +19,8 @@
 #define LEDS_MASK      (BSP_LED_0_MASK | BSP_LED_1_MASK)
 #define LEDS_INV_MASK  LEDS_MASK // LEDs are lit when GPIO low
 
-#define BUTTONS_NUMBER 1
+// XXX A workaround to use Nordic SDK 12.0.0 DFU bootloader code which relies on BSP_BUTTON_3
+#define BUTTONS_NUMBER 3
 #define BUTTON_START   13
 #define BUTTON_1       13
 #define BUTTON_STOP    13
@@ -31,8 +32,10 @@
 
 // XXX A workaround to use Nordic SDK 12.0.0 DFU bootloader code which relies on BSP_BUTTON_3
 // and BSP_LED_2
+#define BSP_BUTTON_2 BUTTON_1 
 #define BSP_BUTTON_3 BUTTON_1 
 #define BSP_LED_2 LED_1
+
 
 #define RX_PIN_NUMBER  4
 #define TX_PIN_NUMBER  5
