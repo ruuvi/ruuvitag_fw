@@ -32,6 +32,7 @@ typedef enum
 	LIS2DH12_RET_NOT_SUPPORTED,	/**< Feature not supported at the moment */
 	LIS2DH12_RET_INVALID,		/**< Returned data may be not valid, because of Power Down Mode or Data not ready */
 	LIS2DH12_RET_NULL,			/**< NULL Pointer detected */
+	LIS2DH12_RET_ERROR_SELFTEST,/**< Selftest  failed */
     LIS2DH12_RET_ERROR     		/**< Not otherwise specified error */
 } LIS2DH12_Ret;
 
@@ -60,10 +61,10 @@ typedef void (*LIS2DH12_drdy_event_t)(void);
 /**
  * Initialize the Acceleration Sensor
  *
- * This Function initilizes the Acceleration Sensor LIS2DH12 to work with the SPI Interface. The
+ * This Function initializes the Acceleration Sensor LIS2DH12 to work with the SPI Interface. The
  * SPI Interface will be initialized by this function accordingly. This Function also set the
  * requested Power mode for the LIS2DH12. All Axis(x,y,z) will be enabled.
- * The Data Ready Callback Function can be used to get notifyed when new Data is available. But causen,
+ * The Data Ready Callback Function can be used to get notified when new Data is available. But causen,
  * the callback will be called in interrupt context. 
  *
  * @param[in] powerMode Requested Power Mode the LIS2DH12 should work with.
@@ -76,13 +77,31 @@ typedef void (*LIS2DH12_drdy_event_t)(void);
  */
 extern LIS2DH12_Ret LIS2DH12_init(LIS2DH12_PowerMode powerMode, LIS2DH12_Scale scale, LIS2DH12_drdy_event_t drdyCB);
 
+
+/**
+ * Change power mode
+ *
+ * This function changes the current power mode the acceleration sensor is running. In some use cases it useful for battery saving to
+ * run the sensor in a low power mode to detect the start of a movement and then switch to a higher resolution.
+ *
+ * Note: This function only works after correct initialization.
+ * Note: After changeing the power mode, it needs some time till new values are available, see datasheet for details
+ *
+ * @param[in] powerMode Requested Power Mode the LIS2DH12 should work with.
+ *
+ * @retval LIS2DH12_RET_OK          Change successful
+ * @retval LIS2DH12_RET_ERROR       Something went wrong
+ *
+ */
+extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode);
+
 /**
  * Return X acceleration
  *
  * @param[out] accX Acceleration in mG
  *
  * @retval LIS2DH12_RET_OK 			Data valid
- * @retval LIS2DH12_RET_INVALID 	Data invalid because of powerdown or data not ready
+ * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
  * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
 extern LES2DH12_Ret LIS2DH12_getXmG(int32_t* const accX);
@@ -93,7 +112,7 @@ extern LES2DH12_Ret LIS2DH12_getXmG(int32_t* const accX);
  * @param[out] accY Acceleration in mG
  *
  * @retval LIS2DH12_RET_OK 			Data valid
- * @retval LIS2DH12_RET_INVALID 	Data invalid because of powerdown or data not ready
+ * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
  * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
 extern LES2DH12_Ret LIS2DH12_getYmG(int32_t* const accY);
@@ -104,7 +123,7 @@ extern LES2DH12_Ret LIS2DH12_getYmG(int32_t* const accY);
  * @param[out] accZ Acceleration in mG
  *
  * @retval LIS2DH12_RET_OK 			Data valid
- * @retval LIS2DH12_RET_INVALID 	Data invalid because of powerdown or data not ready
+ * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
  * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
 extern LES2DH12_Ret LIS2DH12_getZmG(int32_t* const accZ);
@@ -117,7 +136,7 @@ extern LES2DH12_Ret LIS2DH12_getZmG(int32_t* const accZ);
  * @param[out] accZ Acceleration in mG
  *
  * @retval LIS2DH12_RET_OK 			Data valid
- * @retval LIS2DH12_RET_INVALID 	Data invalid because of powerdown or data not ready
+ * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
  * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
 extern LES2DH12_Ret LIS2DH12_getALLmG(int32_t* const accX, int32_t* const accY, int32_t* const accZ);
