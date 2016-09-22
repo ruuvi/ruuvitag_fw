@@ -3,6 +3,7 @@
 
 This repository is structured as follows:
 
+```
 .
 +-- bootloader
 |   +-- ruuvitag_HW_FLAVOR
@@ -35,7 +36,7 @@ This repository is structured as follows:
 +-- README.md
 +-- .gitignore
 |   +-- (SDK)
-
+```
 The Bootloader folder contains DFU bootloader which is used to upload new software to your RuuviTag
 without J-Link programmer, you can even use your smartphone and upload software over bluetooth.
 Starting from SDK12 the bootloader uses secure, signed packages. The encryption keys used to validate these
@@ -49,6 +50,11 @@ Builds folder contains compiled hexes of applications and bootloader, as well as
 Drivers folder contains the peripheral drivers such as a driver for SPI as well as drives for sensors on PCB. 
 
 Ruuvi examples has example firmware projects which can be used as a basis for your own application. 
+The top-level folder of application contains application code, and there is a subfolder for
+each hardware which can run the application. If the application requires softdevice,
+create a folder with softdevice name "s132" to let the users know that a softdevice is required.
+Configuration folder sets up peripherals and armgcc folder contains makefile and linker script.
+
 Please note that these examples inherit a lot of code from various sources and pay careful attention to 
 license and origin of each application.
 
