@@ -41,7 +41,7 @@ typedef enum
 /**
  * Initialize the SPI Wrapper
  */
-extern void spi_initialize(void);
+extern void spi_init(void);
 
 /**
  * Check if SPI Driver/Wrapper is initialized

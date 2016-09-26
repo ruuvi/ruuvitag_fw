@@ -41,7 +41,7 @@ static bool initDone = false;       /**< Flag to indicate if this module is alre
 
 /* EXTERNAL FUNCTIONS *****************************************************************************/
 
-extern void spi_initialize(void)
+extern void spi_init(void)
 {
     /* Conigure SPI Interface */
     nrf_drv_spi_config_t spi_config = NRF_DRV_SPI_DEFAULT_CONFIG;
