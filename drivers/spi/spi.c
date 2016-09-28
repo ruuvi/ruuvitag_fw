@@ -32,7 +32,7 @@ For a detailed description see the detailed description in @ref spi.h
 
 /* PROTOTYPES *************************************************************************************/
 
-
+void spi_event_handler(nrf_drv_spi_evt_t const * p_event);
 
 /* VARIABLES **************************************************************************************/
 static const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE);  /**< SPI instance. */

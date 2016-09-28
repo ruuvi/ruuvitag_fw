@@ -5,6 +5,8 @@
 
 SPI Wrapper for Ruuvitag that provides a SPI Transfer function for the Sensors using the SPI bus.
 
+Note: SPI and SPI0 have to be enabled in sdk_config.h in the project, to use this driver.
+
 Vesa Koskinen
 May 11, 2016
 
@@ -33,7 +35,7 @@ typedef enum
 {
     SPI_RET_OK = 0,   		    /**< Ok */
 	SPI_RET_BUSY = 1,			/**< Other SPI transfer in progress */
-    LIS2DH12_RET_ERROR = 2    	/**< Not otherwise specified error */
+    SPI_RET_ERROR = 2    	    /**< Not otherwise specified error */
 } SPI_Ret;
 
 /* PROTOTYPES *************************************************************************************/
