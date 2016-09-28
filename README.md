@@ -1,10 +1,68 @@
 # RuuviTag nRF52 Bootloader & Example firmware projects
 [![RuuviTag](http://ruuvitag.com/assets/images/fb_ruuvitag.jpg)](http://ruuvitag.com)
 
-This repo has at the moment:
+This repository is structured as follows:
 
-* Bootloader project (almost unmodified dual_bank_ble_s132 bootloader example project, outputs .hex)
-* Multiple example firmware projects
+```
+.
++-- bootloader
+|   +-- ruuvitag_HW_FLAVOR
+|   |   +-- armgcc
+|   |   |   +-- Makefile
+|   |   |   +-- Linkerscript
+|   |   +-- config
+|   |   |   +-- sdk_configuration
+|   |   +-- bootloader_files
++-- bsp
+|   +-- BSP files
++-- builds
+|   +-- distribution_packages
+|   +-- README.md
++-- drivers
+|   +-- bme280
++-- keys
+|   +-- ruuvi_open_private.pem
++-- ruuvi_examples
+|   +-- APPLICATION
+|   |   +-- ruuvitag_HW    
+|   |   |   +-- s132
+|   |   |   |   +-- armgcc
+|   |   |   |   |   +-- Makefile
+|   |   |   |   |   +-- Linkerscript
+|   |   |   |   +-- config
+|   |   |   |   |   +-- sdk_configuration
+|   |   +-- application files
++-- Makefile
++-- README.md
++-- .gitignore
+|   +-- (SDK)
+```
+The Bootloader folder contains DFU bootloader which is used to upload new software to your RuuviTag
+without J-Link programmer, you can even use your smartphone and upload software over bluetooth.
+Starting from SDK12 the bootloader uses secure, signed packages. The encryption keys used to validate these
+software packages is split in two parts: dfu_public_key.c and your private key in "keys" folder.
+More details on signing and keys are explained on DFU package creation section.
+
+BSP folder contains "Board Service Packages" which provide abstraction and portability between different boards. If you're interested in creating a custom board, create a custom board header file such as "ruuvitag_b3.h" and add your board header file to "custom_boards.h".
+
+Builds folder contains compiled hexes of applications and bootloader, as well as distribution packages signed with Ruuvi's open private key. 
+
+Drivers folder contains the peripheral drivers such as a driver for SPI as well as drives for sensors on PCB. 
+
+Ruuvi examples has example firmware projects which can be used as a basis for your own application. 
+The top-level folder of application contains application code, and there is a subfolder for
+each hardware which can run the application. If the application requires softdevice,
+create a folder with softdevice name "s132" to let the users know that a softdevice is required.
+Configuration folder sets up peripherals and armgcc folder contains makefile and linker script.
+
+Please note that these examples inherit a lot of code from various sources and pay careful attention to 
+license and origin of each application.
+
+The SDK folder contains Nordic Software development kit which is used to provide various 
+low-level drivers and abstractions to speed up development. We do not host the SDK to reduce the 
+size of repository, our makefile downloads and unzips the SDK if it is not present. 
+
+## Developing Ruuvi Firmware
 
 Instructions below are tested using OS X, but basically any Unix distribution (or even Windows) should be fine. If you've compiled and flashed successfully (or unsuccessfully), please identify yourself on our Slack :)
 
@@ -18,6 +76,7 @@ Extract the GCC tarball. Other destinations are also ok, but this one is used of
 `sudo mkdir -p /usr/local && cd /usr/local && sudo tar xjf ~/Downloads/gcc-arm-none-eabi-4_xxxxxxxx.tar.bz2`
 
 Toolchain path is defined in SDK Makefile, so adding the gcc-arm-none-eabi binaries to path is unnecessary.
+*Please remember to adjust the makefile in SDK/components/toolchain/gcc to point at your toolchain install location.* 
 
 ### Prerequisites (to create DFU distribution .zip packages)
 
@@ -25,7 +84,7 @@ Instructions how to install (on OS X):
 
 `git clone https://github.com/NordicSemiconductor/pc-nrfutil.git`
 
-`git checkout 0_5_2`
+`git checkout 1_5_0`
 
 `cd pc-nrfutil`
 
@@ -38,21 +97,15 @@ Instructions how to install (on OS X):
 `sudo python setup.py install`
 
 `nrfutil version`
-`> nrfutil version 0.5.2`
+`> nrfutil version 1.5.0`
 
-How to use it (to include the application code):
+To get started you can try:
 
-`nrfutil dfu genpkg --application path-of-your-app-code-hex-file.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe /Users/lauri/Dropbox/RuuviTag_ApplicationCode.zip`
+`nrfutil pkg generate --debug-mode --application app.hex --key-file key.pem app_dfu_package.zip`
+Debug mode skips various version checks which is useful for development. Packages have to be signed,
+RuuviTag ship with bootloader that accepts packages signed with _keys/ruuvi\_open\_private.pem_.
 
-If want to create distribution package that includes both bootloader and application code:
-
-`nrfutil dfu genpkg --bootloader bootloader/ruuvitag_b1/dual_bank_ble_s132/armgcc/_build/ruuvitag_b1_bootloader.hex --application fw/ruuvitag_b1/s132/armgcc/_build/ruuvitag_b1_fw.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe /Users/lauri/Dropbox/RuuviTag_Bootloader_and_FW.zip`
-
-If you would like to create a package that includes SoftDevice + bootloader, use this command:
-
-`nrfutil dfu genpkg --softdevice nRF5_SDK_11.0.0_89a8197/components/softdevice/s132/hex/s132_nrf52_2.0.0_softdevice.hex --bootloader bootloader/ruuvitag_b2/dual_bank_ble_s132/armgcc/_build/ruuvitag_b2_bootloader.hex --application-version 0xffff --dev-revision 0xff --dev-type 0xff --sd-req 0xfffe /Users/lauri/Dropbox/RuuviTag_SoftDevice_and_Bootloader.zip`
-
-Zip created at /Users/lauri/Dropbox/RuuviTag_SoftDevice_and_bootloader_sdk11.zip
+More examples and details can be found at [nrfutil repository](https://github.com/NordicSemiconductor/pc-nrfutil).
 
 # Compiling
 
@@ -61,8 +114,10 @@ Zip created at /Users/lauri/Dropbox/RuuviTag_SoftDevice_and_bootloader_sdk11.zip
 Modify $SDK/components/toolchain/gcc/Makefile.posix (on Linux and OSX) or Makefile.windows on windows
 to point to your gcc-arm install location. 
 
-Second time running `make` builds all the sources, currently B2 and B3 bootloaders and nfc-record-url example. 
+You need also add support for secure bootloader elliptic curve cryptography by installing micro-ECC inside
+SDK, details can be found at [Nordic Infocenter] (https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.0.0%2Flib_crypto.html)
 
+Second time running `make` builds all the sources. 
 `make clean` cleans the build directories.
 
 For more help, please request an invite to Ruuvi Community's Slack channel by emailing us an informal request: slack@ruuvi.com

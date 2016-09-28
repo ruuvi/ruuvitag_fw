@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<workspace>  <project>
+    <path>$WS_DIR$\pca10028\s130\iar\ble_app_beacon_pca10028_s130.ewp</path>
+  </project>  <project>
+    <path>$WS_DIR$\pca10040\s132\iar\ble_app_beacon_pca10040_s132.ewp</path>
+  </project>  <project>
+    <path>$WS_DIR$\pca20006\s130\iar\ble_app_beacon_pca20006_s130.ewp</path>
+  </project>  <batchBuild/>
+</workspace>
