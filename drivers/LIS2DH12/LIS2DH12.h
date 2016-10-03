@@ -25,15 +25,15 @@ extern "C"
 /* MACROS *****************************************************************************************/
 
 /* TYPES ******************************************************************************************/
-/** Statuses of the module */
+/** States of the module */
 typedef enum
 {
-    LIS2DH12_RET_OK = 0,   		/**< Ok */
-	LIS2DH12_RET_NOT_SUPPORTED,	/**< Feature not supported at the moment */
-	LIS2DH12_RET_INVALID,		/**< Returned data may be not valid, because of Power Down Mode or Data not ready */
-	LIS2DH12_RET_NULL,			/**< NULL Pointer detected */
-	LIS2DH12_RET_ERROR_SELFTEST,/**< Selftest  failed */
-    LIS2DH12_RET_ERROR     		/**< Not otherwise specified error */
+    LIS2DH12_RET_OK = 0,   		    /**< Ok */
+	LIS2DH12_RET_NOT_SUPPORTED = 1,	/**< Feature not supported at the moment */
+	LIS2DH12_RET_INVALID = 2,		/**< Returned data may be not valid, because of Power Down Mode or Data not ready */
+	LIS2DH12_RET_NULL = 4,			/**< NULL Pointer detected */
+	LIS2DH12_RET_ERROR_SELFTEST = 8,/**< Selftest  failed */
+    LIS2DH12_RET_ERROR = 16    		/**< Not otherwise specified error */
 } LIS2DH12_Ret;
 
 /** Available Power Modes for the LIS2DH12 */
@@ -48,9 +48,9 @@ typedef enum{
 /** Available Scales */
 typedef enum{
 	LIS2DH12_SCALE2G = 0,		/**< Scale Selection: +/- 2g */
-	LIS2DH12_SCALE4G,			/**< Scale Selection: +/- 4g */
-	LIS2DH12_SCALE8G,			/**< Scale Selection: +/- 8g */
-	LIS2DH12_SCALE16G			/**< Scale Selection: +/- 16g */
+	LIS2DH12_SCALE4G = 1,		/**< Scale Selection: +/- 4g */
+	LIS2DH12_SCALE8G = 2,		/**< Scale Selection: +/- 8g */
+	LIS2DH12_SCALE16G = 3		/**< Scale Selection: +/- 16g */
 }LIS2DH12_Scale;
 
 /** Data Ready Event Callback Type */
@@ -104,7 +104,7 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode);
  * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
  * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
-extern LES2DH12_Ret LIS2DH12_getXmG(int32_t* const accX);
+extern LIS2DH12_Ret LIS2DH12_getXmG(int32_t* const accX);
 
 /**
  * Return Y acceleration
@@ -115,7 +115,7 @@ extern LES2DH12_Ret LIS2DH12_getXmG(int32_t* const accX);
  * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
  * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
-extern LES2DH12_Ret LIS2DH12_getYmG(int32_t* const accY);
+extern LIS2DH12_Ret LIS2DH12_getYmG(int32_t* const accY);
 
 /**
  * Return Z acceleration
@@ -126,7 +126,7 @@ extern LES2DH12_Ret LIS2DH12_getYmG(int32_t* const accY);
  * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
  * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
-extern LES2DH12_Ret LIS2DH12_getZmG(int32_t* const accZ);
+extern LIS2DH12_Ret LIS2DH12_getZmG(int32_t* const accZ);
 
 /**
  * Return acceleration of all axis
@@ -139,7 +139,7 @@ extern LES2DH12_Ret LIS2DH12_getZmG(int32_t* const accZ);
  * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
  * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
-extern LES2DH12_Ret LIS2DH12_getALLmG(int32_t* const accX, int32_t* const accY, int32_t* const accZ);
+extern LIS2DH12_Ret LIS2DH12_getALLmG(int32_t* const accX, int32_t* const accY, int32_t* const accZ);
 
 #ifdef __cplusplus
 }

@@ -61,6 +61,16 @@
 
 // CTRL_REG1 masks
 #define LIS2DH_ODR_MASK 		0xF0
+#define LIS2DH_ODR_MASK_PWR_DWN 0x00 /*HR / Normal / Low Power */
+#define LIS2DH_ODR_MASK_1HZ     0x10 /*HR / Normal / Low Power */
+#define LIS2DH_ODR_MASK_10HZ    0x20 /*HR / Normal / Low Power */
+#define LIS2DH_ODR_MASK_25HZ    0x30 /*HR / Normal / Low Power */
+#define LIS2DH_ODR_MASK_50HZ    0x40 /*HR / Normal / Low Power */
+#define LIS2DH_ODR_MASK_100HZ   0x50 /*HR / Normal / Low Power */
+#define LIS2DH_ODR_MASK_200HZ   0x60 /*HR / Normal / Low Power */
+#define LIS2DH_ODR_MASK_400HZ   0x70 /*HR / Normal / Low Power */
+#define LIS2DH_ODR_MASK_1620HZ  0x80 /* Low Power Mode only */
+#define LIS2DH_ODR_MASK_HIGH_RES 0x90 /* in HR+Normal: 1344Hz, in Low Power 5376Hz */
 #define LIS2DH_LPEN_MASK 		0x08
 #define LIS2DH_Z_EN_MASK 		0x04
 #define LIS2DH_Y_EN_MASK 		0x02
@@ -79,6 +89,8 @@
 #define LIS2DH_I1_CLICK 		0x80
 #define LIS2DH_I1_AOI 			0x60
 #define LIS2DH_I1_DRDY 			0x18
+#define LIS2DH_I1_DRDY1         0x08
+#define LIS2DH_I1_DRDY2         0x10
 #define LIS2DH_I1_WTM 			0x04
 #define LIS2DH_I1_OVERRUN 		0x02
 
