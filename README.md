@@ -64,7 +64,7 @@ size of repository, our makefile downloads and unzips the SDK if it is not prese
 
 ## Developing Ruuvi Firmware
 
-Instructions below are tested using OS X, but basically any Unix distribution (or even Windows) should be fine. If you've compiled and flashed successfully (or unsuccessfully), please identify yourself on our Slack :)
+Instructions below are tested using OS X and Ubuntu, but basically any Unix distribution (or even Windows) should be fine. Compilation works also using the *Bash on Ubuntu on Windows* -feature added in the July 2016 update of Windows 10 if you follow the Ubuntu directions. If you've compiled and flashed successfully (or unsuccessfully), please identify yourself on our Slack :)
 
 We also host some ready binaries so it's not necessary to setup a development environment if you would be happy to use those. So, please check a `builds` directory first. If you would like to modify the firmware code, continue reading:
 
@@ -75,8 +75,16 @@ We also host some ready binaries so it's not necessary to setup a development en
 Extract the GCC tarball. Other destinations are also ok, but this one is used often:
 `sudo mkdir -p /usr/local && cd /usr/local && sudo tar xjf ~/Downloads/gcc-arm-none-eabi-4_xxxxxxxx.tar.bz2`
 
+* Or alternatively on Ubuntu you can use the official GNU ARM Embedded PPA:
+  * Step1: Inside Ubuntu, open a terminal and input
+    * `sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa`
+  * Step2: Continue to input
+    * `sudo apt-get update`
+  * Step3: Continue to input to install toolchain
+    * `sudo apt-get install gcc-arm-embedded`
+
 Toolchain path is defined in SDK Makefile, so adding the gcc-arm-none-eabi binaries to path is unnecessary.
-*Please remember to adjust the makefile in SDK/components/toolchain/gcc to point at your toolchain install location.* 
+*Please remember to adjust the makefile in SDK/components/toolchain/gcc to point at your toolchain install location. On Ubuntu this will be /usr if you used the PPA.* 
 
 ### Prerequisites (to create DFU distribution .zip packages)
 
