@@ -20,6 +20,8 @@ extern "C"
 #include <stdint.h>
 #include "app_error.h"
 
+#include "nrf_drv_gpiote.h"
+
 /* CONSTANTS **************************************************************************************/
 
 /* MACROS *****************************************************************************************/
@@ -140,6 +142,8 @@ extern LIS2DH12_Ret LIS2DH12_getZmG(int32_t* const accZ);
  * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
 extern LIS2DH12_Ret LIS2DH12_getALLmG(int32_t* const accX, int32_t* const accY, int32_t* const accZ);
+
+extern void gpiote_event_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action);
 
 #ifdef __cplusplus
 }

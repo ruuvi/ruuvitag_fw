@@ -16,12 +16,13 @@ For a detailed description see the detailed description in @ref LIS2DH12.h
 #include "spi.h"
 #include "nrf_drv_gpiote.h"
 #include "boards.h"
+#include "nrf_delay.h"
 
 #include <string.h>
 
 /* CONSTANTS **************************************************************************************/
 /** Maximum Size of SPI Addresses */
-#define ADR_MAX 0x1FU
+#define ADR_MAX 0x3FU
 
 /** Number of maximum SPI Transfer retries */
 #define RETRY_MAX 3U
@@ -64,7 +65,7 @@ LIS2DH12_Ret readRegister(uint8_t address, uint8_t* const p_toRead, uint8_t coun
 
 static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite);
 
-static void gpiote_event_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action);
+//static void gpiote_event_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action);
 
 
 /* VARIABLES **************************************************************************************/
@@ -101,12 +102,17 @@ extern LIS2DH12_Ret LIS2DH12_init(LIS2DH12_PowerMode powerMode, LIS2DH12_Scale s
             APP_ERROR_CHECK(nrf_drv_gpiote_init());
         }
         nrf_drv_gpiote_in_config_t config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(false);
+        config.hi_accuracy = true;
+        config.pull = NRF_GPIO_PIN_PULLDOWN;
         APP_ERROR_CHECK(nrf_drv_gpiote_in_init(INT_ACC1_PIN, &config, gpiote_event_handler));
+        nrf_drv_gpiote_in_event_enable(INT_ACC1_PIN, true);
 
         /* Set LIS2DH12 Interrupt 1 for Data Ready */
-        retVal |= writeRegister(LIS2DH_CTRL_REG3, LIS2DH_I1_DRDY1);
+        retVal |= writeRegister(LIS2DH_CTRL_REG3, 0x08);
+        nrf_delay_ms(1);
+        retVal |= writeRegister(LIS2DH_INT1_DURATION, 0x02);
 
-        /* save Scale, Scale is set together with resolution in setPowerMode (CRTL4)*/
+        /* save Scale, Scale is set together with resolution in setPowerMode (CRTL4) */
         g_scale = scale;
 
         /* Set Power Mode */
@@ -281,7 +287,7 @@ LIS2DH12_Ret readRegister(uint8_t address, uint8_t* const p_toRead, uint8_t coun
         retValSpi = spi_transfer_lis2dh12(writeBuf, (count + 1U), readBuf);
         ii++;
         }
-        while ((SPI_RET_BUSY == retValSpi) || (ii < RETRY_MAX)); /* Retry if SPI is busy */
+        while ((SPI_RET_BUSY == retValSpi) && (ii < RETRY_MAX)); /* Retry if SPI is busy */
 
         if (SPI_RET_OK == retValSpi)
         {
@@ -325,7 +331,7 @@ static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite)
             retValSpi = spi_transfer_lis2dh12(to_write, 2, to_read);
             ii++;
         }
-        while ((SPI_RET_BUSY == retValSpi) || (ii < RETRY_MAX)); /* Retry if SPI is busy */
+        while ((SPI_RET_BUSY == retValSpi) && (ii < RETRY_MAX)); /* Retry if SPI is busy */
 
         if (SPI_RET_OK == retValSpi)
         {
@@ -344,7 +350,7 @@ static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite)
     return retVal;
 }
 
-static void gpiote_event_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+extern void gpiote_event_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
     if (LIS2DH12_RET_OK == readRegister(LIS2DH_OUT_X_L, g_sensorData.raw, SENSOR_DATA_SIZE))
     {
