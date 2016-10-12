@@ -88,24 +88,31 @@ Toolchain path is defined in SDK Makefile, so adding the gcc-arm-none-eabi binar
 
 ### Prerequisites (to create DFU distribution .zip packages)
 
-Instructions how to install (on OS X):
+Instructions how to install (on OS X, Ubuntu):
 
-`git clone https://github.com/NordicSemiconductor/pc-nrfutil.git`
-
-`git checkout 1_5_0`
-
-`cd pc-nrfutil`
+Install pip:
 
 `curl -O https://bootstrap.pypa.io/get-pip.py`
 
 `sudo python get-pip.py`
+
+(Option 1) Install latest nrfutil from pip:
+
+`sudo pip install nrfutil`
+
+
+(Option 2) Install nrfutil from source:
+
+`git clone https://github.com/NordicSemiconductor/pc-nrfutil.git`
+
+`cd pc-nrfutil`
 
 `sudo pip install -r requirements.txt`
 
 `sudo python setup.py install`
 
 `nrfutil version`
-`> nrfutil version 1.5.0`
+`> nrfutil version 1.5.5`
 
 To get started you can try:
 
