@@ -30,6 +30,9 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #include "LIS2DH12.h"
+#include "nrf_delay.h"
+
+#include "nrf_drv_gpiote.h"
 
 #define DEAD_BEEF                       0xDEADBEEF                        /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
@@ -56,8 +59,8 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
  */
 static void power_manage(void)
 {
-    uint32_t err_code = sd_app_evt_wait();
-    APP_ERROR_CHECK(err_code);
+    //uint32_t err_code = sd_app_evt_wait();
+    //APP_ERROR_CHECK(err_code);
 }
 
 /**
@@ -66,6 +69,7 @@ static void power_manage(void)
 int main(void)
 {
     uint32_t err_code;
+    int32_t testX, testY, testZ;
     LIS2DH12_Ret Lis2dh12RetVal;
     // Initialize.
     err_code = NRF_LOG_INIT(NULL);
@@ -92,9 +96,13 @@ int main(void)
     // Enter main loop.
     for (;; )
     {
-        if (NRF_LOG_PROCESS() == false)
+        //if (NRF_LOG_PROCESS() == false)
         {
             power_manage();
+            nrf_delay_ms(500U);
+
+            LIS2DH12_getALLmG(&testX, &testY, &testZ);
+            //NRF_LOG_INFO ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d", testX, testY, testZ);
         }
     }
 }

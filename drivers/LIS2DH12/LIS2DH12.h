@@ -143,7 +143,6 @@ extern LIS2DH12_Ret LIS2DH12_getZmG(int32_t* const accZ);
  */
 extern LIS2DH12_Ret LIS2DH12_getALLmG(int32_t* const accX, int32_t* const accY, int32_t* const accZ);
 
-extern void gpiote_event_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action);
 
 #ifdef __cplusplus
 }

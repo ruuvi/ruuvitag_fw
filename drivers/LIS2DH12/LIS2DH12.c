@@ -65,7 +65,7 @@ LIS2DH12_Ret readRegister(uint8_t address, uint8_t* const p_toRead, uint8_t coun
 
 static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite);
 
-//static void gpiote_event_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action);
+static void gpiote_event_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action);
 
 
 /* VARIABLES **************************************************************************************/
@@ -107,16 +107,17 @@ extern LIS2DH12_Ret LIS2DH12_init(LIS2DH12_PowerMode powerMode, LIS2DH12_Scale s
         APP_ERROR_CHECK(nrf_drv_gpiote_in_init(INT_ACC1_PIN, &config, gpiote_event_handler));
         nrf_drv_gpiote_in_event_enable(INT_ACC1_PIN, true);
 
+        nrf_delay_ms(5);
+        /* Set Power Mode */
+        retVal |= LIS2DH12_setPowerMode(powerMode);
+
         /* Set LIS2DH12 Interrupt 1 for Data Ready */
-        retVal |= writeRegister(LIS2DH_CTRL_REG3, 0x08);
-        nrf_delay_ms(1);
+        retVal |= writeRegister(LIS2DH_CTRL_REG3, 0x18);
+
         retVal |= writeRegister(LIS2DH_INT1_DURATION, 0x02);
 
         /* save Scale, Scale is set together with resolution in setPowerMode (CRTL4) */
         g_scale = scale;
-
-        /* Set Power Mode */
-        retVal |= LIS2DH12_setPowerMode(powerMode);
     }
 
     return retVal;
@@ -350,7 +351,7 @@ static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite)
     return retVal;
 }
 
-extern void gpiote_event_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+static void gpiote_event_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
     if (LIS2DH12_RET_OK == readRegister(LIS2DH_OUT_X_L, g_sensorData.raw, SENSOR_DATA_SIZE))
     {
