@@ -1,7 +1,9 @@
-# RuuviTag nRF52 Bootloader & Example firmware projects
+# RuuviTag nRF52 Bootloader & Example firmware projects for Nordic SDK 11
 [![RuuviTag](http://ruuvitag.com/assets/images/fb_ruuvitag.jpg)](http://ruuvitag.com)
 
-This repo has at the moment:
+This branch has been deprecated, as RuuviTag has updated to Nordic SDK 12 at master branch. This branch will stay online for a reference to those who have received 
+RuuviTag B3 versions with Softdevice 2. This branch also has the demos which have been
+used to showcase RuuviTag's capablities:
 
 * Bootloader project (almost unmodified dual_bank_ble_s132 bootloader example project, outputs .hex)
 * Multiple example firmware projects
