@@ -31,6 +31,9 @@
 #include "app_error_weak.h"
 #include "nrf_bootloader_info.h"
 
+//  Set your own bootloader name at
+//  ./nRF5_SDK_12.0.0_12f24da/components/libraries/bootloader/ble_dfu/nrf_ble_dfu.c
+
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
     NRF_LOG_ERROR("received a fault! id: 0x%08x, pc: 0x&08x\r\n", id, pc);
@@ -64,7 +67,16 @@ static void buttons_init(void)
                              NRF_GPIO_PIN_SENSE_LOW);
 }
 
-
+/**@brief Function for configuring sensor GPIO to save power.
+    this can be safely run on boards with no sensors too.
+ */
+static void sensors_init(void)
+{
+    nrf_gpio_cfg_output(SPIM0_SS_ACC_PIN);
+    nrf_gpio_pin_set(SPIM0_SS_ACC_PIN);
+    nrf_gpio_cfg_output(SPIM0_SS_ACC_PIN);
+    nrf_gpio_pin_set(SPIM0_SS_ACC_PIN);
+}
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -77,6 +89,7 @@ int main(void)
 
     leds_init();
     buttons_init();
+    sensors_init();
 
     ret_val = nrf_bootloader_init();
     APP_ERROR_CHECK(ret_val);
