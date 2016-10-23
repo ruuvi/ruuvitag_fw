@@ -45,9 +45,9 @@ For a detailed description see the detailed description in @ref LIS2DH12.h
 /** Structure containing sensor data for all 3 axis */
 typedef struct
 {
-    int32_t x;
-    int32_t y;
-    int32_t z;
+    int16_t x;
+    int16_t y;
+    int16_t z;
 } acceleration_t;
 
 /** Union to split raw data to values for each axis */
