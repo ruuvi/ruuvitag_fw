@@ -17,6 +17,7 @@ For a detailed description see the detailed description in @ref LIS2DH12.h
 #include "nrf_drv_gpiote.h"
 #include "boards.h"
 #include "nrf_delay.h"
+#include "app_timer.h"
 
 #include <string.h>
 
@@ -65,7 +66,7 @@ LIS2DH12_Ret readRegister(uint8_t address, uint8_t* const p_toRead, uint8_t coun
 
 static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite);
 
-static void gpiote_event_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action);
+static void sampleEventHandler(void* pContext);
 
 
 /* VARIABLES **************************************************************************************/
@@ -75,12 +76,14 @@ static LIS2DH12_PowerMode g_powerMode = LIS2DH12_POWER_DOWN; /**< Current power 
 static LIS2DH12_Scale g_scale = LIS2DH12_SCALE2G;       /**< Selected scale */
 static bool g_drdy = false;                             /**< Data Ready flag */
 
+APP_TIMER_DEF(gLIS2DH12TimerId);
 
 /* EXTERNAL FUNCTIONS *****************************************************************************/
 
 extern LIS2DH12_Ret LIS2DH12_init(LIS2DH12_PowerMode powerMode, LIS2DH12_Scale scale, LIS2DH12_drdy_event_t drdyCB)
 {
     LIS2DH12_Ret retVal = LIS2DH12_RET_OK;
+    ret_code_t errCode = 0;
 
     /* Remember Callback. Note: NULL Pointer check not necessary, callback is optional */
     g_fp_drdyCb = drdyCB;
@@ -91,30 +94,16 @@ extern LIS2DH12_Ret LIS2DH12_init(LIS2DH12_PowerMode powerMode, LIS2DH12_Scale s
         spi_init();
     }
 
+    errCode = app_timer_create(&gLIS2DH12TimerId, APP_TIMER_MODE_REPEATED, sampleEventHandler);
+    APP_ERROR_CHECK(errCode);
+
     /* Start Selftest */
     retVal |= selftest();
 
     if (LIS2DH12_RET_OK == retVal)
     {
-        /* Configure GPIO Interrupt */
-        if (!nrf_drv_gpiote_is_init())
-        {
-            APP_ERROR_CHECK(nrf_drv_gpiote_init());
-        }
-        nrf_drv_gpiote_in_config_t config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(false);
-        config.hi_accuracy = true;
-        config.pull = NRF_GPIO_PIN_PULLDOWN;
-        APP_ERROR_CHECK(nrf_drv_gpiote_in_init(INT_ACC1_PIN, &config, gpiote_event_handler));
-        nrf_drv_gpiote_in_event_enable(INT_ACC1_PIN, true);
-
-        nrf_delay_ms(5);
         /* Set Power Mode */
         retVal |= LIS2DH12_setPowerMode(powerMode);
-
-        /* Set LIS2DH12 Interrupt 1 for Data Ready */
-        retVal |= writeRegister(LIS2DH_CTRL_REG3, 0x18);
-
-        retVal |= writeRegister(LIS2DH_INT1_DURATION, 0x02);
 
         /* save Scale, Scale is set together with resolution in setPowerMode (CRTL4) */
         g_scale = scale;
@@ -128,6 +117,8 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
     LIS2DH12_Ret retVal = LIS2DH12_RET_OK;
     uint8_t ctrl1RegVal = 0;
     uint8_t ctrl4RegVal = 0;
+    ret_code_t errCode = 0;
+    uint32_t cycleTime = 0;
 
     /* reset data ready flag, after changing power mode it needs some time till new data is available */
     g_drdy = false;
@@ -141,19 +132,24 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
     {
     case LIS2DH12_POWER_NORMAL:
         ctrl1RegVal |= LIS2DH_ODR_MASK_100HZ;
+        cycleTime = 10U;
         break;
     case LIS2DH12_POWER_LOW:
         ctrl1RegVal |= (LIS2DH_ODR_MASK_1HZ | LIS2DH_LPEN_MASK);
+        cycleTime= 1000U;
         break;
     case LIS2DH12_POWER_FAST:
         ctrl1RegVal |= (LIS2DH_ODR_MASK_1620HZ | LIS2DH_LPEN_MASK);
+        cycleTime = 1;
         break;
     case LIS2DH12_POWER_HIGHRES:
         ctrl1RegVal |= LIS2DH_ODR_MASK_HIGH_RES;
         ctrl4RegVal |= LIS2DH_HR_MASK;
+        cycleTime = 1;
         break;
     case LIS2DH12_POWER_DOWN:
         ctrl1RegVal = 0;
+        cycleTime = 0;
         break;
     default:
         retVal = LIS2DH12_RET_ERROR;
@@ -167,6 +163,18 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
 
     /* save power mode to check in get functions if power is enabled */
     g_powerMode = powerMode;
+
+    if (cycleTime > 0)
+    {
+        /* start sample timer with sample time according to selected sample frequency */
+        errCode = app_timer_start(gLIS2DH12TimerId, APP_TIMER_TICKS(cycleTime, 0), NULL);
+        APP_ERROR_CHECK(errCode);
+    }
+    else
+    {
+        errCode = app_timer_stop(gLIS2DH12TimerId);
+        APP_ERROR_CHECK(errCode);
+    }
 
     return retVal;
 }
@@ -351,7 +359,14 @@ static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite)
     return retVal;
 }
 
-static void gpiote_event_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+/**
+ * Event Handler that is called by the timer to read the sensor values.
+ *
+ * This is a workaround because data ready interrupt from LIS2DH12 is not working
+ *
+ * @param [in] pContext Timer Context
+ */
+static void sampleEventHandler(void* pContext)
 {
     if (LIS2DH12_RET_OK == readRegister(LIS2DH_OUT_X_L, g_sensorData.raw, SENSOR_DATA_SIZE))
     {
