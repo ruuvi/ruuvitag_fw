@@ -15,9 +15,13 @@ For a detailed description see the detailed description in @ref LIS2DH12.h
 #include "LIS2DH12_registers.h"
 #include "spi.h"
 #include "nrf_drv_gpiote.h"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+#include "nrf.h"
+#include "nrf_drv_timer.h"
+#include "bsp.h"
 #include "boards.h"
 #include "nrf_delay.h"
-#include "app_timer.h"
 
 #include <string.h>
 
@@ -39,6 +43,10 @@ For a detailed description see the detailed description in @ref LIS2DH12.h
 
 /** Bit Mask to enable auto address incrementation for multi read */
 #define SPI_ADR_INC 0x40U
+
+
+//XXX Move to main
+#define APP_TIMER_PRESCALER 0
 
 /* MACROS *****************************************************************************************/
 
@@ -65,8 +73,10 @@ static LIS2DH12_Ret selftest(void);
 LIS2DH12_Ret readRegister(uint8_t address, uint8_t* const p_toRead, uint8_t count);
 
 static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite);
-
-static void sampleEventHandler(void* pContext);
+///XXX Make timer instant constant in BSP / SPI Driver ?
+const nrf_drv_timer_t TIMER_SPI = NRF_DRV_TIMER_INSTANCE(0);
+nrf_drv_timer_config_t timer_cfg = NRF_DRV_TIMER_DEFAULT_CONFIG;
+void timer_spi_event_handler(nrf_timer_event_t event_type, void* p_context);
 
 
 /* VARIABLES **************************************************************************************/
@@ -76,14 +86,14 @@ static LIS2DH12_PowerMode g_powerMode = LIS2DH12_POWER_DOWN; /**< Current power 
 static LIS2DH12_Scale g_scale = LIS2DH12_SCALE2G;       /**< Selected scale */
 static bool g_drdy = false;                             /**< Data Ready flag */
 
-APP_TIMER_DEF(gLIS2DH12TimerId);
+
 
 /* EXTERNAL FUNCTIONS *****************************************************************************/
 
 extern LIS2DH12_Ret LIS2DH12_init(LIS2DH12_PowerMode powerMode, LIS2DH12_Scale scale, LIS2DH12_drdy_event_t drdyCB)
 {
     LIS2DH12_Ret retVal = LIS2DH12_RET_OK;
-    ret_code_t errCode = 0;
+    ret_code_t err_code = 0;
 
     /* Remember Callback. Note: NULL Pointer check not necessary, callback is optional */
     g_fp_drdyCb = drdyCB;
@@ -94,8 +104,12 @@ extern LIS2DH12_Ret LIS2DH12_init(LIS2DH12_PowerMode powerMode, LIS2DH12_Scale s
         spi_init();
     }
 
-    errCode = app_timer_create(&gLIS2DH12TimerId, APP_TIMER_MODE_REPEATED, sampleEventHandler);
-    APP_ERROR_CHECK(errCode);
+    //XXX Move to SPI Driver
+    
+    err_code = nrf_drv_timer_init(&TIMER_SPI, &timer_cfg, timer_spi_event_handler);
+    //NRF_LOG_INFO("Timer init'\r\n");
+    APP_ERROR_CHECK(err_code);
+    //Timer is started when power mode is set
 
     /* Start Selftest */
     retVal |= selftest();
@@ -117,8 +131,7 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
     LIS2DH12_Ret retVal = LIS2DH12_RET_OK;
     uint8_t ctrl1RegVal = 0;
     uint8_t ctrl4RegVal = 0;
-    ret_code_t errCode = 0;
-    uint32_t cycleTime = 0;
+    uint32_t time_ms = 0;
 
     /* reset data ready flag, after changing power mode it needs some time till new data is available */
     g_drdy = false;
@@ -132,24 +145,25 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
     {
     case LIS2DH12_POWER_NORMAL:
         ctrl1RegVal |= LIS2DH_ODR_MASK_100HZ;
-        cycleTime = 10U;
+        time_ms = 10U;
         break;
     case LIS2DH12_POWER_LOW:
         ctrl1RegVal |= (LIS2DH_ODR_MASK_1HZ | LIS2DH_LPEN_MASK);
-        cycleTime= 1000U;
+        time_ms = 1000U;
+
         break;
     case LIS2DH12_POWER_FAST:
         ctrl1RegVal |= (LIS2DH_ODR_MASK_1620HZ | LIS2DH_LPEN_MASK);
-        cycleTime = 1;
+        time_ms = 1;
         break;
     case LIS2DH12_POWER_HIGHRES:
         ctrl1RegVal |= LIS2DH_ODR_MASK_HIGH_RES;
         ctrl4RegVal |= LIS2DH_HR_MASK;
-        cycleTime = 1;
+        time_ms = 1;
         break;
     case LIS2DH12_POWER_DOWN:
         ctrl1RegVal = 0;
-        cycleTime = 0;
+        time_ms = 0;
         break;
     default:
         retVal = LIS2DH12_RET_ERROR;
@@ -164,16 +178,18 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
     /* save power mode to check in get functions if power is enabled */
     g_powerMode = powerMode;
 
-    if (cycleTime > 0)
+    if (time_ms > 0)
     {
         /* start sample timer with sample time according to selected sample frequency */
-        errCode = app_timer_start(gLIS2DH12TimerId, APP_TIMER_TICKS(cycleTime, 0), NULL);
-        APP_ERROR_CHECK(errCode);
+        //NRF_LOG_INFO("Timer  started'\r\n");
+        uint32_t time_ticks = nrf_drv_timer_ms_to_ticks(&TIMER_SPI, time_ms);
+        nrf_drv_timer_extended_compare(
+             &TIMER_SPI, NRF_TIMER_CC_CHANNEL0, time_ticks, NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK, true);
+         nrf_drv_timer_enable(&TIMER_SPI);
     }
     else
     {
-        errCode = app_timer_stop(gLIS2DH12TimerId);
-        APP_ERROR_CHECK(errCode);
+        nrf_drv_timer_disable(&TIMER_SPI);
     }
 
     return retVal;
@@ -273,6 +289,7 @@ static LIS2DH12_Ret selftest(void)
  */
 LIS2DH12_Ret readRegister(uint8_t address, uint8_t* const p_toRead, uint8_t count)
 {
+    NRF_LOG_INFO("Register read started'\r\n");
     LIS2DH12_Ret retVal = LIS2DH12_RET_ERROR;
     SPI_Ret retValSpi = SPI_RET_ERROR;
     uint8_t writeBuf[READ_MAX + 1U] = {0}; /* Bytes to read + 1 for address */
@@ -289,17 +306,22 @@ LIS2DH12_Ret readRegister(uint8_t address, uint8_t* const p_toRead, uint8_t coun
     }
     else
     {
+      NRF_LOG_INFO("Register SPI Start'\r\n");
         do
         {
         writeBuf[0] = address | SPI_READ | SPI_ADR_INC;
 
         retValSpi = spi_transfer_lis2dh12(writeBuf, (count + 1U), readBuf);
         ii++;
+        nrf_gpio_pin_toggle(17);
         }
         while ((SPI_RET_BUSY == retValSpi) && (ii < RETRY_MAX)); /* Retry if SPI is busy */
 
+       NRF_LOG_INFO("Register SPI end'\r\n");
+
         if (SPI_RET_OK == retValSpi)
         {
+            nrf_gpio_pin_toggle(19);
             retVal = LIS2DH12_RET_OK;
             /* Transfer was ok, copy result */
             memcpy(p_toRead, readBuf + 1U, count);
@@ -309,6 +331,8 @@ LIS2DH12_Ret readRegister(uint8_t address, uint8_t* const p_toRead, uint8_t coun
             retVal = LIS2DH12_RET_ERROR;
         }
     }
+    NRF_LOG_INFO("Register read complete'\r\n");
+    nrf_gpio_pin_toggle(19);
     return retVal;
 }
 
@@ -366,17 +390,28 @@ static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite)
  *
  * @param [in] pContext Timer Context
  */
-static void sampleEventHandler(void* pContext)
+void timer_spi_event_handler(nrf_timer_event_t event_type, void* p_context)
 {
-    if (LIS2DH12_RET_OK == readRegister(LIS2DH_OUT_X_L, g_sensorData.raw, SENSOR_DATA_SIZE))
+    NRF_LOG_INFO("Pollin'\r\n");
+    switch (event_type)
     {
-        /* if read was successfull set data ready */
-        g_drdy = true;
+        case NRF_TIMER_EVENT_COMPARE0:
+            nrf_gpio_pin_toggle(19);
+            if (LIS2DH12_RET_OK == readRegister(LIS2DH_OUT_X_L, g_sensorData.raw, SENSOR_DATA_SIZE))
+            {
+                /* if read was successfull set data ready */
+                g_drdy = true;
 
-        /* call data ready event callback if registered */
-        if (NULL != g_fp_drdyCb)
-        {
-            g_fp_drdyCb();
-        }
+                /* call data ready event callback if registered */
+                if (NULL != g_fp_drdyCb)
+                {
+                   g_fp_drdyCb();
+                }
+            }
+            break;
+
+       default:
+            //Do nothing.
+            break;
     }
 }

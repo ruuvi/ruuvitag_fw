@@ -19,6 +19,7 @@ For a detailed description see the detailed description in @ref spi.h
 /* INCLUDES ***************************************************************************************/
 #include "spi.h"
 #include "nrf_drv_spi.h"
+#include "nrf_delay.h"
 #include "app_util_platform.h"
 #include "boards.h"
 #include "SEGGER_RTT.h"
@@ -36,7 +37,7 @@ void spi_event_handler(nrf_drv_spi_evt_t const * p_event);
 
 /* VARIABLES **************************************************************************************/
 static const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE);  /**< SPI instance. */
-static volatile bool spi_xfer_done; /**< Semaphore to indicate that SPI instance completed the transfer. */
+volatile bool spi_xfer_done; /**< Semaphore to indicate that SPI instance completed the transfer. */
 static bool initDone = false;       /**< Flag to indicate if this module is already initilized */
 
 /* EXTERNAL FUNCTIONS *****************************************************************************/
@@ -107,26 +108,29 @@ extern SPI_Ret spi_transfer_bme280(uint8_t* const p_toWrite, uint8_t count, uint
 extern SPI_Ret spi_transfer_lis2dh12(uint8_t* const p_toWrite, uint8_t count, uint8_t* const p_toRead)
 {
     SPI_Ret retVal = SPI_RET_OK;
-
+    nrf_gpio_pin_toggle(17);
     if ((NULL == p_toWrite) || (NULL == p_toRead))
     {
         retVal = SPI_RET_ERROR;
     }
-
+    nrf_gpio_pin_toggle(17);
 
     /* check if an other SPI transfer is running */
     if ((true == spi_xfer_done) && (SPI_RET_OK == retVal))
     {
+      nrf_gpio_pin_toggle(17);
         spi_xfer_done = false;
 
         nrf_gpio_pin_clear(SPIM0_SS_ACC_PIN);
-        APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi, p_toWrite, count, p_toRead, count));
+        nrf_drv_spi_transfer(&spi, p_toWrite, count, p_toRead, count);
+        nrf_gpio_pin_toggle(17);
         while (!spi_xfer_done)
         {
-            __WFE();
+             __WFE();
         }
         nrf_gpio_pin_set(SPIM0_SS_ACC_PIN);
         retVal = SPI_RET_OK;
+        nrf_gpio_pin_toggle(17);
     }
     else
     {

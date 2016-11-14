@@ -2,7 +2,7 @@ PROJECT_NAME     := test_drivers_ruuvitag_b3_s132
 TARGETS          := nrf52832_xxaa
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := ../../../../../nRF5_SDK_12.0.0_12f24da
+SDK_ROOT := ../../../../../nRF5_SDK_12.1.0_0d23e2a
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
