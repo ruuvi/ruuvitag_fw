@@ -31,6 +31,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * Changelog
+ * 2016-11-17 Otso Jousimaa (otso@ruuvi.com): Port function calls to use Ruuvi SPI driver 
+ *
+ *
+ */
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -145,7 +152,7 @@ void bme280_set_oversampling_press(uint8_t os)
 /**
  * @brief Read new raw values.
  */
-void bm280_read_measurements()
+void bme280_read_measurements()
 {
 	uint8_t data[8];
 
@@ -253,5 +260,26 @@ uint32_t bme280_get_humidity(void)
 	return humi;
 }
 
+uint8_t bme280_read_reg(uint8_t reg)
+{
+	uint8_t tx[2];
+	uint8_t rx[2] = {0};
 
+	tx[0] = reg | 0x80;
+	tx[1] = 0x00;
+	spi_transfer_bme280(tx, 2, rx);
+
+	return rx[1];
+}
+
+
+void bme280_write_reg(uint8_t reg, uint8_t value)
+{
+	uint8_t tx[2];
+	uint8_t rx[2] = {0};
+
+	tx[0] = reg & 0x7F;
+	tx[1] = value;
+	spi_transfer_bme280(tx, 2, rx);
+}
 

@@ -108,29 +108,24 @@ extern SPI_Ret spi_transfer_bme280(uint8_t* const p_toWrite, uint8_t count, uint
 extern SPI_Ret spi_transfer_lis2dh12(uint8_t* const p_toWrite, uint8_t count, uint8_t* const p_toRead)
 {
     SPI_Ret retVal = SPI_RET_OK;
-    nrf_gpio_pin_toggle(17);
     if ((NULL == p_toWrite) || (NULL == p_toRead))
     {
         retVal = SPI_RET_ERROR;
     }
-    nrf_gpio_pin_toggle(17);
 
     /* check if an other SPI transfer is running */
     if ((true == spi_xfer_done) && (SPI_RET_OK == retVal))
     {
-      nrf_gpio_pin_toggle(17);
         spi_xfer_done = false;
 
         nrf_gpio_pin_clear(SPIM0_SS_ACC_PIN);
         nrf_drv_spi_transfer(&spi, p_toWrite, count, p_toRead, count);
-        nrf_gpio_pin_toggle(17);
         while (!spi_xfer_done)
         {
              __WFE();
         }
         nrf_gpio_pin_set(SPIM0_SS_ACC_PIN);
         retVal = SPI_RET_OK;
-        nrf_gpio_pin_toggle(17);
     }
     else
     {

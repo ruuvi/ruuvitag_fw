@@ -1,12 +1,12 @@
 PROJECT_NAME     := test_drivers_ruuvitag_b3_s132
-TARGETS          := nrf52832_xxaa
+TARGETS          := test_drivers
 OUTPUT_DIRECTORY := _build
 
 SDK_ROOT := ../../../../../nRF5_SDK_12.1.0_0d23e2a
 PROJ_DIR := ../../..
 
-$(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
-  LINKER_SCRIPT  := ble_app_beacon_gcc_nrf52.ld
+$(OUTPUT_DIRECTORY)/test_drivers.out: \
+  LINKER_SCRIPT  := test_drivers.ld
 # Source files common to all targets
 SRC_FILES += \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
@@ -30,6 +30,7 @@ SRC_FILES += \
   $(PROJ_DIR)/main.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../drivers/LIS2DH12/LIS2DH12.c \
+  $(PROJ_DIR)/../../drivers/bme280/bme280.c \
   $(SDK_ROOT)/external/segger_rtt/RTT_Syscalls_GCC.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
@@ -56,6 +57,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../bsp \
   $(PROJ_DIR)/../../drivers/spi/ \
   $(PROJ_DIR)/../../drivers/LIS2DH12 \
+  $(PROJ_DIR)/../../drivers/bme280 \
   $(SDK_ROOT)/components/ble/ble_dtm \
   $(SDK_ROOT)/components/libraries/crc16 \
   $(SDK_ROOT)/components/libraries/mailbox \
@@ -160,7 +162,7 @@ CXXFLAGS += \
 # Assembler flags common to all targets
 ASMFLAGS += -x assembler-with-cpp
 ASMFLAGS += -DNRF52
-CFLAGS += -DBOARD_CUSTOM
+ASMFLAGS += -DBOARD_CUSTOM
 ASMFLAGS += -DBOARD_RUUVITAG_B3
 ASMFLAGS += -DNRF52832
 ASMFLAGS += -DNRF52_PAN_64
@@ -201,12 +203,12 @@ LDFLAGS += --specs=nano.specs -lc -lnosys
 
 .PHONY: $(TARGETS) default all clean help flash  flash_softdevice
 # Default target - first one defined
-default: nrf52832_xxaa
+default: test_drivers
 
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo 	nrf52832_xxaa
+	@echo 	test_drivers
 	@echo 	flash_softdevice
 
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
@@ -216,7 +218,7 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 -include $(foreach target, $(TARGETS), $($(target)_dependencies))
 
 # Flash the program
-flash: $(OUTPUT_DIRECTORY)/nrf52832_xxaa.hex
+flash: $(OUTPUT_DIRECTORY)/test_drivers.hex
 	@echo Flashing: $<
 	nrfjprog --program $< -f nrf52 --sectorerase
 	nrfjprog --reset -f nrf52

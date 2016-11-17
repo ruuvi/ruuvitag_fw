@@ -30,6 +30,7 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #include "LIS2DH12.h"
+#include "bme280.h"
 #include "nrf_delay.h"
 
 #include "nrf_drv_gpiote.h"
@@ -59,7 +60,7 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
  */
 static void power_manage(void)
 {
-    NRF_LOG_INFO("Managing power\r\n");
+    NRF_LOG_DEBUG("Managing power\r\n");
     //uint32_t err_code = sd_app_evt_wait();
    // APP_ERROR_CHECK(err_code);
     
@@ -70,8 +71,8 @@ static void power_manage(void)
  */
 int main(void)
 {
-    uint32_t err_code;
-    int32_t testX, testY, testZ;
+    uint32_t err_code, humidity, pressure;
+    int32_t testX, testY, testZ, temperature;
     LIS2DH12_Ret Lis2dh12RetVal;
     // Initialize.
     err_code = NRF_LOG_INIT(NULL);
@@ -84,33 +85,46 @@ int main(void)
     APP_ERROR_CHECK(err_code);
 	
 
-    NRF_LOG_INFO("LIS2DH12 init Start\r\n");
 
+    NRF_LOG_DEBUG("LIS2DH12 init Start\r\n");
     Lis2dh12RetVal = LIS2DH12_init(LIS2DH12_POWER_LOW, LIS2DH12_SCALE2G, NULL);
 
     if (LIS2DH12_RET_OK == Lis2dh12RetVal)
     {
-        //NRF_LOG_INFO("LIS2DH12 init Done\r\n");
+        NRF_LOG_DEBUG("LIS2DH12 init Done\r\n");
     }
     else
     {
         NRF_LOG_ERROR("LIS2DH12 init Failed: Error Code: %d\r\n", (int32_t)Lis2dh12RetVal);
+        //TODO: Enter error handler?
     }
-    nrf_gpio_pin_set(17);
-    NRF_LOG_INFO("LIS2DH12 init Done\r\n");
+    
+    NRF_LOG_DEBUG("BME280 init Start\r\n");
+    bme280_init();
+    bme280_set_mode(BME280_MODE_NORMAL);
+    bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
+    bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
+    bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
+    NRF_LOG_DEBUG("BME280 init done\r\n");   
 
     // Enter main loop.
     for (;; )
     {
-        //if (NRF_LOG_PROCESS() == false)
-         NRF_LOG_INFO("Loopin'\r\n");
+         NRF_LOG_DEBUG("Loopin'\r\n");
          nrf_gpio_pin_toggle(17);
-         power_manage();
          nrf_delay_ms(100U);
 
          LIS2DH12_getALLmG(&testX, &testY, &testZ);
          NRF_LOG_INFO ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d", testX, testY, testZ);
 
+         bme280_read_measurements();
+         temperature = bme280_get_temperature();
+         pressure = bme280_get_pressure();
+         humidity = bme280_get_humidity();
+
+         NRF_LOG_INFO ("temperature: %d, pressure: %d, humidity: %d", temperature, pressure, humidity);
+
+         power_manage();
     }
 }
 
