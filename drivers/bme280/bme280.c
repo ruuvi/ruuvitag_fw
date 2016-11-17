@@ -167,7 +167,7 @@ void bme280_read_measurements()
 	bme280.adc_t |= (uint32_t) data[3] << 12;
 
 	bme280.adc_p  = (uint32_t) data[2] >> 4;
-	bme280.adc_p  = (uint32_t) data[1] << 4;
+	bme280.adc_p |= (uint32_t) data[1] << 4;
 	bme280.adc_p |= (uint32_t) data[0] << 12;
 }
 
@@ -217,12 +217,17 @@ static int32_t compensate_T_int32(int32_t adc_T)
 {
 	int32_t var1, var2, T;
 
-	var1 = ((((adc_T>>3) - ((uint32_t)bme280.cp.dig_T1<<1))) * ((uint32_t)bme280.cp.dig_T2)) >> 11;
-	var2 = (((((adc_T>>4) - ((uint32_t)bme280.cp.dig_T1)) * ((adc_T>>4) - ((uint32_t)bme280.cp.dig_T1))) >> 12) * ((uint32_t)bme280.cp.dig_T3)) >> 14;
-	bme280.t_fine = var1 + var2;
-	T = (bme280.t_fine * 5 + 128) >> 8;
+	var1 = ((((adc_T>>3) - ((int32_t)bme280.cp.dig_T1<<1))) * 
+               ((int32_t)bme280.cp.dig_T2)) >> 11;
+	var2 = (((((adc_T>>4) - ((int32_t)bme280.cp.dig_T1)) *
+               ((adc_T>>4) - ((int32_t)bme280.cp.dig_T1))) >> 12) * 
+               ((int32_t)bme280.cp.dig_T3)) >> 14;
 
-	return T;
+	bme280.t_fine = var1 + var2;
+
+	T = (bme280.t_fine * 5 + 128) >> 8;
+	
+  return T;
 }
 
 

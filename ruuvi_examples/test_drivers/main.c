@@ -100,11 +100,14 @@ int main(void)
     }
     
     NRF_LOG_DEBUG("BME280 init Start\r\n");
+    // Read calibration
     bme280_init();
-    bme280_set_mode(BME280_MODE_NORMAL);
+    //setup sensor readings
     bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
     bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
     bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
+    //Start measurement
+
     NRF_LOG_DEBUG("BME280 init done\r\n");   
 
     // Enter main loop.
@@ -112,7 +115,8 @@ int main(void)
     {
          NRF_LOG_DEBUG("Loopin'\r\n");
          nrf_gpio_pin_toggle(17);
-         nrf_delay_ms(100U);
+         bme280_set_mode(BME280_MODE_FORCED);
+         nrf_delay_ms(10000U);
 
          LIS2DH12_getALLmG(&testX, &testY, &testZ);
          NRF_LOG_INFO ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d", testX, testY, testZ);
