@@ -8,7 +8,7 @@ else
 	TOP := `pwd`
 endif
 
-SDK_VERSION := 12.0.0_12f24da
+SDK_VERSION := 12.1.0_0d23e2a
 SDK_URL     := https://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v12.x.x
 SDK_FILE    := nRF5_SDK_$(SDK_VERSION).zip
 
@@ -49,6 +49,7 @@ $(SDK_DIR)/external/micro-ecc/micro-ecc:
 fw:
 	@echo build FW
 	$(MAKE) -C ruuvi_examples/ble_app_beacon/ruuvitag_b3/s132/armgcc
+	$(MAKE) -C ruuvi_examples/test_drivers/ruuvitag_b3/s132/armgcc
 
 bootloader:
 	@echo build bootloader
@@ -58,5 +59,6 @@ bootloader:
 clean:
 	@echo cleaning B3 build files…
 	$(MAKE) -C ruuvi_examples/ble_app_beacon/ruuvitag_b3/s132/armgcc clean
+	$(MAKE) -C ruuvi_examples/test_drivers/ruuvitag_b3/s132/armgcc clean
 	$(MAKE) -C bootloader/ruuvitag_b3_debug/armgcc clean
 	$(MAKE) -C bootloader/ruuvitag_b3_production/armgcc clean

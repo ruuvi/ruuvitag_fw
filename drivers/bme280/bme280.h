@@ -33,6 +33,13 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "nrf.h"
+#include "spi.h"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+#include "nrf_drv_timer.h"
+#include "nrf_drv_gpiote.h"
+#include "bsp.h"
 
 struct comp_params {
 	uint16_t dig_T1;
@@ -52,7 +59,7 @@ struct comp_params {
 	uint8_t  dig_H3;
 	int16_t  dig_H4;
 	int16_t  dig_H5;
-	uint8_t  dig_H6;
+	int8_t   dig_H6;
 };
 
 struct bme280_driver {
@@ -101,15 +108,15 @@ enum BME280_MODE {
 void bme280_init();
 void bme280_set_mode(enum BME280_MODE mode);
 int  bme280_is_measuring(void);
-void bm280_read_measurements();
+void bme280_read_measurements();
 void bme280_set_oversampling_hum(uint8_t os);
 void bme280_set_oversampling_temp(uint8_t os);
 void bme280_set_oversampling_press(uint8_t os);
 int32_t  bme280_get_temperature(void);
 uint32_t bme280_get_pressure(void);
 uint32_t bme280_get_humidity(void);
-
-void    bme280_platform_init();
 uint8_t bme280_read_reg(uint8_t reg);
 void    bme280_write_reg(uint8_t reg, uint8_t value);
+void    bme280_platform_init();
+
 

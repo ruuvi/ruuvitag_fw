@@ -2,7 +2,7 @@ PROJECT_NAME     := bootloader_dfu_ble_s132_ruuvitag_b3_debug
 TARGETS          := ruuvitag_b3_bootloader
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := $(abspath ../../../nRF5_SDK_12.0.0_12f24da)
+SDK_ROOT := $(abspath ../../../nRF5_SDK_12.1.0_0d23e2a)
 PROJ_DIR := $(abspath ../..)
 
 $(OUTPUT_DIRECTORY)/ruuvitag_b3_bootloader.out: \
