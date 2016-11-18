@@ -2,7 +2,7 @@ PROJECT_NAME     := ble_app_beacon_ruuvitag_b3_s132
 TARGETS          := nrf52832_xxaa
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := ../../../../../nRF5_SDK_12.0.0_12f24da
+SDK_ROOT := ../../../../../nRF5_SDK_12.1.0_0d23e2a
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
@@ -170,7 +170,7 @@ CXXFLAGS += \
 # Assembler flags common to all targets
 ASMFLAGS += -x assembler-with-cpp
 ASMFLAGS += -DNRF52
-CFLAGS += -DBOARD_CUSTOM
+ASMFLAGS += -DBOARD_CUSTOM
 ASMFLAGS += -DBOARD_RUUVITAG_B3
 ASMFLAGS += -DNRF52832
 ASMFLAGS += -DNRF52_PAN_64
