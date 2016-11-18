@@ -18,10 +18,10 @@ For a detailed description see the detailed description in @ref LIS2DH12.h
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #include "nrf.h"
-#include "nrf_drv_timer.h"
+#include "app_timer.h"
 #include "bsp.h"
 #include "boards.h"
-#include "nrf_delay.h"
+
 
 #include <string.h>
 
@@ -45,6 +45,8 @@ For a detailed description see the detailed description in @ref LIS2DH12.h
 #define SPI_ADR_INC 0x40U
 
 /* MACROS *****************************************************************************************/
+
+APP_TIMER_DEF(lis2dh12_timer_id);                           /** Creates timer id for our program **/
 
 /* TYPES ******************************************************************************************/
 /** Structure containing sensor data for all 3 axis */
@@ -70,7 +72,7 @@ LIS2DH12_Ret readRegister(uint8_t address, uint8_t* const p_toRead, uint8_t coun
 
 static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite);
 
-void timer_lis2dh12_event_handler(nrf_timer_event_t event_type, void* p_context);
+void timer_lis2dh12_event_handler(void* p_context);
 
 
 /* VARIABLES **************************************************************************************/
@@ -79,15 +81,14 @@ static sensor_buffer_t g_sensorData;                    /**< Union to covert raw
 static LIS2DH12_PowerMode g_powerMode = LIS2DH12_POWER_DOWN; /**< Current power mode */
 static LIS2DH12_Scale g_scale = LIS2DH12_SCALE2G;       /**< Selected scale */
 static bool g_drdy = false;                             /**< Data Ready flag */
-static nrf_drv_timer_config_t timer_cfg = NRF_DRV_TIMER_DEFAULT_CONFIG; /* Timer configuration */
-static const nrf_drv_timer_t TIMER_LIS2DH12 = NRF_DRV_TIMER_INSTANCE(RUUVITAG_LIS2DH12_TIMER); /* Timer instance */
 
 /* EXTERNAL FUNCTIONS *****************************************************************************/
 
 extern LIS2DH12_Ret LIS2DH12_init(LIS2DH12_PowerMode powerMode, LIS2DH12_Scale scale, LIS2DH12_drdy_event_t drdyCB)
 {
     LIS2DH12_Ret retVal = LIS2DH12_RET_OK;
-    ret_code_t err_code = 0;
+    uint32_t err_code = 0;
+    
 
     /* Remember Callback. Note: NULL Pointer check not necessary, callback is optional */
     g_fp_drdyCb = drdyCB;
@@ -98,7 +99,13 @@ extern LIS2DH12_Ret LIS2DH12_init(LIS2DH12_PowerMode powerMode, LIS2DH12_Scale s
         spi_init();
     }
     
-    err_code = nrf_drv_timer_init(&TIMER_LIS2DH12, &timer_cfg, timer_lis2dh12_event_handler);
+    // Initialize the lis2dh12 timer module.
+    // Requires the low-frequency clock initialized
+    //APP_TIMER_INIT(RUUVITAG_APP_TIMER_PRESCALER , RUUVITAG_APP_TIMER_OP_QUEUE_SIZE, false);
+    // Create timer
+    err_code = app_timer_create(&lis2dh12_timer_id,
+                                APP_TIMER_MODE_REPEATED,
+                                 timer_lis2dh12_event_handler);
     APP_ERROR_CHECK(err_code);
     //Timer is started when power mode is set
 
@@ -123,6 +130,7 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
     uint8_t ctrl1RegVal = 0;
     uint8_t ctrl4RegVal = 0;
     uint32_t time_ms = 0;
+    uint32_t err_code; 
 
     /* reset data ready flag, after changing power mode it needs some time till new data is available */
     g_drdy = false;
@@ -172,15 +180,13 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
     if (time_ms > 0)
     {
         /* start sample timer with sample time according to selected sample frequency */
-
-        uint32_t time_ticks = nrf_drv_timer_ms_to_ticks(&TIMER_LIS2DH12, time_ms);
-        nrf_drv_timer_extended_compare(
-             &TIMER_LIS2DH12, NRF_TIMER_CC_CHANNEL0, time_ticks, NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK, true);
-         nrf_drv_timer_enable(&TIMER_LIS2DH12);
+        err_code = app_timer_start(lis2dh12_timer_id, APP_TIMER_TICKS(time_ms, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+        APP_ERROR_CHECK(err_code);
     }
     else
     {
-        nrf_drv_timer_disable(&TIMER_LIS2DH12);
+        err_code = app_timer_stop(lis2dh12_timer_id);
+        APP_ERROR_CHECK(err_code);
     }
 
     return retVal;
@@ -376,28 +382,20 @@ static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite)
  *
  * @param [in] pContext Timer Context
  */
-void timer_lis2dh12_event_handler(nrf_timer_event_t event_type, void* p_context)
+void timer_lis2dh12_event_handler(void* p_context)
 {
     NRF_LOG_DEBUG("LIS2DH12 Timer event'\r\n");
-    nrf_gpio_pin_toggle(19);
-    switch (event_type)
+    //nrf_gpio_pin_toggle(19);
+
+    if (LIS2DH12_RET_OK == readRegister(LIS2DH_OUT_X_L, g_sensorData.raw, SENSOR_DATA_SIZE))
     {
-        case NRF_TIMER_EVENT_COMPARE0:
-            if (LIS2DH12_RET_OK == readRegister(LIS2DH_OUT_X_L, g_sensorData.raw, SENSOR_DATA_SIZE))
-            {
-                /* if read was successfull set data ready */
-                g_drdy = true;
+        /* if read was successfull set data ready */
+        g_drdy = true;
 
-                /* call data ready event callback if registered */
-                if (NULL != g_fp_drdyCb)
-                {
-                   g_fp_drdyCb();
-                }
-            }
-            break;
-
-       default:
-            //Do nothing.
-            break;
+        /* call data ready event callback if registered */
+        if (NULL != g_fp_drdyCb)
+        {
+            g_fp_drdyCb();
+        }
     }
 }

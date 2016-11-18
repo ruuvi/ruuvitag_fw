@@ -26,17 +26,17 @@ SRC_FILES += \
   $(SDK_ROOT)/components/drivers_nrf/timer/nrf_drv_timer.c \
   $(SDK_ROOT)/components/drivers_nrf/spi_master/nrf_drv_spi.c \
   $(SDK_ROOT)/components/drivers_nrf/uart/nrf_drv_uart.c \
-  $(PROJ_DIR)/../../bsp/bsp.c \
-  $(PROJ_DIR)/main.c \
-  $(PROJ_DIR)/../../drivers/spi/spi.c \
-  $(PROJ_DIR)/../../drivers/LIS2DH12/LIS2DH12.c \
-  $(PROJ_DIR)/../../drivers/bme280/bme280.c \
   $(SDK_ROOT)/external/segger_rtt/RTT_Syscalls_GCC.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
   $(SDK_ROOT)/components/toolchain/gcc/gcc_startup_nrf52.S \
   $(SDK_ROOT)/components/toolchain/system_nrf52.c \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
+  $(PROJ_DIR)/../../bsp/bsp.c \
+  $(PROJ_DIR)/main.c \
+  $(PROJ_DIR)/../../drivers/spi/spi.c \
+  $(PROJ_DIR)/../../drivers/LIS2DH12/LIS2DH12.c \
+  $(PROJ_DIR)/../../drivers/bme280/bme280.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -54,10 +54,6 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/drivers_nrf/common \
   $(SDK_ROOT)/components/ble/ble_advertising \
   $(SDK_ROOT)/components/drivers_nrf/adc \
-  $(PROJ_DIR)/../../bsp \
-  $(PROJ_DIR)/../../drivers/spi/ \
-  $(PROJ_DIR)/../../drivers/LIS2DH12 \
-  $(PROJ_DIR)/../../drivers/bme280 \
   $(SDK_ROOT)/components/ble/ble_dtm \
   $(SDK_ROOT)/components/libraries/crc16 \
   $(SDK_ROOT)/components/libraries/mailbox \
@@ -80,7 +76,6 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/drivers_nrf/timer \
   $(SDK_ROOT)/components/libraries/util \
   $(SDK_ROOT)/components/drivers_nrf/pwm \
-  ../config \
   $(SDK_ROOT)/components/libraries/csense_drv \
   $(SDK_ROOT)/components/libraries/csense \
   $(SDK_ROOT)/components/drivers_nrf/rng \
@@ -117,6 +112,11 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/drivers_nrf/clock \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler \
   $(SDK_ROOT)/components/libraries/log/src \
+  $(PROJ_DIR)/../../bsp \
+  $(PROJ_DIR)/../../drivers/spi/ \
+  $(PROJ_DIR)/../../drivers/LIS2DH12 \
+  $(PROJ_DIR)/../../drivers/bme280 \
+  ../config \
 
 # Libraries common to all targets
 LIB_FILES += \
