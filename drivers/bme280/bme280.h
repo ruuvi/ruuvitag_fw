@@ -53,7 +53,7 @@ struct comp_params {
 	uint8_t  dig_H3;
 	int16_t  dig_H4;
 	int16_t  dig_H5;
-	uint8_t  dig_H6;
+	int8_t   dig_H6;
 };
 
 struct bme280_driver {
