@@ -34,7 +34,7 @@
 /*
  * Changelog
  * 2016-11-17 Otso Jousimaa (otso@ruuvi.com): Port function calls to use Ruuvi SPI driver 
- *
+ * 2016-11-18 Otso Jousimaa (otso@ruuvi.com): Add timer to poll data 
  *
  */
 
@@ -43,18 +43,31 @@
 
 #include "bme280.h"
 
-// global instance
-struct bme280_driver bme280;
+
+struct bme280_driver bme280; /* global instance */
+static nrf_drv_timer_config_t timer_cfg = NRF_DRV_TIMER_DEFAULT_CONFIG; /* Timer configuration */
+static const nrf_drv_timer_t TIMER_BME280 = NRF_DRV_TIMER_INSTANCE(RUUVITAG_BME280_TIMER); /* Timer instance */
+
+/* Prototypes */
+void timer_bme280_event_handler(nrf_timer_event_t event_type, void* p_context);
 
 void bme280_init()
 {
-	bme280.sensor_available = false;
-
+        ret_code_t err_code = 0;
 	uint8_t reg = bme280_read_reg(BME280REG_ID);
+        bme280.sensor_available = false;
+
 	if (reg == 0x60)
+        {
 		bme280.sensor_available = true;
+        }
 	else
+        {
 		return;
+        }
+
+        err_code = nrf_drv_timer_init(&TIMER_BME280, &timer_cfg, timer_bme280_event_handler);
+        APP_ERROR_CHECK(err_code);
 
 	// load calibration data...
 	bme280.cp.dig_T1  = bme280_read_reg(BME280REG_CALIB_00);
@@ -98,14 +111,42 @@ void bme280_init()
 }
 
 
+/*
+ *  TODO: Adjust timer frequency by BME280 sampling speed.
+ */
 void bme280_set_mode(enum BME280_MODE mode)
 {
 	uint8_t conf;
+        uint32_t time_ticks;
 
 	conf = bme280_read_reg(BME280REG_CTRL_MEAS);
 	conf = conf & 0b11111100;
 	conf |= mode;
 	bme280_write_reg(BME280REG_CTRL_MEAS, conf);
+
+        switch(mode)
+        {
+        case BME280_MODE_NORMAL:
+            /* start sample timer with sample time according to selected sample frequency */
+            time_ticks = nrf_drv_timer_ms_to_ticks(&TIMER_BME280, 1000u);
+            nrf_drv_timer_extended_compare(
+            &TIMER_BME280, NRF_TIMER_CC_CHANNEL0, time_ticks, NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK, true);
+            nrf_drv_timer_enable(&TIMER_BME280);
+            break;
+
+        case BME280_MODE_FORCED:
+            /* TODO single shot Poll data after conversion is completed */
+            time_ticks = nrf_drv_timer_ms_to_ticks(&TIMER_BME280, 1000u);
+            nrf_drv_timer_extended_compare(
+            &TIMER_BME280, NRF_TIMER_CC_CHANNEL0, time_ticks, NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK, true);
+            nrf_drv_timer_enable(&TIMER_BME280);
+            break;
+
+        case BME280_MODE_SLEEP:         
+        default:
+            nrf_drv_timer_disable(&TIMER_BME280);
+            break;
+        }
 }
 
 
@@ -156,6 +197,7 @@ void bme280_read_measurements()
 {
 	uint8_t data[8];
 
+        /* TODO use burst read */
 	for (int i=0; i < 8; i++) {
 		data[i] = bme280_read_reg(BME280REG_PRESS_MSB + i);
 	}
@@ -288,3 +330,24 @@ void bme280_write_reg(uint8_t reg, uint8_t value)
 	spi_transfer_bme280(tx, 2, rx);
 }
 
+
+/**
+ * Event Handler that is called by the timer to read the sensor values.
+ *
+ * @param [in] pContext Timer Context
+ */
+void timer_bme280_event_handler(nrf_timer_event_t event_type, void* p_context)
+{
+    NRF_LOG_DEBUG("BME280 Timer event'\r\n");
+    nrf_gpio_pin_toggle(17);
+    switch (event_type)
+    {
+        case NRF_TIMER_EVENT_COMPARE0:
+            bme280_read_measurements();
+            break;
+
+       default:
+            //Do nothing.
+            break;
+    }
+}

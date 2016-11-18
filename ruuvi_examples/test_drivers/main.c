@@ -61,6 +61,7 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 static void power_manage(void)
 {
     NRF_LOG_DEBUG("Managing power\r\n");
+    __WFI();
     //uint32_t err_code = sd_app_evt_wait();
    // APP_ERROR_CHECK(err_code);
     
@@ -107,6 +108,7 @@ int main(void)
     bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
     bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
     //Start measurement
+    bme280_set_mode(BME280_MODE_NORMAL);
 
     NRF_LOG_DEBUG("BME280 init done\r\n");   
 
@@ -114,18 +116,15 @@ int main(void)
     for (;; )
     {
          NRF_LOG_DEBUG("Loopin'\r\n");
-         nrf_gpio_pin_toggle(17);
-         bme280_set_mode(BME280_MODE_FORCED);
-         nrf_delay_ms(10000U);
+
+
 
          LIS2DH12_getALLmG(&testX, &testY, &testZ);
          NRF_LOG_INFO ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d", testX, testY, testZ);
 
-         bme280_read_measurements();
          temperature = bme280_get_temperature();
          pressure = bme280_get_pressure();
          humidity = bme280_get_humidity();
-
          NRF_LOG_INFO ("temperature: %d, pressure: %d, humidity: %d", temperature, pressure, humidity);
 
          power_manage();

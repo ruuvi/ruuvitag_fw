@@ -55,4 +55,10 @@
                                  .rc_temp_ctiv  = 0,                                \
                                  .xtal_accuracy = NRF_CLOCK_LF_XTAL_ACCURACY_20_PPM}
 
+//Timers for sensors and main loop
+#define RUUVITAG_PROGRAM_TIMER 0
+#define RUUVITAG_LIS2DH12_TIMER 1
+#define RUUVITAG_BME280_TIMER 2
+#define RUUVITAG_USER_TIMER 3
+
 #endif // RUUVITAG_B2_H

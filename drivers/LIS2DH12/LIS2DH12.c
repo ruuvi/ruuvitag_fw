@@ -44,10 +44,6 @@ For a detailed description see the detailed description in @ref LIS2DH12.h
 /** Bit Mask to enable auto address incrementation for multi read */
 #define SPI_ADR_INC 0x40U
 
-
-//XXX Move to main
-#define APP_TIMER_PRESCALER 0
-
 /* MACROS *****************************************************************************************/
 
 /* TYPES ******************************************************************************************/
@@ -73,10 +69,8 @@ static LIS2DH12_Ret selftest(void);
 LIS2DH12_Ret readRegister(uint8_t address, uint8_t* const p_toRead, uint8_t count);
 
 static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite);
-///XXX Make timer instant constant in BSP / SPI Driver ?
-const nrf_drv_timer_t TIMER_SPI = NRF_DRV_TIMER_INSTANCE(0);
-nrf_drv_timer_config_t timer_cfg = NRF_DRV_TIMER_DEFAULT_CONFIG;
-void timer_spi_event_handler(nrf_timer_event_t event_type, void* p_context);
+
+void timer_lis2dh12_event_handler(nrf_timer_event_t event_type, void* p_context);
 
 
 /* VARIABLES **************************************************************************************/
@@ -85,8 +79,8 @@ static sensor_buffer_t g_sensorData;                    /**< Union to covert raw
 static LIS2DH12_PowerMode g_powerMode = LIS2DH12_POWER_DOWN; /**< Current power mode */
 static LIS2DH12_Scale g_scale = LIS2DH12_SCALE2G;       /**< Selected scale */
 static bool g_drdy = false;                             /**< Data Ready flag */
-
-
+static nrf_drv_timer_config_t timer_cfg = NRF_DRV_TIMER_DEFAULT_CONFIG; /* Timer configuration */
+static const nrf_drv_timer_t TIMER_LIS2DH12 = NRF_DRV_TIMER_INSTANCE(RUUVITAG_LIS2DH12_TIMER); /* Timer instance */
 
 /* EXTERNAL FUNCTIONS *****************************************************************************/
 
@@ -103,11 +97,8 @@ extern LIS2DH12_Ret LIS2DH12_init(LIS2DH12_PowerMode powerMode, LIS2DH12_Scale s
     {
         spi_init();
     }
-
-    //XXX Move to SPI Driver
     
-    err_code = nrf_drv_timer_init(&TIMER_SPI, &timer_cfg, timer_spi_event_handler);
-
+    err_code = nrf_drv_timer_init(&TIMER_LIS2DH12, &timer_cfg, timer_lis2dh12_event_handler);
     APP_ERROR_CHECK(err_code);
     //Timer is started when power mode is set
 
@@ -182,14 +173,14 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
     {
         /* start sample timer with sample time according to selected sample frequency */
 
-        uint32_t time_ticks = nrf_drv_timer_ms_to_ticks(&TIMER_SPI, time_ms);
+        uint32_t time_ticks = nrf_drv_timer_ms_to_ticks(&TIMER_LIS2DH12, time_ms);
         nrf_drv_timer_extended_compare(
-             &TIMER_SPI, NRF_TIMER_CC_CHANNEL0, time_ticks, NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK, true);
-         nrf_drv_timer_enable(&TIMER_SPI);
+             &TIMER_LIS2DH12, NRF_TIMER_CC_CHANNEL0, time_ticks, NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK, true);
+         nrf_drv_timer_enable(&TIMER_LIS2DH12);
     }
     else
     {
-        nrf_drv_timer_disable(&TIMER_SPI);
+        nrf_drv_timer_disable(&TIMER_LIS2DH12);
     }
 
     return retVal;
@@ -289,7 +280,7 @@ static LIS2DH12_Ret selftest(void)
  */
 LIS2DH12_Ret readRegister(uint8_t address, uint8_t* const p_toRead, uint8_t count)
 {
-    NRF_LOG_DEBUG("Register read started'\r\n");
+    NRF_LOG_DEBUG("LIS2DH12 Register read started'\r\n");
     LIS2DH12_Ret retVal = LIS2DH12_RET_ERROR;
     SPI_Ret retValSpi = SPI_RET_ERROR;
     uint8_t writeBuf[READ_MAX + 1U] = {0}; /* Bytes to read + 1 for address */
@@ -327,7 +318,7 @@ LIS2DH12_Ret readRegister(uint8_t address, uint8_t* const p_toRead, uint8_t coun
             retVal = LIS2DH12_RET_ERROR;
         }
     }
-    NRF_LOG_DEBUG("Register read complete'\r\n");
+    NRF_LOG_DEBUG("LIS2DH12 Register read complete'\r\n");
     return retVal;
 }
 
@@ -385,9 +376,10 @@ static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite)
  *
  * @param [in] pContext Timer Context
  */
-void timer_spi_event_handler(nrf_timer_event_t event_type, void* p_context)
+void timer_lis2dh12_event_handler(nrf_timer_event_t event_type, void* p_context)
 {
-    NRF_LOG_DEBUG("SPI Timer event'\r\n");
+    NRF_LOG_DEBUG("LIS2DH12 Timer event'\r\n");
+    nrf_gpio_pin_toggle(19);
     switch (event_type)
     {
         case NRF_TIMER_EVENT_COMPARE0:
