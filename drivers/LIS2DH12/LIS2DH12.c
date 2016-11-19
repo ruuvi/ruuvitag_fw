@@ -80,6 +80,7 @@ static LIS2DH12_drdy_event_t g_fp_drdyCb = NULL;        /**< Data Ready Callback
 static sensor_buffer_t g_sensorData;                    /**< Union to covert raw data to value for each axis */
 static LIS2DH12_PowerMode g_powerMode = LIS2DH12_POWER_DOWN; /**< Current power mode */
 static LIS2DH12_Scale g_scale = LIS2DH12_SCALE2G;       /**< Selected scale */
+static uint8_t g_mgpb = 1;                              /**< milli-g per bit */
 static bool g_drdy = false;                             /**< Data Ready flag */
 
 /* EXTERNAL FUNCTIONS *****************************************************************************/
@@ -101,7 +102,6 @@ extern LIS2DH12_Ret LIS2DH12_init(LIS2DH12_PowerMode powerMode, LIS2DH12_Scale s
     
     // Initialize the lis2dh12 timer module.
     // Requires the low-frequency clock initialized
-    //APP_TIMER_INIT(RUUVITAG_APP_TIMER_PRESCALER , RUUVITAG_APP_TIMER_OP_QUEUE_SIZE, false);
     // Create timer
     err_code = app_timer_create(&lis2dh12_timer_id,
                                 APP_TIMER_MODE_REPEATED,
@@ -144,20 +144,24 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
     {
     case LIS2DH12_POWER_NORMAL:
         ctrl1RegVal |= LIS2DH_ODR_MASK_100HZ;
+        g_mgpb = 4 << g_scale; // 4 bits per mg at normal power/2g, adjust by scaling
         time_ms = 10U;
         break;
     case LIS2DH12_POWER_LOW:
-        ctrl1RegVal |= (LIS2DH_ODR_MASK_1HZ | LIS2DH_LPEN_MASK);
+        ctrl1RegVal |= (LIS2DH_ODR_MASK_1HZ); //Power consumption is same for low-power and normal mode at 1 Hz
+        g_mgpb = 4 << g_scale; // 4 bits per mg at normal power/2g, adjust by scaling
         time_ms = 1000U;
 
         break;
     case LIS2DH12_POWER_FAST:
         ctrl1RegVal |= (LIS2DH_ODR_MASK_1620HZ | LIS2DH_LPEN_MASK);
+        g_mgpb = 16 << g_scale; // 4 bits per mg at low power/2g, adjust by scaling
         time_ms = 1;
         break;
     case LIS2DH12_POWER_HIGHRES:
         ctrl1RegVal |= LIS2DH_ODR_MASK_HIGH_RES;
         ctrl4RegVal |= LIS2DH_HR_MASK;
+        g_mgpb = 1 << g_scale; // 1 bits per mg at high power/2g, adjust by scaling
         time_ms = 1;
         break;
     case LIS2DH12_POWER_DOWN:
@@ -202,7 +206,10 @@ extern LIS2DH12_Ret LIS2DH12_getXmG(int32_t* const accX)
     }
     else
     {
-        *accX = g_sensorData.sensor.x;
+        //Scale value, note: values from accelerometer are 16-bit left-justified in all cases. "Extra" LSBs will be noise 
+        //Do not bit shift mg as bit shifting negative values is implementation specific operation.
+        //Scale 1/1024 to 1 / 1000.
+        *accX = g_sensorData.sensor.x / (16 << (g_scale)) * 1000 / 1024;
     }
 
     return retVal;
@@ -218,7 +225,10 @@ extern LIS2DH12_Ret LIS2DH12_getYmG(int32_t* const accY)
     }
     else
     {
-        *accY = g_sensorData.sensor.y;
+        //Scale value, note: values from accelerometer are 16-bit left-justified in all cases. "Extra" LSBs will be noise 
+        //Do not bit shift mg as bit shifting negative values is implementation specific operation.
+        //Scale 1/1024 to 1 / 1000.
+        *accY = g_sensorData.sensor.y / (16 << (g_scale)) * 1000 / 1024;
     }
 
     return retVal;
@@ -234,7 +244,10 @@ extern LIS2DH12_Ret LIS2DH12_getZmG(int32_t* const accZ)
     }
     else
     {
-        *accZ = g_sensorData.sensor.z;
+        //Scale value, note: values from accelerometer are 16-bit left-justified in all cases. "Extra" LSBs will be noise 
+        //Do not bit shift mg as bit shifting negative values is implementation specific operation.
+        //Scale 1/1024 to 1 / 1000.
+        *accZ = g_sensorData.sensor.z / (16 << (g_scale)) * 1000 / 1024;
     }
 
     return retVal;
@@ -250,9 +263,9 @@ extern LIS2DH12_Ret LIS2DH12_getALLmG(int32_t* const accX, int32_t* const accY, 
     }
     else
     {
-        *accX = g_sensorData.sensor.x;
-        *accY = g_sensorData.sensor.y;
-        *accZ = g_sensorData.sensor.z;
+        LIS2DH12_getXmG(accX);
+        LIS2DH12_getYmG(accY);
+        LIS2DH12_getZmG(accZ);
     }
 
     return retVal;
