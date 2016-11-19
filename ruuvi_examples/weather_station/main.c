@@ -74,8 +74,10 @@ size_t enc_data_len = 0;
  */
 static void power_manage(void)
 {
+    nrf_gpio_pin_set(17);
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
+    nrf_gpio_pin_clear(17); 
 }
 
 // Timeout handler for the repeated timer
@@ -137,17 +139,17 @@ static void readData(void)
    else{
        sensor_values.time += 5; //TODO: Use actual RTC values to avoid drift.
    }
-    NRF_LOG_INFO ("Time: %d", sensor_values.time);
+   NRF_LOG_DEBUG ("Time: %d", sensor_values.time);
 
    // Get raw environmental data
    int32_t raw_t = bme280_get_temperature();
    uint32_t raw_p = bme280_get_pressure();
    uint32_t raw_h = bme280_get_humidity();
    
-   NRF_LOG_INFO("temperature: %d, pressure: %d, humidity: %d", raw_t, raw_p, raw_h);
+   NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d", raw_t, raw_p, raw_h);
 
    //Convert raw values to ruu.vi specification
-   sensor_values.temperature = (uint16_t)float2fix((float)raw_t/100);
+   sensor_values.temperature = raw_t * 256 / 100;
    sensor_values.pressure = (uint16_t)((raw_p/256) - 50000);
    sensor_values.humidity = (uint8_t)((raw_h/1024) * 2);
 
@@ -166,8 +168,8 @@ static void readData(void)
    url_buffer[5] = 0x69; // i
    url_buffer[6] = 0x23; // #        
 
-   /** We've got 18-7=11 characters available.
-   Encoding 64 bits using Base91 produces max 9 value. All good. **/
+   /// We've got 18-7=11 characters available. Encoding 64 bits using Base91 produces max 9 value. All good.
+   
    memcpy(&url_buffer[7], &buffer_base91_out, enc_data_len);
 }
 
@@ -225,8 +227,12 @@ int main(void)
     //Start timer
     err_code = app_timer_start(main_timer_id, APP_TIMER_TICKS(5000u, APP_TIMER_PRESCALER), NULL); // 1 event / 1000 ms
     APP_ERROR_CHECK(err_code);
+
+    //setup leds. LEDs are active low, so setting them turns leds off.
     nrf_gpio_cfg_output	(17);
+    nrf_gpio_pin_set(17);
     nrf_gpio_cfg_output	(19);
+    nrf_gpio_pin_set(19);
 
     LIS2DH12_Ret Lis2dh12RetVal;
 	

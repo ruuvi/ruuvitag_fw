@@ -337,6 +337,5 @@ void bme280_write_reg(uint8_t reg, uint8_t value)
 void timer_bme280_event_handler(void* p_context)
 {
     NRF_LOG_DEBUG("BME280 Timer event'\r\n");
-    nrf_gpio_pin_toggle(19);
     bme280_read_measurements();
 }
