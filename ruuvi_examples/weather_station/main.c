@@ -23,6 +23,7 @@
 //STDLIB
 #include <stdbool.h>
 #include <stdint.h>
+#include <math.h>
 
 //Nordic SDK
 #include "ble_advdata.h"
@@ -62,19 +63,87 @@ static void power_manage(void)
     APP_ERROR_CHECK(err_code);
 }
 
+//flag for analysing sensor data
+static volatile bool startRead = false;
+
 // Timeout handler for the repeated timer
 static void main_timer_handler(void * p_context)
 {
-    nrf_gpio_pin_toggle(17);
+    startRead = true;
 }
+
+// Sensor values
+typedef struct 
+{
+uint8_t     format;         // Includes time format
+uint8_t     humidity;      	// one lsb is 0.5%
+uint16_t    temperature;    // Signed 8.8 fixed-point notation.
+uint16_t    pressure;       // Todo
+uint16_t    time;           // Seconds, minutes or hours from beginning
+}ruuvi_sensor_t;
+
+static ruuvi_sensor_t sensor_values;
+
+/* Quick'n'Dirty FIR high pass
+ * @param uX acceleration in X-direction (mg)
+ * @param uY acceleration in Y-direction (mg)
+ * @param uZ acceleration in Z-direction (mg)
+ * return true if high-passed acceleration amlitude exceeds defined threshold
+ */
+static bool detectMovement(int16_t uX, int16_t uY, int16_t uZ)
+{
+  static int16_t aX = 0;
+  static int16_t aY = 0;
+  static int16_t aZ = 0;
+
+  int32_t yX = uX - aX;
+  int32_t yY = uY - aY;
+  int32_t yZ = uZ - aZ;
+
+  aX = uX;
+  aY = uY;
+  aZ = uZ;
+
+  int32_t amplitude = sqrt(yX*yX + yY*yY + yZ*yZ);
+
+  return (amplitude > 200);  
+
+}
+
+static void readData(void)
+{
+   int32_t accX, accY, accZ;
+   //Get raw values
+   LIS2DH12_getALLmG(&accX, &accY, &accZ);
+   NRF_LOG_INFO ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d", accX, accY, accZ);
+   //Detect movement
+   bool moving = detectMovement(accX, accY, accZ);
+  
+   if(moving){
+       nrf_gpio_pin_toggle(17);
+       sensor_values.time = 0;
+
+   }
+
+   int32_t raw_t = bme280_get_temperature();
+   uint32_t raw_p = bme280_get_pressure();
+   uint32_t raw_h = bme280_get_humidity();
+   NRF_LOG_DEBUG ("temperature: %d, pressure: %d, humidity: %d", raw_t, raw_p, raw_h);
+
+  
+}
+
 
 /**
  * @brief Function for application main entry.
  */
 int main(void)
 {
-    uint32_t err_code;//, humidity, pressure;
-    int32_t testX, testY, testZ;// temperature;
+    uint32_t err_code;
+    
+    //Initialize variables
+    sensor_values.format = 1;
+    sensor_values.time = 0;
 
     // Initialize log
     err_code = NRF_LOG_INIT(NULL);
@@ -95,7 +164,7 @@ int main(void)
                                 main_timer_handler);
     APP_ERROR_CHECK(err_code);
     //Start timer
-    err_code = app_timer_start(main_timer_id, APP_TIMER_TICKS(500u, APP_TIMER_PRESCALER), NULL); // 1 event / 1000 ms
+    err_code = app_timer_start(main_timer_id, APP_TIMER_TICKS(5000u, APP_TIMER_PRESCALER), NULL); // 1 event / 1000 ms
     APP_ERROR_CHECK(err_code);
     nrf_gpio_cfg_output	(17);
     nrf_gpio_cfg_output	(19);
@@ -114,7 +183,7 @@ int main(void)
         NRF_LOG_ERROR("LIS2DH12 init Failed: Error Code: %d\r\n", (int32_t)Lis2dh12RetVal);
         //TODO: Enter error handler?
     }
-    /*
+
     NRF_LOG_INFO("BME280 init Start\r\n");
     // Read calibration
     bme280_init();
@@ -125,7 +194,7 @@ int main(void)
     //Start measurement
     bme280_set_mode(BME280_MODE_NORMAL);
 
-    NRF_LOG_INFO("BME280 init done\r\n");   */
+    NRF_LOG_INFO("BME280 init done\r\n");
 
 
     
@@ -135,13 +204,13 @@ int main(void)
     {
          NRF_LOG_DEBUG("Loopin'\r\n");
 
-         LIS2DH12_getALLmG(&testX, &testY, &testZ);
-         NRF_LOG_INFO ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d", testX, testY, testZ);
-/*
-         temperature = bme280_get_temperature();
-         pressure = bme280_get_pressure();
-         humidity = bme280_get_humidity();
-         NRF_LOG_INFO ("temperature: %d, pressure: %d, humidity: %d", temperature, pressure, humidity);*/
+         
+         if(startRead)
+         {
+             startRead = false;
+             readData();
+             //updateAdvertisement();
+         }
 
          power_manage();
     }
