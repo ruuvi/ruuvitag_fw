@@ -137,18 +137,19 @@ static void readData(void)
    else{
        sensor_values.time += 5; //TODO: Use actual RTC values to avoid drift.
    }
-   
+    NRF_LOG_INFO ("Time: %d", sensor_values.time);
+
    // Get raw environmental data
    int32_t raw_t = bme280_get_temperature();
    uint32_t raw_p = bme280_get_pressure();
    uint32_t raw_h = bme280_get_humidity();
    
-   NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d", raw_t, raw_p, raw_h);
+   NRF_LOG_INFO("temperature: %d, pressure: %d, humidity: %d", raw_t, raw_p, raw_h);
 
    //Convert raw values to ruu.vi specification
-   sensor_values.temperature = float2fix((float)raw_t);
-   sensor_values.pressure = (uint16_t)(raw_p - 50000);
-   sensor_values.humidity = (uint8_t)(raw_h * 2);
+   sensor_values.temperature = (uint16_t)float2fix((float)raw_t/100);
+   sensor_values.pressure = (uint16_t)((raw_p/256) - 50000);
+   sensor_values.humidity = (uint8_t)((raw_h/1024) * 2);
 
    //Base91 encode
    memset(&buffer_base91_out, 0, sizeof(buffer_base91_out)); 
@@ -172,15 +173,15 @@ static void readData(void)
 
 static void updateAdvertisement(void)
 {
-    static uint32_t prev_p = 1;
+    //static uint32_t prev_p = 1;
     //static prev_t = 0;
     //static prev_h = 0;
 
 
     //TODO: threshold
-    if(prev_p)
+    if(1)
     {
-        prev_p = 0; //sensor_values.raw_p
+        //prev_p = 0; //sensor_values.raw_p
         //prev_t = sensor_values.raw_t
         //prev_h = sensor_values.raw_h
 

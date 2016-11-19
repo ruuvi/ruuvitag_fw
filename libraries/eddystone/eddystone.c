@@ -191,8 +191,13 @@ extern void eddystone_init(void)
 
 extern void eddystone_advertise_url(char* url, uint8_t length)
 {
-    // Start execution.
+    static bool advertising = false;
+    // Update advertisement parameters
     advertising_init(url, length);
-    NRF_LOG_INFO("Eddystone Start!\r\n");
-    advertising_start();
+
+    if(!advertising){
+        NRF_LOG_INFO("Eddystone Start!\r\n");
+        advertising_start();
+        advertising = true;
+    }
 }
