@@ -40,6 +40,7 @@
 #include "nrf_drv_timer.h"
 #include "nrf_drv_gpiote.h"
 #include "bsp.h"
+#include "app_timer.h"
 
 struct comp_params {
 	uint16_t dig_T1;

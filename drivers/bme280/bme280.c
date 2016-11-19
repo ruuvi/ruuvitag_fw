@@ -45,11 +45,10 @@
 
 
 struct bme280_driver bme280; /* global instance */
-//static nrf_drv_timer_config_t timer_cfg = NRF_DRV_TIMER_DEFAULT_CONFIG; /* Timer configuration */
-//static const nrf_drv_timer_t TIMER_BME280 = NRF_DRV_TIMER_INSTANCE(RUUVITAG_BME280_TIMER); /* Timer instance */
+APP_TIMER_DEF(bme280_timer_id);                           /** Creates timer id for our program **/
 
 /* Prototypes */
-void timer_bme280_event_handler(nrf_timer_event_t event_type, void* p_context);
+void timer_bme280_event_handler(void* p_context);
 
 void bme280_init()
 {
@@ -66,7 +65,9 @@ void bme280_init()
 		return;
         }
 
-        //err_code = nrf_drv_timer_init(&TIMER_BME280, &timer_cfg, timer_bme280_event_handler);
+        err_code = app_timer_create(&bme280_timer_id,
+                                APP_TIMER_MODE_REPEATED,
+                                 timer_bme280_event_handler);
         APP_ERROR_CHECK(err_code);
 
 	// load calibration data...
@@ -117,7 +118,7 @@ void bme280_init()
 void bme280_set_mode(enum BME280_MODE mode)
 {
 	uint8_t conf;
-        //uint32_t time_ticks;
+        uint32_t err_code = 0;
 
 	conf = bme280_read_reg(BME280REG_CTRL_MEAS);
 	conf = conf & 0b11111100;
@@ -127,22 +128,21 @@ void bme280_set_mode(enum BME280_MODE mode)
         switch(mode)
         {
         case BME280_MODE_NORMAL:
-            /* start sample timer with sample time according to selected sample frequency */
-            //time_ticks = nrf_drv_timer_ms_to_ticks(&TIMER_BME280, 1000u);
-            //nrf_drv_timer_extended_compare(&TIMER_BME280, NRF_TIMER_CC_CHANNEL0, time_ticks, NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK, true);
-            //nrf_drv_timer_enable(&TIMER_BME280);
+            /* start sample timer with sample time according to selected sample frequency TODO adjust polling frequency */
+            err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(1000u, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+            APP_ERROR_CHECK(err_code);
             break;
 
         case BME280_MODE_FORCED:
             /* TODO single shot Poll data after conversion is completed */
-            //time_ticks = nrf_drv_timer_ms_to_ticks(&TIMER_BME280, 1000u);
-            //nrf_drv_timer_extended_compare(&TIMER_BME280, NRF_TIMER_CC_CHANNEL0, time_ticks, NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK, true);
-            //nrf_drv_timer_enable(&TIMER_BME280);
+            err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(100, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+            APP_ERROR_CHECK(err_code);
             break;
 
         case BME280_MODE_SLEEP:         
         default:
-            //nrf_drv_timer_disable(&TIMER_BME280);
+            err_code = app_timer_stop(bme280_timer_id);
+            APP_ERROR_CHECK(err_code);
             break;
         }
 }
@@ -334,18 +334,9 @@ void bme280_write_reg(uint8_t reg, uint8_t value)
  *
  * @param [in] pContext Timer Context
  */
-void timer_bme280_event_handler(nrf_timer_event_t event_type, void* p_context)
+void timer_bme280_event_handler(void* p_context)
 {
     NRF_LOG_DEBUG("BME280 Timer event'\r\n");
-    nrf_gpio_pin_toggle(17);
-    switch (event_type)
-    {
-        case NRF_TIMER_EVENT_COMPARE0:
-            bme280_read_measurements();
-            break;
-
-       default:
-            //Do nothing.
-            break;
-    }
+    nrf_gpio_pin_toggle(19);
+    bme280_read_measurements();
 }
