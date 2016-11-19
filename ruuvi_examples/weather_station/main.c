@@ -32,6 +32,8 @@
 #include "app_timer.h"
 #include "nrf_drv_clock.h"
 #include "nrf_gpio.h"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
 
 //BSP
 #include "bsp.h"
@@ -40,31 +42,41 @@
 #include "LIS2DH12.h"
 #include "bme280.h"
 
-//#include "base91.h"
+//Libraries
+#include "base91.h"
 #include "eddystone.h"
 
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
 
+//Macros
 #define swap_u32(num) ((num>>24)&0xff) | ((num<<8)&0xff0000) | ((num>>8)&0xff00) | ((num<<24)&0xff000000);
 #define float2fix(a) ((int)((a)*256.0))   //Convert float to fix. a is a float
 
+//Constants
 #define DEAD_BEEF                       0xDEADBEEF                        /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
+//Timers
 #define APP_TIMER_PRESCALER             RUUVITAG_APP_TIMER_PRESCALER      /**< Value of the RTC1 PRESCALER register. */
 #define APP_TIMER_OP_QUEUE_SIZE         RUUVITAG_APP_TIMER_OP_QUEUE_SIZE  /**< Size of timer operation queues. */
 APP_TIMER_DEF(main_timer_id);                                             /** Creates timer id for our program **/
 
+
+
+//flag for analysing sensor data
+static volatile bool startRead = false;
+// BASE91
+static struct basE91 b91;
+static char url_buffer[16] = {'r', 'u', 'u', '.', 'v', 'i', '#'};
+char buffer_base91_out [16] = {0};
+size_t enc_data_len = 0;
+
 /**@brief Function for doing power management.
+
  */
 static void power_manage(void)
 {
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
 }
-
-//flag for analysing sensor data
-static volatile bool startRead = false;
 
 // Timeout handler for the repeated timer
 static void main_timer_handler(void * p_context)
@@ -76,10 +88,10 @@ static void main_timer_handler(void * p_context)
 typedef struct 
 {
 uint8_t     format;         // Includes time format
-uint8_t     humidity;      	// one lsb is 0.5%
+uint8_t     humidity;       // one lsb is 0.5%
 uint16_t    temperature;    // Signed 8.8 fixed-point notation.
 uint16_t    pressure;       // Todo
-uint16_t    time;           // Seconds, minutes or hours from beginning
+uint16_t    time;           // Seconds, minutes or hours from last movement
 }ruuvi_sensor_t;
 
 static ruuvi_sensor_t sensor_values;
@@ -113,26 +125,71 @@ static bool detectMovement(int16_t uX, int16_t uY, int16_t uZ)
 static void readData(void)
 {
    int32_t accX, accY, accZ;
-   //Get raw values
+   //Get raw accelerometer values
    LIS2DH12_getALLmG(&accX, &accY, &accZ);
-   NRF_LOG_INFO ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d", accX, accY, accZ);
+   NRF_LOG_DEBUG ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d", accX, accY, accZ);
    //Detect movement
    bool moving = detectMovement(accX, accY, accZ);
   
    if(moving){
-       nrf_gpio_pin_toggle(17);
        sensor_values.time = 0;
-
    }
-
+   else{
+       sensor_values.time += 5; //TODO: Use actual RTC values to avoid drift.
+   }
+   
+   // Get raw environmental data
    int32_t raw_t = bme280_get_temperature();
    uint32_t raw_p = bme280_get_pressure();
    uint32_t raw_h = bme280_get_humidity();
-   NRF_LOG_DEBUG ("temperature: %d, pressure: %d, humidity: %d", raw_t, raw_p, raw_h);
+   
+   NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d", raw_t, raw_p, raw_h);
 
-  
+   //Convert raw values to ruu.vi specification
+   sensor_values.temperature = float2fix((float)raw_t);
+   sensor_values.pressure = (uint16_t)(raw_p - 50000);
+   sensor_values.humidity = (uint8_t)(raw_h * 2);
+
+   //Base91 encode
+   memset(&buffer_base91_out, 0, sizeof(buffer_base91_out)); 
+   enc_data_len = basE91_encode(&b91, &sensor_values, sizeof(sensor_values), buffer_base91_out);
+   enc_data_len += basE91_encode_end(&b91, buffer_base91_out + enc_data_len);
+   memset(&b91, 0, sizeof(b91));
+
+   // Fill the URL buffer. Eddystone config contains frame type, RSSI and URL scheme.
+   url_buffer[0] = 0x72; // r
+   url_buffer[1] = 0x75; // u
+   url_buffer[2] = 0x75; // u
+   url_buffer[3] = 0x2e; // .
+   url_buffer[4] = 0x76; // v
+   url_buffer[5] = 0x69; // i
+   url_buffer[6] = 0x23; // #        
+
+   /** We've got 18-7=11 characters available.
+   Encoding 64 bits using Base91 produces max 9 value. All good. **/
+   memcpy(&url_buffer[7], &buffer_base91_out, enc_data_len);
 }
 
+static void updateAdvertisement(void)
+{
+    static uint32_t prev_p = 1;
+    //static prev_t = 0;
+    //static prev_h = 0;
+
+
+    //TODO: threshold
+    if(prev_p)
+    {
+        prev_p = 0; //sensor_values.raw_p
+        //prev_t = sensor_values.raw_t
+        //prev_h = sensor_values.raw_h
+
+        eddystone_advertise_url(url_buffer, 6 + enc_data_len);
+
+        NRF_LOG_INFO("Updated eddystone URL");
+    }
+
+}
 
 /**
  * @brief Function for application main entry.
@@ -145,15 +202,16 @@ int main(void)
     sensor_values.format = 1;
     sensor_values.time = 0;
 
+    basE91_init(&b91);
+
+
     // Initialize log
     err_code = NRF_LOG_INIT(NULL);
     APP_ERROR_CHECK(err_code);
 
     //Initialize Eddystone
-    char url[] = {'r', 'u', 'u', '.', 'v', 'i'};
     eddystone_init();
-    eddystone_advertise_url(url, 6);
-    NRF_LOG_INFO("Eddystone Start!\r\n");
+    NRF_LOG_INFO("Eddystone init\r\n");
 
     // Initialize the application timer module.
     // Requires low-frequency clock initialized above
@@ -209,7 +267,7 @@ int main(void)
          {
              startRead = false;
              readData();
-             //updateAdvertisement();
+             updateAdvertisement();
          }
 
          power_manage();

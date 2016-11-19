@@ -36,7 +36,7 @@
 
 static ble_gap_adv_params_t m_adv_params;                                 /**< Parameters to be passed to the stack when starting advertising. */
 
-static uint8_t eddystone_url_data[] =   /**< Information advertised by the Eddystone URL frame type. */
+static uint8_t eddystone_url_data[19] =   /**< Information advertised by the Eddystone URL frame type. */
 {
     APP_EDDYSTONE_URL_FRAME_TYPE,   // Eddystone URL frame type.
     APP_EDDYSTONE_RSSI,             // RSSI value at 0 m.

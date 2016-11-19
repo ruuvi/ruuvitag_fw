@@ -43,6 +43,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/LIS2DH12/LIS2DH12.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
   $(PROJ_DIR)/../../libraries/eddystone/eddystone.c \
+  $(PROJ_DIR)/../../libraries/base91/base91.c \
 
 
   
@@ -144,6 +145,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../drivers/LIS2DH12 \
   $(PROJ_DIR)/../../drivers/bme280 \
   $(PROJ_DIR)/../../libraries/eddystone \
+  $(PROJ_DIR)/../../libraries/base91 \
 
 # Libraries common to all targets
 LIB_FILES += \
