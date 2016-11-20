@@ -47,6 +47,8 @@ For a detailed description see the detailed description in @ref LIS2DH12.h
 /* MACROS *****************************************************************************************/
 
 APP_TIMER_DEF(lis2dh12_timer_id);                           /** Creates timer id for our program **/
+#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, sizeof(nrf_drv_gpiote_pin_t))
+#define SCHED_QUEUE_SIZE                10
 
 /* TYPES ******************************************************************************************/
 /** Structure containing sensor data for all 3 axis */

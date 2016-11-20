@@ -103,7 +103,7 @@ typedef struct
 uint8_t     format;         // Includes time format
 uint8_t     humidity;       // one lsb is 0.5%
 uint16_t    temperature;    // Signed 8.8 fixed-point notation.
-uint16_t    pressure;       // Todo
+uint16_t    pressure;       // Pascals (pa)
 uint16_t    time;           // Seconds, minutes or hours from last movement
 }ruuvi_sensor_t;
 
@@ -114,7 +114,7 @@ static ruuvi_sensor_t sensor_values;
  * @param uY acceleration in Y-direction (mg)
  * @param uZ acceleration in Z-direction (mg)
  * return true if high-passed acceleration amlitude exceeds defined threshold
- *//*
+ */
 static bool detectMovement(int16_t uX, int16_t uY, int16_t uZ)
 {
   static int16_t aX = 0;
@@ -133,73 +133,80 @@ static bool detectMovement(int16_t uX, int16_t uY, int16_t uZ)
 
   return (amplitude > 200);  
 
-}*/
+}
 
 static void readData(void)
 {
-   //int32_t accX, accY, accZ;
-   //Get raw accelerometer values
-   //LIS2DH12_getALLmG(&accX, &accY, &accZ);
-   //NRF_LOG_DEBUG ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d", accX, accY, accZ);
-   //Detect movement
-   //bool moving = detectMovement(accX, accY, accZ);
+    int32_t accX, accY, accZ;
+    //Get raw accelerometer values
+    LIS2DH12_getALLmG(&accX, &accY, &accZ);
+    NRF_LOG_DEBUG ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d", accX, accY, accZ);
+    //Detect movement
+    bool moving = detectMovement(accX, accY, accZ);
   
-   //if(moving){
-   //    sensor_values.time = 0;
-   //}
-   //else{
-   //    sensor_values.time += 5; //TODO: Use actual RTC values to avoid drift.
-   //}
-   //NRF_LOG_DEBUG ("Time: %d", sensor_values.time);
+    if(moving){
+        sensor_values.time = 0;
+    }
+    else{
+        sensor_values.time += 5; //TODO: Use actual RTC values to avoid drift.
+    }
+    NRF_LOG_DEBUG ("Time: %d", sensor_values.time);
 
-   // Get raw environmental data
-   int32_t raw_t = bme280_get_temperature();
-   uint32_t raw_p = bme280_get_pressure();
-   uint32_t raw_h = bme280_get_humidity();
+    // Get raw environmental data
+    int32_t raw_t = bme280_get_temperature();
+    uint32_t raw_p = bme280_get_pressure();
+    uint32_t raw_h = bme280_get_humidity();
    
-   NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d", raw_t, raw_p, raw_h);
+    NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d", raw_t, raw_p, raw_h);
 
-   //Convert raw values to ruu.vi specification
-   sensor_values.temperature = raw_t * 256 / 100;
-   sensor_values.pressure = (uint16_t)((raw_p/256) - 50000);
-   sensor_values.humidity = (uint8_t)((raw_h/1024) * 2);
+    //Convert raw values to ruu.vi specification
+    //Round values: 1 deg C, 1 hPa, 1% RH 
+    sensor_values.temperature = (raw_t < 0) ? 0x8000 : 0x0000; //Sign bit
+    if(raw_t < 0) raw_t = 0-raw_t; // disrecard sign
+    sensor_values.temperature |= (((raw_t * 256) / 100) & 0x7F00);//8:8 signed fixed point, Drop decimals
+    sensor_values.pressure = (uint16_t)((raw_p >> 8) - 50000); //Scale into pa, Shift by -50000 pa as per Ruu.vi interface.
+    sensor_values.pressure -= sensor_values.pressure % 100; //Drop decimals
+    sensor_values.humidity = (uint8_t)(raw_h >> 11); 
+    sensor_values.humidity <<= 2;     
+    //sensor_values.humidity = (uint8_t)((raw_h/1024) * 2);
 
-   //Base91 encode
-   memset(&buffer_base91_out, 0, sizeof(buffer_base91_out)); 
-   enc_data_len = basE91_encode(&b91, &sensor_values, sizeof(sensor_values), buffer_base91_out);
-   enc_data_len += basE91_encode_end(&b91, buffer_base91_out + enc_data_len);
-   memset(&b91, 0, sizeof(b91));
+    //Base91 encode
+    memset(&buffer_base91_out, 0, sizeof(buffer_base91_out)); 
+    enc_data_len = basE91_encode(&b91, &sensor_values, sizeof(sensor_values), buffer_base91_out);
+    enc_data_len += basE91_encode_end(&b91, buffer_base91_out + enc_data_len);
+    memset(&b91, 0, sizeof(b91));
 
-   // Fill the URL buffer. Eddystone config contains frame type, RSSI and URL scheme.
-   url_buffer[0] = 0x72; // r
-   url_buffer[1] = 0x75; // u
-   url_buffer[2] = 0x75; // u
-   url_buffer[3] = 0x2e; // .
-   url_buffer[4] = 0x76; // v
-   url_buffer[5] = 0x69; // i
-   url_buffer[6] = 0x23; // #        
+    // Fill the URL buffer. Eddystone config contains frame type, RSSI and URL scheme.
+    url_buffer[0] = 0x72; // r
+    url_buffer[1] = 0x75; // u
+    url_buffer[2] = 0x75; // u
+    url_buffer[3] = 0x2e; // .
+    url_buffer[4] = 0x76; // v
+    url_buffer[5] = 0x69; // i
+    url_buffer[6] = 0x23; // #        
 
-   /// We've got 18-7=11 characters available. Encoding 64 bits using Base91 produces max 9 value. All good.
+    /// We've got 18-7=11 characters available. Encoding 64 bits using Base91 produces max 9 value. All good.
    
-   memcpy(&url_buffer[7], &buffer_base91_out, enc_data_len);
+    memcpy(&url_buffer[7], &buffer_base91_out, enc_data_len);
 }
 
 static void updateAdvertisement(void)
 {
-    //static uint32_t prev_p = 1;
-    //static prev_t = 0;
-    //static prev_h = 0;
+static uint8_t     humidity = 0;
+static uint16_t    temperature = 0;
+static uint16_t    pressure = 0;
 
 
-    //TODO: threshold
-    if(1)
+    //Values are "thresholded" by comparing rounded values.
+   if(humidity != sensor_values.humidity
+     ||temperature != sensor_values.temperature
+     ||pressure != sensor_values.pressure)
     {
-        //prev_p = 0; //sensor_values.raw_p
-        //prev_t = sensor_values.raw_t
-        //prev_h = sensor_values.raw_h
-
         eddystone_advertise_url(url_buffer, 6 + enc_data_len);
 
+        humidity = sensor_values.humidity;
+        temperature = sensor_values.temperature;
+        pressure = sensor_values.pressure;
         NRF_LOG_DEBUG("Updated eddystone URL");
     }
 
@@ -246,7 +253,7 @@ int main(void)
     nrf_gpio_cfg_output	(19);
     nrf_gpio_pin_set(19);
 
-/*    LIS2DH12_Ret Lis2dh12RetVal;
+    LIS2DH12_Ret Lis2dh12RetVal;
 	
     NRF_LOG_INFO("LIS2DH12 init Start\r\n");
     Lis2dh12RetVal = LIS2DH12_init(LIS2DH12_POWER_LOW, LIS2DH12_SCALE2G, NULL);
@@ -259,7 +266,7 @@ int main(void)
     {
         NRF_LOG_ERROR("LIS2DH12 init Failed: Error Code: %d\r\n", (int32_t)Lis2dh12RetVal);
         //TODO: Enter error handler?
-    }*/
+    }
 
     NRF_LOG_INFO("BME280 init Start\r\n");
     // Read calibration
@@ -287,7 +294,7 @@ int main(void)
          {
              startRead = false;
              readData();
-             bme280_set_mode(BME280_MODE_FORCED); //Take another measurement for the next time
+             bme280_set_mode(BME280_MODE_FORCED); //Start another measurement for the next time
              updateAdvertisement();
          }
          //Log is disabled in SDK_CONFIG, has no effect
