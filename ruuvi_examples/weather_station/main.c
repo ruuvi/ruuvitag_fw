@@ -291,7 +291,7 @@ int main(void)
              updateAdvertisement();
          }
          //if(NRF_LOG_PROCESS() == false){
-           //app_sched_execute();
+           app_sched_execute();
            power_manage();
          //}
     }
