@@ -67,7 +67,7 @@ APP_TIMER_DEF(main_timer_id);                                             /** Cr
 //flag for analysing sensor data
 static volatile bool startRead = false;
 // BASE91
-//static struct basE91 b91;
+static struct basE91 b91;
 static char url_buffer[16] = {'r', 'u', 'u', '.', 'v', 'i', '#'};
 char buffer_base91_out [16] = {0};
 size_t enc_data_len = 0;
@@ -133,24 +133,24 @@ static bool detectMovement(int16_t uX, int16_t uY, int16_t uZ)
 
   return (amplitude > 200);  
 
-}
+}*/
 
 static void readData(void)
 {
-   int32_t accX, accY, accZ;
+   //int32_t accX, accY, accZ;
    //Get raw accelerometer values
-   LIS2DH12_getALLmG(&accX, &accY, &accZ);
-   NRF_LOG_DEBUG ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d", accX, accY, accZ);
+   //LIS2DH12_getALLmG(&accX, &accY, &accZ);
+   //NRF_LOG_DEBUG ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d", accX, accY, accZ);
    //Detect movement
-   bool moving = detectMovement(accX, accY, accZ);
+   //bool moving = detectMovement(accX, accY, accZ);
   
-   if(moving){
-       sensor_values.time = 0;
-   }
-   else{
-       sensor_values.time += 5; //TODO: Use actual RTC values to avoid drift.
-   }
-   NRF_LOG_DEBUG ("Time: %d", sensor_values.time);
+   //if(moving){
+   //    sensor_values.time = 0;
+   //}
+   //else{
+   //    sensor_values.time += 5; //TODO: Use actual RTC values to avoid drift.
+   //}
+   //NRF_LOG_DEBUG ("Time: %d", sensor_values.time);
 
    // Get raw environmental data
    int32_t raw_t = bme280_get_temperature();
@@ -182,7 +182,7 @@ static void readData(void)
    /// We've got 18-7=11 characters available. Encoding 64 bits using Base91 produces max 9 value. All good.
    
    memcpy(&url_buffer[7], &buffer_base91_out, enc_data_len);
-}*/
+}
 
 static void updateAdvertisement(void)
 {
@@ -286,14 +286,15 @@ int main(void)
          if(startRead)
          {
              startRead = false;
-             //readData();
+             readData();
              bme280_set_mode(BME280_MODE_FORCED); //Take another measurement for the next time
              updateAdvertisement();
          }
-         //if(NRF_LOG_PROCESS() == false){
+         //Log is disabled in SDK_CONFIG, has no effect
+         if(NRF_LOG_PROCESS() == false){
            app_sched_execute();
            power_manage();
-         //}
+         }
     }
 }
 
