@@ -31,23 +31,52 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * Changelog
+ * 2016-11-17 Otso Jousimaa (otso@ruuvi.com): Port function calls to use Ruuvi SPI driver 
+ * 2016-11-18 Otso Jousimaa (otso@ruuvi.com): Add timer to poll data 
+ *
+ */
+
 #include <stdint.h>
 #include <stdbool.h>
 
 #include "bme280.h"
 
-// global instance
-struct bme280_driver bme280;
+
+struct bme280_driver bme280; /* global instance */
+// Scheduler settings
+APP_TIMER_DEF(bme280_timer_id);                                             /** Creates timer id for our program **/
+#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, sizeof(nrf_drv_gpiote_pin_t))
+#define SCHED_QUEUE_SIZE                10
+
+/* Prototypes */
+void timer_bme280_event_handler(void* p_context);
 
 void bme280_init()
 {
-	bme280.sensor_available = false;
 
+        /* Initialize SPI */
+        if (!spi_isInitialized())
+        {
+            spi_init();
+        }
+        ret_code_t err_code = 0;
 	uint8_t reg = bme280_read_reg(BME280REG_ID);
+        bme280.sensor_available = false;
+
 	if (reg == 0x60)
+        {
 		bme280.sensor_available = true;
+        }
 	else
-		return;
+        {
+		return; //TODO return error
+        }
+        err_code = app_timer_create(&bme280_timer_id,
+                                APP_TIMER_MODE_REPEATED,
+                                timer_bme280_event_handler);
+        APP_ERROR_CHECK(err_code);
 
 	// load calibration data...
 	bme280.cp.dig_T1  = bme280_read_reg(BME280REG_CALIB_00);
@@ -88,17 +117,45 @@ void bme280_init()
 	bme280.cp.dig_H5 |= bme280_read_reg(0xE6) << 4;		// 11:4
 
 	bme280.cp.dig_H6  = bme280_read_reg(0xE7);
+
 }
 
 
+/*
+ *  TODO: Adjust timer frequency by BME280 sampling speed.
+ */
 void bme280_set_mode(enum BME280_MODE mode)
 {
 	uint8_t conf;
+        uint32_t err_code = 0;
 
 	conf = bme280_read_reg(BME280REG_CTRL_MEAS);
 	conf = conf & 0b11111100;
 	conf |= mode;
 	bme280_write_reg(BME280REG_CTRL_MEAS, conf);
+
+        switch(mode)
+        {
+        case BME280_MODE_NORMAL:
+            /* start sample timer with sample time according to selected sample frequency TODO adjust polling frequency */
+            /* TODO Adjust sampling interval */
+            err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(1000u, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+            APP_ERROR_CHECK(err_code);
+            break;
+
+        case BME280_MODE_FORCED:
+            /* TODO single shot Poll data after conversion is completed */
+            //err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(100u, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+            //APP_ERROR_CHECK(err_code);
+            bme280_read_measurements();
+            break;
+
+        case BME280_MODE_SLEEP:         
+        default:
+            err_code = app_timer_stop(bme280_timer_id);
+            APP_ERROR_CHECK(err_code);
+            break;
+        }
 }
 
 
@@ -145,10 +202,11 @@ void bme280_set_oversampling_press(uint8_t os)
 /**
  * @brief Read new raw values.
  */
-void bm280_read_measurements()
+void bme280_read_measurements()
 {
 	uint8_t data[8];
 
+        /* TODO use burst read */
 	for (int i=0; i < 8; i++) {
 		data[i] = bme280_read_reg(BME280REG_PRESS_MSB + i);
 	}
@@ -160,7 +218,7 @@ void bm280_read_measurements()
 	bme280.adc_t |= (uint32_t) data[3] << 12;
 
 	bme280.adc_p  = (uint32_t) data[2] >> 4;
-	bme280.adc_p  = (uint32_t) data[1] << 4;
+	bme280.adc_p |= (uint32_t) data[1] << 4;
 	bme280.adc_p |= (uint32_t) data[0] << 12;
 }
 
@@ -210,12 +268,17 @@ static int32_t compensate_T_int32(int32_t adc_T)
 {
 	int32_t var1, var2, T;
 
-	var1 = ((((adc_T>>3) - ((uint32_t)bme280.cp.dig_T1<<1))) * ((uint32_t)bme280.cp.dig_T2)) >> 11;
-	var2 = (((((adc_T>>4) - ((uint32_t)bme280.cp.dig_T1)) * ((adc_T>>4) - ((uint32_t)bme280.cp.dig_T1))) >> 12) * ((uint32_t)bme280.cp.dig_T3)) >> 14;
-	bme280.t_fine = var1 + var2;
-	T = (bme280.t_fine * 5 + 128) >> 8;
+	var1 = ((((adc_T>>3) - ((int32_t)bme280.cp.dig_T1<<1))) * 
+               ((int32_t)bme280.cp.dig_T2)) >> 11;
+	var2 = (((((adc_T>>4) - ((int32_t)bme280.cp.dig_T1)) *
+               ((adc_T>>4) - ((int32_t)bme280.cp.dig_T1))) >> 12) * 
+               ((int32_t)bme280.cp.dig_T3)) >> 14;
 
-	return T;
+	bme280.t_fine = var1 + var2;
+
+	T = (bme280.t_fine * 5 + 128) >> 8;
+	
+  return T;
 }
 
 
@@ -253,5 +316,40 @@ uint32_t bme280_get_humidity(void)
 	return humi;
 }
 
+uint8_t bme280_read_reg(uint8_t reg)
+{
+	uint8_t tx[2];
+	uint8_t rx[2] = {0};
+
+	tx[0] = reg | 0x80;
+	tx[1] = 0x00;
+	spi_transfer_bme280(tx, 2, rx);
+
+	return rx[1];
+}
 
 
+void bme280_write_reg(uint8_t reg, uint8_t value)
+{
+	uint8_t tx[2];
+	uint8_t rx[2] = {0};
+
+	tx[0] = reg & 0x7F;
+	tx[1] = value;
+	spi_transfer_bme280(tx, 2, rx);
+}
+
+
+/**
+ * Event Handler that is called by the timer to read the sensor values.
+ *
+ * @param [in] pContext Timer Context
+ */
+void timer_bme280_event_handler(void* p_context)
+{
+    //uint32_t err_code;
+    //NRF_LOG_DEBUG("BME280 Timer event'\r\n");
+    //bme280_read_measurements();
+    //err_code = app_timer_stop(bme280_timer_id);
+    //APP_ERROR_CHECK(err_code);
+}

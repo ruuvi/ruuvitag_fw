@@ -1,12 +1,12 @@
-PROJECT_NAME     := ble_app_beacon_ruuvitag_b3_s132
-TARGETS          := nrf52832_xxaa
+PROJECT_NAME     := weather-station_ruuvitag-b3_s132
+TARGETS          := weather_station
 OUTPUT_DIRECTORY := _build
 
 SDK_ROOT := ../../../../../nRF5_SDK_12.1.0_0d23e2a
 PROJ_DIR := ../../..
 
-$(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
-  LINKER_SCRIPT  := ble_app_beacon_gcc_nrf52.ld
+$(OUTPUT_DIRECTORY)/weather_station.out: \
+  LINKER_SCRIPT  := weather_station.ld
 # Source files common to all targets
 SRC_FILES += \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
@@ -19,12 +19,17 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/util/app_util_platform.c \
   $(SDK_ROOT)/components/libraries/hardfault/hardfault_implementation.c \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \
+  $(SDK_ROOT)/components/libraries/timer/app_timer.c \
+  $(SDK_ROOT)/components/libraries/timer/app_timer_appsh.c \
+  $(SDK_ROOT)/components/libraries/util/app_util_platform.c \
+  $(SDK_ROOT)/components/libraries/scheduler/app_scheduler.c \
   $(SDK_ROOT)/components/drivers_nrf/clock/nrf_drv_clock.c \
   $(SDK_ROOT)/components/drivers_nrf/common/nrf_drv_common.c \
   $(SDK_ROOT)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c \
   $(SDK_ROOT)/components/drivers_nrf/uart/nrf_drv_uart.c \
-  $(PROJ_DIR)/../../bsp/bsp.c \
-  $(PROJ_DIR)/main.c \
+  $(SDK_ROOT)/components/drivers_nrf/timer/nrf_drv_timer.c \
+  $(SDK_ROOT)/components/drivers_nrf/clock/nrf_drv_clock.c \
+  $(SDK_ROOT)/components/drivers_nrf/spi_master/nrf_drv_spi.c \
   $(SDK_ROOT)/external/segger_rtt/RTT_Syscalls_GCC.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
@@ -34,6 +39,16 @@ SRC_FILES += \
   $(SDK_ROOT)/components/toolchain/gcc/gcc_startup_nrf52.S \
   $(SDK_ROOT)/components/toolchain/system_nrf52.c \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
+  $(PROJ_DIR)/main.c \
+  $(PROJ_DIR)/../../bsp/bsp.c \
+  $(PROJ_DIR)/../../drivers/spi/spi.c \
+  $(PROJ_DIR)/../../drivers/LIS2DH12/LIS2DH12.c \
+  $(PROJ_DIR)/../../drivers/bme280/bme280.c \
+  $(PROJ_DIR)/../../libraries/eddystone/eddystone.c \
+  $(PROJ_DIR)/../../libraries/base91/base91.c \
+
+
+  
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -54,7 +69,6 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/drivers_nrf/adc \
   $(SDK_ROOT)/components/ble/ble_services/ble_bas_c \
   $(SDK_ROOT)/components/ble/ble_services/ble_hrs_c \
-  $(PROJ_DIR)/../../bsp \
   $(SDK_ROOT)/components/ble/ble_dtm \
   $(SDK_ROOT)/components/libraries/crc16 \
   $(SDK_ROOT)/components/libraries/mailbox \
@@ -86,7 +100,6 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/drivers_nrf/timer \
   $(SDK_ROOT)/components/libraries/util \
   $(SDK_ROOT)/components/drivers_nrf/pwm \
-  ../config \
   $(SDK_ROOT)/components/libraries/csense_drv \
   $(SDK_ROOT)/components/libraries/csense \
   $(SDK_ROOT)/components/drivers_nrf/rng \
@@ -125,6 +138,17 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler \
   $(SDK_ROOT)/components/ble/ble_services/ble_hrs \
   $(SDK_ROOT)/components/libraries/log/src \
+  $(SDK_ROOT)/components/drivers_nrf/clock \
+  $(SDK_ROOT)/components/libraries/timer \
+  $(SDK_ROOT)/components/drivers_nrf/delay \
+  $(SDK_ROOT)/components/libraries/scheduler \
+  ../config \
+  $(PROJ_DIR)/../../bsp \
+  $(PROJ_DIR)/../../drivers/spi/ \
+  $(PROJ_DIR)/../../drivers/LIS2DH12 \
+  $(PROJ_DIR)/../../drivers/bme280 \
+  $(PROJ_DIR)/../../libraries/eddystone \
+  $(PROJ_DIR)/../../libraries/base91 \
 
 # Libraries common to all targets
 LIB_FILES += \
@@ -211,12 +235,12 @@ LDFLAGS += --specs=nano.specs -lc -lnosys
 
 .PHONY: $(TARGETS) default all clean help flash  flash_softdevice
 # Default target - first one defined
-default: nrf52832_xxaa
+default: weather_station
 
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo 	nrf52832_xxaa
+	@echo 	weather_station
 	@echo 	flash_softdevice
 
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
