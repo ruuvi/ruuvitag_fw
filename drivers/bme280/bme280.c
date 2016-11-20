@@ -60,6 +60,7 @@ void bme280_init()
         if (!spi_isInitialized())
         {
             spi_init();
+            return;
         }
         //ret_code_t err_code = 0;
 	uint8_t reg = bme280_read_reg(BME280REG_ID);

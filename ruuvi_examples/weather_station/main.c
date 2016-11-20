@@ -261,17 +261,17 @@ int main(void)
         //TODO: Enter error handler?
     }*/
 
-    /*NRF_LOG_INFO("BME280 init Start\r\n");
+    NRF_LOG_INFO("BME280 init Start\r\n");
     // Read calibration
     bme280_init();
     //setup sensor readings
-    bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
-    bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
-    bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
+    //bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
+    //bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
+    //bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
     //Start single measurement
     //bme280_set_mode(BME280_MODE_FORCED);
 
-    NRF_LOG_INFO("BME280 init done\r\n");*/
+    NRF_LOG_INFO("BME280 init done\r\n");
 
 
     startRead = true;
