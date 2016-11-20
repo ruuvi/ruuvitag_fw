@@ -265,11 +265,11 @@ int main(void)
     // Read calibration
     bme280_init();
     //setup sensor readings
-    //bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
-    //bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
-    //bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
+    bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
+    bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
+    bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
     //Start single measurement
-    //bme280_set_mode(BME280_MODE_FORCED);
+    bme280_set_mode(BME280_MODE_FORCED);
 
     NRF_LOG_INFO("BME280 init done\r\n");
 
@@ -287,7 +287,7 @@ int main(void)
          {
              startRead = false;
              //readData();
-             //bme280_set_mode(BME280_MODE_FORCED); //Take another measurement for the next time
+             bme280_set_mode(BME280_MODE_FORCED); //Take another measurement for the next time
              updateAdvertisement();
          }
          //if(NRF_LOG_PROCESS() == false){

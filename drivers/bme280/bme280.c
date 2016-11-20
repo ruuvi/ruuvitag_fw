@@ -60,9 +60,8 @@ void bme280_init()
         if (!spi_isInitialized())
         {
             spi_init();
-            return;
         }
-        //ret_code_t err_code = 0;
+        ret_code_t err_code = 0;
 	uint8_t reg = bme280_read_reg(BME280REG_ID);
         bme280.sensor_available = false;
 
@@ -74,10 +73,10 @@ void bme280_init()
         {
 		return; //TODO return error
         }
-        //err_code = app_timer_create(&bme280_timer_id,
-        //                        APP_TIMER_MODE_SINGLE_SHOT,
-        //                        timer_bme280_event_handler);
-        //APP_ERROR_CHECK(err_code);
+        err_code = app_timer_create(&bme280_timer_id,
+                                APP_TIMER_MODE_REPEATED,
+                                timer_bme280_event_handler);
+        APP_ERROR_CHECK(err_code);
 
 	// load calibration data...
 	bme280.cp.dig_T1  = bme280_read_reg(BME280REG_CALIB_00);
@@ -139,6 +138,7 @@ void bme280_set_mode(enum BME280_MODE mode)
         {
         case BME280_MODE_NORMAL:
             /* start sample timer with sample time according to selected sample frequency TODO adjust polling frequency */
+            /* TODO Adjust sampling interval */
             err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(1000u, RUUVITAG_APP_TIMER_PRESCALER), NULL);
             APP_ERROR_CHECK(err_code);
             break;
