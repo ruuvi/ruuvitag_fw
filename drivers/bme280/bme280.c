@@ -45,14 +45,23 @@
 
 
 struct bme280_driver bme280; /* global instance */
-APP_TIMER_DEF(bme280_timer_id);                           /** Creates timer id for our program **/
+// Scheduler settings
+APP_TIMER_DEF(bme280_timer_id);                                             /** Creates timer id for our program **/
+#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, sizeof(nrf_drv_gpiote_pin_t))
+#define SCHED_QUEUE_SIZE                10
 
 /* Prototypes */
 void timer_bme280_event_handler(void* p_context);
 
 void bme280_init()
 {
-        ret_code_t err_code = 0;
+
+        /* Initialize SPI */
+        if (!spi_isInitialized())
+        {
+            spi_init();
+        }
+        //ret_code_t err_code = 0;
 	uint8_t reg = bme280_read_reg(BME280REG_ID);
         bme280.sensor_available = false;
 
@@ -62,13 +71,12 @@ void bme280_init()
         }
 	else
         {
-		return;
+		return; //TODO return error
         }
-
-        err_code = app_timer_create(&bme280_timer_id,
-                                APP_TIMER_MODE_REPEATED,
-                                 timer_bme280_event_handler);
-        APP_ERROR_CHECK(err_code);
+        //err_code = app_timer_create(&bme280_timer_id,
+        //                        APP_TIMER_MODE_SINGLE_SHOT,
+        //                        timer_bme280_event_handler);
+        //APP_ERROR_CHECK(err_code);
 
 	// load calibration data...
 	bme280.cp.dig_T1  = bme280_read_reg(BME280REG_CALIB_00);
@@ -109,6 +117,7 @@ void bme280_init()
 	bme280.cp.dig_H5 |= bme280_read_reg(0xE6) << 4;		// 11:4
 
 	bme280.cp.dig_H6  = bme280_read_reg(0xE7);
+
 }
 
 
@@ -135,8 +144,9 @@ void bme280_set_mode(enum BME280_MODE mode)
 
         case BME280_MODE_FORCED:
             /* TODO single shot Poll data after conversion is completed */
-            err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(100, RUUVITAG_APP_TIMER_PRESCALER), NULL);
-            APP_ERROR_CHECK(err_code);
+            //err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(100u, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+            //APP_ERROR_CHECK(err_code);
+            bme280_read_measurements();
             break;
 
         case BME280_MODE_SLEEP:         
@@ -336,6 +346,9 @@ void bme280_write_reg(uint8_t reg, uint8_t value)
  */
 void timer_bme280_event_handler(void* p_context)
 {
-    NRF_LOG_DEBUG("BME280 Timer event'\r\n");
-    bme280_read_measurements();
+    //uint32_t err_code;
+    //NRF_LOG_DEBUG("BME280 Timer event'\r\n");
+    //bme280_read_measurements();
+    //err_code = app_timer_stop(bme280_timer_id);
+    //APP_ERROR_CHECK(err_code);
 }

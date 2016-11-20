@@ -21,6 +21,9 @@ extern "C"
 #include "app_error.h"
 
 #include "nrf_drv_gpiote.h"
+#include "app_scheduler.h"
+#include "nordic_common.h"
+#include "app_timer_appsh.h"
 
 /* CONSTANTS **************************************************************************************/
 

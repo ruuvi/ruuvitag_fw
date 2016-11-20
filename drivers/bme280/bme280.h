@@ -40,7 +40,9 @@
 #include "nrf_drv_timer.h"
 #include "nrf_drv_gpiote.h"
 #include "bsp.h"
-#include "app_timer.h"
+#include "app_scheduler.h"
+#include "nordic_common.h"
+#include "app_timer_appsh.h"
 
 struct comp_params {
 	uint16_t dig_T1;

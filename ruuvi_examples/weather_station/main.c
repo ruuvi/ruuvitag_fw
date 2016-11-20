@@ -29,7 +29,8 @@
 #include "ble_advdata.h"
 #include "nordic_common.h"
 #include "softdevice_handler.h"
-#include "app_timer.h"
+#include "app_scheduler.h"
+#include "app_timer_appsh.h"
 #include "nrf_drv_clock.h"
 #include "nrf_gpio.h"
 #include "nrf_log.h"
@@ -57,34 +58,44 @@
 //Timers
 #define APP_TIMER_PRESCALER             RUUVITAG_APP_TIMER_PRESCALER      /**< Value of the RTC1 PRESCALER register. */
 #define APP_TIMER_OP_QUEUE_SIZE         RUUVITAG_APP_TIMER_OP_QUEUE_SIZE  /**< Size of timer operation queues. */
+// Scheduler settings
 APP_TIMER_DEF(main_timer_id);                                             /** Creates timer id for our program **/
-
+#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, sizeof(nrf_drv_gpiote_pin_t))
+#define SCHED_QUEUE_SIZE                10
 
 
 //flag for analysing sensor data
 static volatile bool startRead = false;
 // BASE91
-static struct basE91 b91;
-static char url_buffer[16] = {'r', 'u', 'u', '.', 'v', 'i', '#'};
+//static struct basE91 b91;
+//static char url_buffer[16] = {'r', 'u', 'u', '.', 'v', 'i', '#'};
 char buffer_base91_out [16] = {0};
 size_t enc_data_len = 0;
 
 /**@brief Function for doing power management.
 
  */
+
 static void power_manage(void)
 {
     nrf_gpio_pin_set(17);
+      /* Clear exceptions and PendingIRQ from the FPU unit */
+      //__set_FPSCR(__get_FPSCR()  & ~(FPU_EXCEPTION_MASK));      
+      //(void) __get_FPSCR();
+      //NVIC_ClearPendingIRQ(FPU_IRQn);
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
     nrf_gpio_pin_clear(17); 
+
+    //TODO: add counter to unset the pin after ~ten blinks or so
 }
 
 // Timeout handler for the repeated timer
+/*
 static void main_timer_handler(void * p_context)
 {
     startRead = true;
-}
+}*/
 
 // Sensor values
 typedef struct 
@@ -103,7 +114,7 @@ static ruuvi_sensor_t sensor_values;
  * @param uY acceleration in Y-direction (mg)
  * @param uZ acceleration in Z-direction (mg)
  * return true if high-passed acceleration amlitude exceeds defined threshold
- */
+ *//*
 static bool detectMovement(int16_t uX, int16_t uY, int16_t uZ)
 {
   static int16_t aX = 0;
@@ -192,7 +203,7 @@ static void updateAdvertisement(void)
         NRF_LOG_INFO("Updated eddystone URL");
     }
 
-}
+}*/
 
 /**
  * @brief Function for application main entry.
@@ -205,7 +216,7 @@ int main(void)
     sensor_values.format = 1;
     sensor_values.time = 0;
 
-    basE91_init(&b91);
+    //basE91_init(&b91);
 
 
     // Initialize log
@@ -218,15 +229,16 @@ int main(void)
 
     // Initialize the application timer module.
     // Requires low-frequency clock initialized above
-    APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
+    //APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
+    //APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, true);
     // Create timer
-    err_code = app_timer_create(&main_timer_id,
-                                APP_TIMER_MODE_REPEATED,
-                                main_timer_handler);
-    APP_ERROR_CHECK(err_code);
+    //err_code = app_timer_create(&main_timer_id,
+    //                            APP_TIMER_MODE_REPEATED,
+    //                            main_timer_handler);
+    //APP_ERROR_CHECK(err_code);
     //Start timer
-    err_code = app_timer_start(main_timer_id, APP_TIMER_TICKS(5000u, APP_TIMER_PRESCALER), NULL); // 1 event / 1000 ms
-    APP_ERROR_CHECK(err_code);
+    //err_code = app_timer_start(main_timer_id, APP_TIMER_TICKS(5000u, APP_TIMER_PRESCALER), NULL); // 1 event / 1000 ms
+    //APP_ERROR_CHECK(err_code);
 
     //setup leds. LEDs are active low, so setting them turns leds off.
     nrf_gpio_cfg_output	(17);
@@ -234,7 +246,7 @@ int main(void)
     nrf_gpio_cfg_output	(19);
     nrf_gpio_pin_set(19);
 
-    LIS2DH12_Ret Lis2dh12RetVal;
+/*    LIS2DH12_Ret Lis2dh12RetVal;
 	
     NRF_LOG_INFO("LIS2DH12 init Start\r\n");
     Lis2dh12RetVal = LIS2DH12_init(LIS2DH12_POWER_LOW, LIS2DH12_SCALE2G, NULL);
@@ -247,37 +259,41 @@ int main(void)
     {
         NRF_LOG_ERROR("LIS2DH12 init Failed: Error Code: %d\r\n", (int32_t)Lis2dh12RetVal);
         //TODO: Enter error handler?
-    }
+    }*/
 
-    NRF_LOG_INFO("BME280 init Start\r\n");
+    /*NRF_LOG_INFO("BME280 init Start\r\n");
     // Read calibration
     bme280_init();
     //setup sensor readings
     bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
     bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
     bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
-    //Start measurement
-    bme280_set_mode(BME280_MODE_NORMAL);
+    //Start single measurement
+    //bme280_set_mode(BME280_MODE_FORCED);
 
-    NRF_LOG_INFO("BME280 init done\r\n");
+    NRF_LOG_INFO("BME280 init done\r\n");*/
 
 
-    
+    //startRead = true;
 
     // Enter main loop.
     for (;; )
     {
-         NRF_LOG_DEBUG("Loopin'\r\n");
+         //NRF_LOG_DEBUG("Loopin'\r\n");
+         
 
          
-         if(startRead)
-         {
-             startRead = false;
-             readData();
-             updateAdvertisement();
-         }
-
-         power_manage();
+         //if(startRead)
+         //{
+             //startRead = false;
+             //readData();
+             //bme280_set_mode(BME280_MODE_FORCED); //Take another measurement for the next time
+             //updateAdvertisement();
+         //}
+         //if(NRF_LOG_PROCESS() == false){
+           //app_sched_execute();
+           power_manage();
+         //}
     }
 }
 
