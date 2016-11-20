@@ -68,7 +68,7 @@ APP_TIMER_DEF(main_timer_id);                                             /** Cr
 static volatile bool startRead = false;
 // BASE91
 //static struct basE91 b91;
-//static char url_buffer[16] = {'r', 'u', 'u', '.', 'v', 'i', '#'};
+static char url_buffer[16] = {'r', 'u', 'u', '.', 'v', 'i', '#'};
 char buffer_base91_out [16] = {0};
 size_t enc_data_len = 0;
 
@@ -91,11 +91,11 @@ static void power_manage(void)
 }
 
 // Timeout handler for the repeated timer
-/*
+
 static void main_timer_handler(void * p_context)
 {
     startRead = true;
-}*/
+}
 
 // Sensor values
 typedef struct 
@@ -182,7 +182,7 @@ static void readData(void)
    /// We've got 18-7=11 characters available. Encoding 64 bits using Base91 produces max 9 value. All good.
    
    memcpy(&url_buffer[7], &buffer_base91_out, enc_data_len);
-}
+}*/
 
 static void updateAdvertisement(void)
 {
@@ -200,10 +200,10 @@ static void updateAdvertisement(void)
 
         eddystone_advertise_url(url_buffer, 6 + enc_data_len);
 
-        NRF_LOG_INFO("Updated eddystone URL");
+        NRF_LOG_DEBUG("Updated eddystone URL");
     }
 
-}*/
+}
 
 /**
  * @brief Function for application main entry.
@@ -229,16 +229,16 @@ int main(void)
 
     // Initialize the application timer module.
     // Requires low-frequency clock initialized above
-    //APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
-    //APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, true);
+    APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
+    APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, true);
     // Create timer
-    //err_code = app_timer_create(&main_timer_id,
-    //                            APP_TIMER_MODE_REPEATED,
-    //                            main_timer_handler);
-    //APP_ERROR_CHECK(err_code);
+    err_code = app_timer_create(&main_timer_id,
+                                APP_TIMER_MODE_REPEATED,
+                                main_timer_handler);
+    APP_ERROR_CHECK(err_code);
     //Start timer
-    //err_code = app_timer_start(main_timer_id, APP_TIMER_TICKS(5000u, APP_TIMER_PRESCALER), NULL); // 1 event / 1000 ms
-    //APP_ERROR_CHECK(err_code);
+    err_code = app_timer_start(main_timer_id, APP_TIMER_TICKS(5000u, APP_TIMER_PRESCALER), NULL); // 1 event / 5000 ms
+    APP_ERROR_CHECK(err_code);
 
     //setup leds. LEDs are active low, so setting them turns leds off.
     nrf_gpio_cfg_output	(17);
@@ -274,7 +274,7 @@ int main(void)
     NRF_LOG_INFO("BME280 init done\r\n");*/
 
 
-    //startRead = true;
+    startRead = true;
 
     // Enter main loop.
     for (;; )
@@ -283,13 +283,13 @@ int main(void)
          
 
          
-         //if(startRead)
-         //{
-             //startRead = false;
+         if(startRead)
+         {
+             startRead = false;
              //readData();
              //bme280_set_mode(BME280_MODE_FORCED); //Take another measurement for the next time
-             //updateAdvertisement();
-         //}
+             updateAdvertisement();
+         }
          //if(NRF_LOG_PROCESS() == false){
            //app_sched_execute();
            power_manage();
