@@ -53,7 +53,7 @@ APP_TIMER_DEF(bme280_timer_id);                                             /** 
 /* Prototypes */
 void timer_bme280_event_handler(void* p_context);
 
-void bme280_init()
+BME280_Ret bme280_init()
 {
 
         /* Initialize SPI */
@@ -71,7 +71,7 @@ void bme280_init()
         }
 	else
         {
-		return; //TODO return error
+		return BME280_RET_ERROR_SELFTEST;
         }
         err_code = app_timer_create(&bme280_timer_id,
                                 APP_TIMER_MODE_REPEATED,
@@ -117,6 +117,8 @@ void bme280_init()
 	bme280.cp.dig_H5 |= bme280_read_reg(0xE6) << 4;		// 11:4
 
 	bme280.cp.dig_H6  = bme280_read_reg(0xE7);
+ 
+        return BME280_RET_OK;
 
 }
 
@@ -124,15 +126,15 @@ void bme280_init()
 /*
  *  TODO: Adjust timer frequency by BME280 sampling speed.
  */
-void bme280_set_mode(enum BME280_MODE mode)
+BME280_Ret bme280_set_mode(enum BME280_MODE mode)
 {
 	uint8_t conf;
         uint32_t err_code = 0;
+        BME280_Ret status = BME280_RET_ERROR;
 
 	conf = bme280_read_reg(BME280REG_CTRL_MEAS);
 	conf = conf & 0b11111100;
 	conf |= mode;
-	bme280_write_reg(BME280REG_CTRL_MEAS, conf);
 
         switch(mode)
         {
@@ -141,21 +143,25 @@ void bme280_set_mode(enum BME280_MODE mode)
             /* TODO Adjust sampling interval */
             err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(1000u, RUUVITAG_APP_TIMER_PRESCALER), NULL);
             APP_ERROR_CHECK(err_code);
+            status = bme280_write_reg(BME280REG_CTRL_MEAS, conf);
             break;
 
         case BME280_MODE_FORCED:
-            /* TODO single shot Poll data after conversion is completed */
-            //err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(100u, RUUVITAG_APP_TIMER_PRESCALER), NULL);
-            //APP_ERROR_CHECK(err_code);
-            bme280_read_measurements();
+            bme280_read_measurements(); //read previous data
+            status = bme280_write_reg(BME280REG_CTRL_MEAS, conf); //start new measurement
             break;
 
-        case BME280_MODE_SLEEP:         
-        default:
+        case BME280_MODE_SLEEP:    
             err_code = app_timer_stop(bme280_timer_id);
             APP_ERROR_CHECK(err_code);
+            status = bme280_write_reg(BME280REG_CTRL_MEAS, conf);     
+            break;
+
+        default:
             break;
         }
+
+  return status;
 }
 
 
@@ -171,55 +177,58 @@ int bme280_is_measuring(void)
 }
 
 
-void bme280_set_oversampling_hum(uint8_t os)
+BME280_Ret bme280_set_oversampling_hum(uint8_t os)
 {
-	bme280_write_reg(BME280REG_CTRL_HUM, os);
+	return bme280_write_reg(BME280REG_CTRL_HUM, os);
+         
 }
 
 
-void bme280_set_oversampling_temp(uint8_t os)
+BME280_Ret bme280_set_oversampling_temp(uint8_t os)
 {
 	uint8_t reg;
 
 	reg = bme280_read_reg(BME280REG_CTRL_MEAS);
 	reg = reg & 0b00011111;
 	reg |= os << 5;
-	bme280_write_reg(BME280REG_CTRL_MEAS, reg);
+	return bme280_write_reg(BME280REG_CTRL_MEAS, reg);
 }
 
 
-void bme280_set_oversampling_press(uint8_t os)
+BME280_Ret bme280_set_oversampling_press(uint8_t os)
 {
 	uint8_t reg;
 
 	reg = bme280_read_reg(BME280REG_CTRL_MEAS);
 	reg = reg & 0b11100011;
 	reg |= os << 2;
-	bme280_write_reg(BME280REG_CTRL_MEAS, reg);
+	return bme280_write_reg(BME280REG_CTRL_MEAS, reg);
 }
 
 
 /**
  * @brief Read new raw values.
  */
-void bme280_read_measurements()
+BME280_Ret bme280_read_measurements()
 {
-	uint8_t data[8];
+    uint8_t data[8];
 
-        /* TODO use burst read */
-	for (int i=0; i < 8; i++) {
-		data[i] = bme280_read_reg(BME280REG_PRESS_MSB + i);
-	}
+    /* TODO use burst read */
+    for (int i=0; i < 8; i++) {
+        data[i] = bme280_read_reg(BME280REG_PRESS_MSB + i);
+    }
 
-	bme280.adc_h = data[7] + ((uint32_t)data[6] << 8);
+    bme280.adc_h = data[7] + ((uint32_t)data[6] << 8);
 
-	bme280.adc_t  = (uint32_t) data[5] >> 4;
-	bme280.adc_t |= (uint32_t) data[4] << 4;
-	bme280.adc_t |= (uint32_t) data[3] << 12;
+    bme280.adc_t  = (uint32_t) data[5] >> 4;
+    bme280.adc_t |= (uint32_t) data[4] << 4;
+    bme280.adc_t |= (uint32_t) data[3] << 12;
 
-	bme280.adc_p  = (uint32_t) data[2] >> 4;
-	bme280.adc_p |= (uint32_t) data[1] << 4;
-	bme280.adc_p |= (uint32_t) data[0] << 12;
+    bme280.adc_p  = (uint32_t) data[2] >> 4;
+    bme280.adc_p |= (uint32_t) data[1] << 4;
+    bme280.adc_p |= (uint32_t) data[0] << 12;
+
+    return BME280_RET_OK;
 }
 
 
@@ -329,14 +338,14 @@ uint8_t bme280_read_reg(uint8_t reg)
 }
 
 
-void bme280_write_reg(uint8_t reg, uint8_t value)
+BME280_Ret bme280_write_reg(uint8_t reg, uint8_t value)
 {
 	uint8_t tx[2];
 	uint8_t rx[2] = {0};
 
 	tx[0] = reg & 0x7F;
 	tx[1] = value;
-	spi_transfer_bme280(tx, 2, rx);
+	return (SPI_RET_OK == spi_transfer_bme280(tx, 2, rx)) ? BME280_RET_OK : BME280_RET_ERROR;
 }
 
 

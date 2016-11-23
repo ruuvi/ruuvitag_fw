@@ -34,10 +34,10 @@ extern "C"
 typedef enum
 {
     LIS2DH12_RET_OK = 0,   		    /**< Ok */
-	LIS2DH12_RET_NOT_SUPPORTED = 1,	/**< Feature not supported at the moment */
-	LIS2DH12_RET_INVALID = 2,		/**< Returned data may be not valid, because of Power Down Mode or Data not ready */
-	LIS2DH12_RET_NULL = 4,			/**< NULL Pointer detected */
-	LIS2DH12_RET_ERROR_SELFTEST = 8,/**< Selftest  failed */
+    LIS2DH12_RET_NOT_SUPPORTED = 1,	/**< Feature not supported at the moment */
+    LIS2DH12_RET_INVALID = 2,		/**< Returned data may be not valid, because of Power Down Mode or Data not ready */
+    LIS2DH12_RET_NULL = 4,			/**< NULL Pointer detected */
+    LIS2DH12_RET_ERROR_SELFTEST = 8,/**< Selftest  failed */
     LIS2DH12_RET_ERROR = 16    		/**< Not otherwise specified error */
 } LIS2DH12_Ret;
 

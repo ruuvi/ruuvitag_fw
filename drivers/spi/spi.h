@@ -34,7 +34,7 @@ extern "C"
 typedef enum
 {
     SPI_RET_OK = 0,   		    /**< Ok */
-	SPI_RET_BUSY = 1,			/**< Other SPI transfer in progress */
+    SPI_RET_BUSY = 1,			/**< Other SPI transfer in progress */
     SPI_RET_ERROR = 2    	    /**< Not otherwise specified error */
 } SPI_Ret;
 
