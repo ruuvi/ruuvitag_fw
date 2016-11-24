@@ -157,7 +157,7 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
         break;
     case LIS2DH12_POWER_FAST:
         ctrl1RegVal |= (LIS2DH_ODR_MASK_1620HZ | LIS2DH_LPEN_MASK);
-        g_mgpb = 16 << g_scale; // 4 bits per mg at low power/2g, adjust by scaling
+        g_mgpb = 16 << g_scale; // 16 bits per mg at low power/2g, adjust by scaling
         time_ms = 1;
         break;
     case LIS2DH12_POWER_HIGHRES:
@@ -283,7 +283,9 @@ extern LIS2DH12_Ret LIS2DH12_getALLmG(int32_t* const accX, int32_t* const accY, 
  */
 static LIS2DH12_Ret selftest(void)
 {
-    return LIS2DH12_RET_OK;
+    uint8_t value[1] = {0};
+    readRegister(LIS2DH_WHO_AM_I, value, 1);
+    return (LIS2DH_I_AM_MASK == value[0]) ? LIS2DH12_RET_OK : LIS2DH12_RET_ERROR;
 }
 
 /**

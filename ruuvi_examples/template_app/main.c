@@ -67,10 +67,11 @@ APP_TIMER_DEF(main_timer_id);                                             /** Cr
 //milliseconds until main loop timer function is called. Other timers can bring
 //application out of sleep at higher (or lower) interval
 #define MAIN_LOOP_INTERVAL 5000u 
+#define MAIN_BACK_TO_SLEEP_TIME 60000u //after 1 minute application enters deep sleep if user button has not been pressed.
 
-
-
-
+//Flag to enter system off if application is not started
+//to conserve power.
+static bool application_started = false;
 
 /**
  * @brief Function for doing power management.
@@ -81,7 +82,6 @@ APP_TIMER_DEF(main_timer_id);                                             /** Cr
  * and turns led on when sleep stops to give
  * indication of CPU activity.
  */
-
 static void power_manage(void)
 {
     nrf_gpio_pin_set(LED_GREEN);
@@ -91,13 +91,25 @@ static void power_manage(void)
       //NVIC_ClearPendingIRQ(FPU_IRQn);
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
-    nrf_gpio_pin_clear(LED_GREEN); 
+    if(application_started)
+    {
+        nrf_gpio_pin_clear(LED_GREEN); 
+    }
 }
 
 // Timeout handler for the repeated timer
 void main_timer_handler(void * p_context)
 {
-    //nrf_gpio_pin_toggle(LED_RED); //Uncomment to verify timer interval
+    static uint32_t counter = 0; //how many loops application has waited to start?
+    if(!application_started)
+    {
+        counter++;
+    }
+
+    if((MAIN_BACK_TO_SLEEP_TIME / MAIN_LOOP_INTERVAL) <= counter) 
+    {
+        sd_power_system_off(); // Program is reset upon leaving OFF.
+    }
 }
 
 /**
@@ -106,9 +118,15 @@ void main_timer_handler(void * p_context)
 int main(void)
 {
     uint8_t init_status = 0; // counter, gets incremented by each failed init. It Is 0 in the end if init was ok.
+    //setup leds. LEDs are active low, so setting high them turns leds off.
+    init_status += init_leds(); //INIT leds first and turn RED on
+    nrf_gpio_pin_clear(LED_RED);//If INIT fails at later stage, RED will stay lit.
 
     // Initialize log
     init_status += init_log();
+
+    // Initialize buttons
+    init_status += init_buttons();
 
     //Initialize BLE Stack. Required in all applications for timer operation
     init_status += init_ble();
@@ -116,21 +134,26 @@ int main(void)
     // Initialize the application timer module.
     init_status += init_timer(main_timer_id, MAIN_LOOP_INTERVAL, main_timer_handler);
 
-    //setup leds. LEDs are active low, so setting them turns leds off.
-    init_status += init_leds();
-
     //Initialize BME 280 and lis2dh12
     init_status += init_sensors();
 
-    //Visually display init status. Hangs if there was an error
+    //Visually display init status. Hangs if there was an error, waits 3 seconds on success
     init_blink_status(init_status);
+
+    nrf_gpio_pin_set(LED_RED);//Turn RED led off.
+
+    while(1 == nrf_gpio_pin_read(BUTTON_1)){ // Poll the button. Halt program here until pressed
+        app_sched_execute(); //Avoid scheduler buffer overflow.
+        power_manage();
+    }//user pressed button, start.
+    application_started = true; //set flag
 
     // Enter main loop.
     for (;; )
     {
          if(NRF_LOG_PROCESS() == false){
-           app_sched_execute();
-           power_manage();
+             app_sched_execute();
+             power_manage();
          }
     }
 }

@@ -101,7 +101,13 @@ uint8_t init_leds(void)
  * @retval 1          Something went wrong
  *
  */
-uint8_t init_buttons(void);
+uint8_t init_buttons(void)
+{
+    nrf_gpio_cfg_sense_input(BUTTON_1,
+                             BUTTON_PULL,
+                             NRF_GPIO_PIN_SENSE_LOW);
+    return 0; // Cannot fail under any reasonable circumstance
+}
 
 /**
  * Initialize sensors
@@ -116,10 +122,10 @@ uint8_t init_buttons(void);
  */
 uint8_t init_sensors(void)
 {
-    //Init accelerometer lis2dh12 TODO: initialize in sleep mode
+    //Init accelerometer lis2dh12
     uint8_t retval = 0;
     LIS2DH12_Ret Lis2dh12RetVal;
-    Lis2dh12RetVal = LIS2DH12_init(LIS2DH12_POWER_LOW, LIS2DH12_SCALE2G, NULL);
+    Lis2dh12RetVal = LIS2DH12_init(LIS2DH12_POWER_DOWN, LIS2DH12_SCALE2G, NULL);
 
     if (LIS2DH12_RET_OK == Lis2dh12RetVal)
     {
