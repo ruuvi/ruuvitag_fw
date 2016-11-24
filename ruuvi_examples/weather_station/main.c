@@ -47,6 +47,9 @@
 #include "base91.h"
 #include "eddystone.h"
 
+//init
+#include "init.h"
+
 
 //Macros
 #define swap_u32(num) ((num>>24)&0xff) | ((num<<8)&0xff0000) | ((num>>8)&0xff00) | ((num<<24)&0xff000000);
@@ -63,6 +66,14 @@ APP_TIMER_DEF(main_timer_id);                                             /** Cr
 #define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, sizeof(nrf_drv_gpiote_pin_t))
 #define SCHED_QUEUE_SIZE                10
 
+//milliseconds until main loop timer function is called. Other timers can bring
+//application out of sleep at higher (or lower) interval
+#define MAIN_LOOP_INTERVAL 5000u 
+#define MAIN_BACK_TO_SLEEP_TIME 60000u //after 1 minute application enters deep sleep if user button has not been pressed.
+
+//Flag to enter system off if application is not started
+//to conserve power.
+static bool application_started = false;
 
 //flag for analysing sensor data
 static volatile bool startRead = false;
@@ -78,22 +89,32 @@ size_t enc_data_len = 0;
 
 static void power_manage(void)
 {
-    nrf_gpio_pin_set(17);
+    nrf_gpio_pin_set(LED_GREEN);
       /* Clear exceptions and PendingIRQ from the FPU unit */
       //__set_FPSCR(__get_FPSCR()  & ~(FPU_EXCEPTION_MASK));      
       //(void) __get_FPSCR();
       //NVIC_ClearPendingIRQ(FPU_IRQn);
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
-    nrf_gpio_pin_clear(17); 
-
-    //TODO: add counter to unset the pin after ~ten blinks or so
+    if(application_started)
+    {
+        nrf_gpio_pin_clear(LED_GREEN); 
+    }
 }
 
 // Timeout handler for the repeated timer
-
 static void main_timer_handler(void * p_context)
 {
+    static uint32_t counter = 0; //how many loops application has waited to start?
+    if(!application_started)
+    {
+        counter++;
+    }
+
+    if((MAIN_BACK_TO_SLEEP_TIME / MAIN_LOOP_INTERVAL) <= counter) 
+    {
+        sd_power_system_off(); // Program is reset upon leaving OFF.
+    }
     startRead = true;
 }
 
@@ -217,79 +238,57 @@ static uint16_t    pressure = 0;
  */
 int main(void)
 {
-    uint32_t err_code;
-    
-    //Initialize variables
-    sensor_values.format = 1;
-    sensor_values.time = 0;
-
-    //basE91_init(&b91);
-
+    uint8_t init_status = 0; // counter, gets incremented by each failed init. It Is 0 in the end if init was ok.
+    //setup leds. LEDs are active low, so setting high them turns leds off.
+    init_status += init_leds(); //INIT leds first and turn RED on
+    nrf_gpio_pin_clear(LED_RED);//If INIT fails at later stage, RED will stay lit.
 
     // Initialize log
-    err_code = NRF_LOG_INIT(NULL);
-    APP_ERROR_CHECK(err_code);
+    init_status += init_log();
 
-    //Initialize Eddystone
-    eddystone_init();
-    NRF_LOG_INFO("Eddystone init\r\n");
+    // Initialize buttons
+    init_status += init_buttons();
+
+    //Initialize BLE Stack. Required in all applications for timer operation
+    init_status += init_ble();
 
     // Initialize the application timer module.
-    // Requires low-frequency clock initialized above
-    APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
-    APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, true);
-    // Create timer
-    err_code = app_timer_create(&main_timer_id,
-                                APP_TIMER_MODE_REPEATED,
-                                main_timer_handler);
-    APP_ERROR_CHECK(err_code);
-    //Start timer
-    err_code = app_timer_start(main_timer_id, APP_TIMER_TICKS(5000u, APP_TIMER_PRESCALER), NULL); // 1 event / 5000 ms
-    APP_ERROR_CHECK(err_code);
+    init_status += init_timer(main_timer_id, MAIN_LOOP_INTERVAL, main_timer_handler);
 
-    //setup leds. LEDs are active low, so setting them turns leds off.
-    nrf_gpio_cfg_output	(17);
-    nrf_gpio_pin_set(17);
-    nrf_gpio_cfg_output	(19);
-    nrf_gpio_pin_set(19);
+    //Initialize BME 280 and lis2dh12
+    init_status += init_sensors();
 
-    LIS2DH12_Ret Lis2dh12RetVal;
+    //Visually display init status. Hangs if there was an error, waits 3 seconds on success
+    init_blink_status(init_status);
+
+    nrf_gpio_pin_set(LED_RED);//Turn RED led off.
+
+    while(1 == nrf_gpio_pin_read(BUTTON_1)){ // Poll the button. Halt program here until pressed
+        app_sched_execute(); //Avoid scheduler buffer overflow.
+        power_manage();
+    }//user pressed button, start.
+    application_started = true; //set flag
 	
-    NRF_LOG_INFO("LIS2DH12 init Start\r\n");
-    Lis2dh12RetVal = LIS2DH12_init(LIS2DH12_POWER_LOW, LIS2DH12_SCALE2G, NULL);
+    //Lis2dh12RetVal = LIS2DH12_init(LIS2DH12_POWER_LOW, LIS2DH12_SCALE2G, NULL);//start accelerometer // not needed in weather station
 
-    if (LIS2DH12_RET_OK == Lis2dh12RetVal)
-    {
-        NRF_LOG_INFO("LIS2DH12 init Done\r\n");
-    }
-    else
-    {
-        NRF_LOG_ERROR("LIS2DH12 init Failed: Error Code: %d\r\n", (int32_t)Lis2dh12RetVal);
-        //TODO: Enter error handler?
-    }
-
-    NRF_LOG_INFO("BME280 init Start\r\n");
-    // Read calibration
-    bme280_init();
-    //setup sensor readings
+    //setup BME280
     bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
     bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
     bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
     //Start single measurement
     bme280_set_mode(BME280_MODE_FORCED);
-
-    NRF_LOG_INFO("BME280 init done\r\n");
+    NRF_LOG_INFO("BME280 configuration done\r\n");
 
 
     startRead = true;
+    //Turn green led on to signal application start
+    //LED will be turned off in power_manage
+    nrf_gpio_pin_clear(LED_GREEN); 
 
     // Enter main loop.
     for (;; )
     {
-         //NRF_LOG_DEBUG("Loopin'\r\n");
-         
-
-         
+         //NRF_LOG_DEBUG("Loopin'\r\n");  
          if(startRead)
          {
              startRead = false;

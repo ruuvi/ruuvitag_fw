@@ -38,7 +38,8 @@
 // Eddystone URL data
 #define APP_EDDYSTONE_URL_FRAME_TYPE    0x10                              /**< URL Frame type is fixed at 0x10. */
 #define APP_EDDYSTONE_URL_SCHEME        0x03                              /**< 0x03 = "https:" URL prefix scheme according to specification. */
-#define APP_EDDYSTONE_URL_URL          'r', 'u', 'u', '.', 'v', 'i'            /**< "nordicsemi.com". Last byte suffix 0x00 = ".com" according to specification. */
+#define APP_EDDYSTONE_URL_BASE          'r', 'u', 'u', '.', 'v', 'i'      /**< "nordicsemi.com". Last byte suffix 0x00 = ".com" according to specification. */
+#define APP_EDDYSTONE_URL_BASE_LENGTH   6                                 /**< "nordicsemi.com". Last byte suffix 0x00 = ".com" according to specification. */
 // Eddystone TLM data
 #define APP_EDDYSTONE_TLM_FRAME_TYPE    0x20                              /**< TLM frame type is fixed at 0x20. */
 #define APP_EDDYSTONE_TLM_VERSION       0x00                              /**< TLM version might change in the future to accommodate other data according to specification. */
@@ -48,8 +49,5 @@
 #define APP_EDDYSTONE_TLM_SEC_COUNT     0x00, 0x00, 0x00, 0x00            /**< Running count in 0.1 s resolution since power-up or reboot. */
 
 #define DEAD_BEEF                       0xDEADBEEF                        /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
-
-#define APP_TIMER_PRESCALER             0                                 /**< Value of the RTC1 PRESCALER register. */
-#define APP_TIMER_OP_QUEUE_SIZE         4                                 /**< Size of timer operation queues. */
 
 #endif //End include guard
