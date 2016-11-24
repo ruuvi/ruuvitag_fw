@@ -5,10 +5,15 @@ for sensors and BLE stack. It should be used as a
 starting point to create new applications.
 
 Application runs the initialization sequence and turn RED LED
-on for 3 seconds if the initialization was succesful and goes
-to low-power mode. Green led will turn on whenever there is 
-activity on board, you should see a short blink once
-per second or so. If the green led is continously on 
+on for 3 seconds if the initialization was succesful and waits one minute
+for user to press the user button. If the button is not pressed, 
+application goes to shutdown mode. 
+
+If the user presses button, main application loop starts.
+Green led will turn on whenever there is 
+activity on board, however it is not visible
+in this demo because there is so little activity.
+If the green led is continously on 
 your application has not entered proper sleep mode 
 or it is otherwise consuming a lot of CPU time which 
 leads to short battery life. Notably the function `nrf_delay_ms()`
@@ -33,3 +38,11 @@ Files used on this project by every board is under main project folder.
 
 Drivers and libraries shared across all projects can be found at top-level
 of repository under folders "drivers/" and "libraries/".
+
+#Power profiles
+RuuviTag B3 waiting for user button press
+![4 µA on average](./ruuvitag_b3/s132/power_profile/wait_for_user.PNG)
+RuuviTag B3 in power down mode
+![1.3 µA on average](./ruuvitag_b3/s132/power_profile/system_off.PNG)
+RuuviTag B3 in main loop.
+![4 µA on average](./ruuvitag_b3/s132/power_profile/application_started.PNG)
