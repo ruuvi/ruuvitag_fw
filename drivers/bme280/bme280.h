@@ -1,3 +1,5 @@
+#ifndef BME280_H
+#define BME280_H
 /*
  * BOSH BME280 driver.
  *
@@ -133,4 +135,4 @@ uint8_t  bme280_read_reg(uint8_t reg);
 BME280_Ret bme280_write_reg(uint8_t reg, uint8_t value);
 BME280_Ret bme280_platform_init();
 
-
+#endif

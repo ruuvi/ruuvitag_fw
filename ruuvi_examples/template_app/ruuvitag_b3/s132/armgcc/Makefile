@@ -17,6 +17,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../libraries/bluetooth/bluetooth_core.c \
   $(PROJ_DIR)/../../libraries/bluetooth/eddystone.c \
   $(PROJ_DIR)/main.c \
+  $(PROJ_DIR)/init.c \
   $(SDK_ROOT)/components/libraries/button/app_button.c \
   $(SDK_ROOT)/components/ble/common/ble_advdata.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_params.c \
@@ -51,6 +52,7 @@ SRC_FILES += \
 # Include folders common to all targets
 INC_FOLDERS += \
    ../config \
+  $(PROJ_DIR) \
   $(PROJ_DIR)/../../bsp \
   $(PROJ_DIR)/../../drivers/bme280 \
   $(PROJ_DIR)/../../drivers/LIS2DH12 \

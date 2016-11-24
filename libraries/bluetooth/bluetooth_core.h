@@ -1,3 +1,6 @@
+#ifndef BLUETOOTH_CORE_H
+#define BLUETOOTH_CORE_H
+
 /**
  * Interface for using Nordic SDKs Bluetooth core functions
  * such as init, advertise etc.
@@ -15,4 +18,11 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
-void ble_stack_init(void);
+/**@brief Function for initializing the BLE stack.
+ *
+ * @details Initializes the SoftDevice and the BLE event interrupt.
+ * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
+ */
+uint32_t ble_stack_init(void);
+
+#endif

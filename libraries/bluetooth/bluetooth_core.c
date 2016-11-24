@@ -13,11 +13,12 @@
 /**@brief Function for initializing the BLE stack.
  *
  * @details Initializes the SoftDevice and the BLE event interrupt.
+ * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
  */
 
 #include "bluetooth_core.h"
 
-void ble_stack_init(void)
+uint32_t ble_stack_init(void)
 {
     uint32_t err_code;
 
@@ -38,4 +39,6 @@ void ble_stack_init(void)
     // Enable BLE stack.
     err_code = softdevice_enable(&ble_enable_params);
     APP_ERROR_CHECK(err_code);
+
+    return err_code;
 }
