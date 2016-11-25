@@ -134,7 +134,7 @@ static ruuvi_sensor_t sensor_values;
  * @param uX acceleration in X-direction (mg)
  * @param uY acceleration in Y-direction (mg)
  * @param uZ acceleration in Z-direction (mg)
- * return true if high-passed acceleration amlitude exceeds defined threshold
+ * return true if high-passed acceleration amplitude exceeds defined threshold
  */
 static bool detectMovement(int16_t uX, int16_t uY, int16_t uZ)
 {
