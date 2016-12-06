@@ -47,8 +47,11 @@
 #include "base91.h"
 #include "eddystone.h"
 
-//init
+//Init
 #include "init.h"
+
+//Configuration
+#include "bluetooth_config.h"
 
 
 //Macros
@@ -79,7 +82,7 @@ static bool application_started = false;
 static volatile bool startRead = false;
 // BASE91
 static struct basE91 b91;
-static char url_buffer[16] = {'r', 'u', 'u', '.', 'v', 'i', '#'};
+static char url_buffer[16] = {'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
 char buffer_base91_out [16] = {0};
 size_t enc_data_len = 0;
 
@@ -201,14 +204,15 @@ static void readData(void)
     url_buffer[0] = 0x72; // r
     url_buffer[1] = 0x75; // u
     url_buffer[2] = 0x75; // u
-    url_buffer[3] = 0x2e; // .
+    url_buffer[3] = 0x2E; // .
     url_buffer[4] = 0x76; // v
     url_buffer[5] = 0x69; // i
-    url_buffer[6] = 0x23; // #        
+    url_buffer[6] = 0x2F; // /
+    url_buffer[7] = 0x23; // #        
 
-    /// We've got 18-7=11 characters available. Encoding 64 bits using Base91 produces max 9 value. All good.
+    /// We've got 18-8=10 characters available. Encoding 64 bits using Base91 produces max 9 value. All good.
    
-    memcpy(&url_buffer[7], &buffer_base91_out, enc_data_len);
+    memcpy(&url_buffer[8], &buffer_base91_out, enc_data_len);
 }
 
 static void updateAdvertisement(void)
@@ -251,6 +255,7 @@ int main(void)
 
     //Initialize BLE Stack. Required in all applications for timer operation
     init_status += init_ble();
+    ble_tx_power_set(BLE_TX_POWER);
 
     // Initialize the application timer module.
     init_status += init_timer(main_timer_id, MAIN_LOOP_INTERVAL, main_timer_handler);
