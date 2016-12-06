@@ -36,9 +36,25 @@ uint32_t ble_stack_init(void)
     //Check the ram settings against the used number of links
     CHECK_RAM_START_ADDR(CENTRAL_LINK_COUNT,PERIPHERAL_LINK_COUNT);
 
+    //setup TX power
+
     // Enable BLE stack.
     err_code = softdevice_enable(&ble_enable_params);
     APP_ERROR_CHECK(err_code);
 
+    return err_code;
+}
+
+/**
+ * @brief Function to setsBLE transmission power
+ *  
+ * @details set the BLE transmission power in dBm
+ * @param int8_t power power in dBm, must be one of -40, -30, -20, -16, -12, -8, -4, 0, 4
+ * @return error code, 0 if operation was success.
+ */
+uint32_t ble_tx_power_set(int8_t power)
+{
+    uint32_t err_code = sd_ble_gap_tx_power_set(BLE_TX_POWER);
+    APP_ERROR_CHECK(err_code);
     return err_code;
 }

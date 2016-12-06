@@ -25,4 +25,13 @@
  */
 uint32_t ble_stack_init(void);
 
+/**
+ * @brief Function to setsBLE transmission power
+ *  
+ * @details set the BLE transmission power in dBm
+ * @param int8_t power power in dBm, must be one of -40, -30, -20, -16, -12, -8, -4, 0, 4
+ * @return error code, 0 if operation was success.
+ */
+uint32_t ble_tx_power_set(int8_t power);
+
 #endif
