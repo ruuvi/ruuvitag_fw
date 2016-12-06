@@ -36,7 +36,16 @@ uint8_t init_log(void)
 uint8_t init_ble(void)
 {
     uint32_t err_code;
+
+    //Enable DC/DC for BLE
+    NRF_POWER->DCDCEN = 1;
+
+    //Enable BLE STACK
     err_code =  ble_stack_init();
+    APP_ERROR_CHECK(err_code);
+
+    
+       
     NRF_LOG_INFO("BLE Stack init\r\n");
     return (NRF_SUCCESS == err_code) ? 0 : 1;
 }
