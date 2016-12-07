@@ -92,11 +92,14 @@ size_t enc_data_len = 0;
 
 static void power_manage(void)
 {
-    nrf_gpio_pin_set(LED_GREEN);
-      /* Clear exceptions and PendingIRQ from the FPU unit */
-      //__set_FPSCR(__get_FPSCR()  & ~(FPU_EXCEPTION_MASK));      
-      //(void) __get_FPSCR();
-      //NVIC_ClearPendingIRQ(FPU_IRQn);
+    if(1 == nrf_gpio_pin_read(BUTTON_1)) //leave led on button press
+    {
+        nrf_gpio_pin_set(LED_GREEN); 
+    }
+    /* Clear exceptions and PendingIRQ from the FPU unit */
+    //__set_FPSCR(__get_FPSCR()  & ~(FPU_EXCEPTION_MASK));      
+    //(void) __get_FPSCR();
+    //NVIC_ClearPendingIRQ(FPU_IRQn);
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
     if(application_started)
@@ -268,10 +271,11 @@ int main(void)
 
     nrf_gpio_pin_set(LED_RED);//Turn RED led off.
 
-    while(1 == nrf_gpio_pin_read(BUTTON_1)){ // Poll the button. Halt program here until pressed
-        app_sched_execute(); //Avoid scheduler buffer overflow.
-        power_manage();
-    }//user pressed button, start.
+    //Commented out to avoid confusion when devices are booted up
+    //while(1 == nrf_gpio_pin_read(BUTTON_1)){ // Poll the button. Halt program here until pressed
+    //    app_sched_execute(); //Avoid scheduler buffer overflow.
+    //    power_manage();
+    //}//user pressed button, start.
     application_started = true; //set flag
 	
     //Lis2dh12RetVal = LIS2DH12_init(LIS2DH12_POWER_LOW, LIS2DH12_SCALE2G, NULL);//start accelerometer // not needed in weather station
