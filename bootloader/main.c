@@ -53,7 +53,8 @@ void app_error_handler_bare(uint32_t error_code)
 static void leds_init(void)
 {
     nrf_gpio_range_cfg_output(LED_START, LED_STOP);
-    nrf_gpio_pins_set(LEDS_MASK);
+    nrf_gpio_pin_set(LED_RED);
+    nrf_gpio_pin_set(LED_GREEN);
     nrf_gpio_pin_clear(BSP_LED_2);
 }
 
