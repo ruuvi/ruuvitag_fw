@@ -75,9 +75,14 @@ int main(void)
     uint32_t err_code, humidity, pressure;
     int32_t testX, testY, testZ, temperature;
     LIS2DH12_Ret Lis2dh12RetVal;
+    nrf_clock_lf_cfg_t clock_lf_cfg = NRF_CLOCK_LFCLKSRC;
+
     // Initialize.
     err_code = NRF_LOG_INIT(NULL);
     APP_ERROR_CHECK(err_code);
+
+    // Initialize the SoftDevice handler module, necessary for power saving modes to work
+    SOFTDEVICE_HANDLER_INIT(&clock_lf_cfg, NULL);
 
     APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
     err_code = bsp_init(BSP_INIT_LED, APP_TIMER_TICKS(100, APP_TIMER_PRESCALER), NULL);
