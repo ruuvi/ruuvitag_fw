@@ -15,6 +15,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/LIS2DH12/LIS2DH12.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../libraries/base91/base91.c \
+  $(PROJ_DIR)/../../libraries/base64/base64.c \
   $(PROJ_DIR)/../../libraries/bluetooth/bluetooth_core.c \
   $(PROJ_DIR)/../../libraries/bluetooth/eddystone.c \
   $(PROJ_DIR)/main.c \
@@ -58,6 +59,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../drivers/LIS2DH12 \
   $(PROJ_DIR)/../../drivers/spi/ \
   $(PROJ_DIR)/../../libraries/base91 \
+  $(PROJ_DIR)/../../libraries/base64 \
   $(PROJ_DIR)/../../libraries/bluetooth \
   $(SDK_ROOT)/components \
   $(SDK_ROOT)/components/ble/ble_advertising \
