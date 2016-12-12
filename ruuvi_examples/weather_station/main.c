@@ -44,7 +44,7 @@
 #include "bme280.h"
 
 //Libraries
-#include "base91.h"
+#include "base64.h"
 #include "eddystone.h"
 
 //Init
@@ -60,6 +60,15 @@
 
 //Constants
 #define DEAD_BEEF                       0xDEADBEEF                        /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
+/*
+0:   uint8_t     format;          // (0x02 = realtime sensor readings base64)
+1:   uint8_t     humidity;        // one lsb is 0.5%
+2-3: uint16_t    temperature;     // Signed 8.8 fixed-point notation.
+4-5: uint16_t    pressure;        // (-50kPa)
+*/
+#define WEATHER_STATION_URL_FORMAT      0x02				  /**< Base64 */
+#define EDDYSTONE_URL_BASE_LENGTH       8                                 /** ruu.vi/# */
+#define ENCODED_DATA_LENGTH             8                                 /* 48 bits * (4 / 3) / 8 */
 
 //Timers
 #define APP_TIMER_PRESCALER             RUUVITAG_APP_TIMER_PRESCALER      /**< Value of the RTC1 PRESCALER register. */
@@ -80,11 +89,9 @@ static bool application_started = false;
 
 //flag for analysing sensor data
 static volatile bool startRead = false;
-// BASE91
-static struct basE91 b91;
 static char url_buffer[16] = {'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
-char buffer_base91_out [16] = {0};
-size_t enc_data_len = 0;
+// BASE64
+char buffer_base64_out [16] = {0};
 
 /**@brief Function for doing power management.
 
@@ -127,58 +134,19 @@ static void main_timer_handler(void * p_context)
 // Sensor values
 typedef struct 
 {
-uint8_t     format;         // Includes time format
+uint8_t     format;         // does not include time
 uint8_t     humidity;       // one lsb is 0.5%
 uint16_t    temperature;    // Signed 8.8 fixed-point notation.
 uint16_t    pressure;       // Pascals (pa)
-uint16_t    time;           // Seconds, minutes or hours from last movement
 }ruuvi_sensor_t;
 
 static ruuvi_sensor_t sensor_values;
 
-/* Quick'n'Dirty FIR high pass
- * @param uX acceleration in X-direction (mg)
- * @param uY acceleration in Y-direction (mg)
- * @param uZ acceleration in Z-direction (mg)
- * return true if high-passed acceleration amplitude exceeds defined threshold
+/**
+ *  Read environmental data and update URL being broadcasted
  */
-static bool detectMovement(int16_t uX, int16_t uY, int16_t uZ)
-{
-  static int16_t aX = 0;
-  static int16_t aY = 0;
-  static int16_t aZ = 0;
-
-  int32_t yX = uX - aX;
-  int32_t yY = uY - aY;
-  int32_t yZ = uZ - aZ;
-
-  aX = uX;
-  aY = uY;
-  aZ = uZ;
-
-  int32_t amplitude = sqrt(yX*yX + yY*yY + yZ*yZ);
-
-  return (amplitude > 200);  
-
-}
-
 static void readData(void)
 {
-    int32_t accX, accY, accZ;
-    //Get raw accelerometer values
-    LIS2DH12_getALLmG(&accX, &accY, &accZ);
-    NRF_LOG_DEBUG ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d", accX, accY, accZ);
-    //Detect movement
-    bool moving = detectMovement(accX, accY, accZ);
-  
-    if(moving){
-        sensor_values.time = 0;
-    }
-    else{
-        sensor_values.time += 5; //TODO: Use actual RTC values to avoid drift.
-    }
-    NRF_LOG_DEBUG ("Time: %d", sensor_values.time);
-
     // Get raw environmental data
     int32_t raw_t = bme280_get_temperature();
     uint32_t raw_p = bme280_get_pressure();
@@ -186,22 +154,35 @@ static void readData(void)
    
     NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d", raw_t, raw_p, raw_h);
 
+    /*
+    0:   uint8_t     format;          // (0x02 = realtime sensor readings base64)
+    1:   uint8_t     humidity;        // one lsb is 0.5%
+    2-3: uint16_t    temperature;     // Signed 8.8 fixed-point notation.
+    4-5: uint16_t    pressure;        // (-50kPa)
+    */
     //Convert raw values to ruu.vi specification
     //Round values: 1 deg C, 1 hPa, 1% RH 
+    sensor_values.format = WEATHER_STATION_URL_FORMAT;
     sensor_values.temperature = (raw_t < 0) ? 0x8000 : 0x0000; //Sign bit
     if(raw_t < 0) raw_t = 0-raw_t; // disrecard sign
     sensor_values.temperature |= (((raw_t * 256) / 100) & 0x7F00);//8:8 signed fixed point, Drop decimals
     sensor_values.pressure = (uint16_t)((raw_p >> 8) - 50000); //Scale into pa, Shift by -50000 pa as per Ruu.vi interface.
     sensor_values.pressure -= sensor_values.pressure % 100; //Drop decimals
     sensor_values.humidity = (uint8_t)(raw_h >> 11); 
-    sensor_values.humidity <<= 2;     
-    //sensor_values.humidity = (uint8_t)((raw_h/1024) * 2);
+    sensor_values.humidity <<= 2; //sensor_values.humidity = (uint8_t)((raw_h/1024) * 2);
 
-    //Base91 encode
-    memset(&buffer_base91_out, 0, sizeof(buffer_base91_out)); 
-    enc_data_len = basE91_encode(&b91, &sensor_values, sizeof(sensor_values), buffer_base91_out);
-    enc_data_len += basE91_encode_end(&b91, buffer_base91_out + enc_data_len);
-    memset(&b91, 0, sizeof(b91));
+    //serialize values into a string
+    char pack[6] = {0};
+    pack[0] = sensor_values.format;
+    pack[1] = sensor_values.humidity;
+    pack[2] = (sensor_values.temperature)>>8;
+    pack[3] = (sensor_values.temperature)&0xFF;
+    pack[4] = (sensor_values.pressure)>>8;
+    pack[5] = (sensor_values.pressure)&0xFF;
+     
+    /// We've got 18-8=10 characters available. Encoding 48 bits using Base64 produces max 8 chars.
+    memset(&buffer_base64_out, 0, sizeof(buffer_base64_out)); 
+    base64encode(pack, sizeof(pack), buffer_base64_out, ENCODED_DATA_LENGTH);
 
     // Fill the URL buffer. Eddystone config contains frame type, RSSI and URL scheme.
     url_buffer[0] = 0x72; // r
@@ -211,11 +192,8 @@ static void readData(void)
     url_buffer[4] = 0x76; // v
     url_buffer[5] = 0x69; // i
     url_buffer[6] = 0x2F; // /
-    url_buffer[7] = 0x23; // #        
-
-    /// We've got 18-8=10 characters available. Encoding 64 bits using Base91 produces max 9 value. All good.
-   
-    memcpy(&url_buffer[8], &buffer_base91_out, enc_data_len);
+    url_buffer[7] = 0x23; // #      
+    memcpy(&url_buffer[EDDYSTONE_URL_BASE_LENGTH], &buffer_base64_out, ENCODED_DATA_LENGTH);
 }
 
 static void updateAdvertisement(void)
@@ -230,7 +208,7 @@ static uint16_t    pressure = 0;
      ||temperature != sensor_values.temperature
      ||pressure != sensor_values.pressure)
     {
-        eddystone_advertise_url(url_buffer, 6 + enc_data_len);
+        eddystone_advertise_url(url_buffer, EDDYSTONE_URL_BASE_LENGTH + ENCODED_DATA_LENGTH);
 
         humidity = sensor_values.humidity;
         temperature = sensor_values.temperature;
@@ -312,8 +290,3 @@ int main(void)
          }
     }
 }
-
-
-/**
- * @}
- */
