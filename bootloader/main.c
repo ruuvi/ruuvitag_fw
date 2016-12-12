@@ -32,7 +32,7 @@
 #include "nrf_bootloader_info.h"
 
 //  Set your own bootloader name at
-//  ./nRF5_SDK_12.0.0_12f24da/components/libraries/bootloader/ble_dfu/nrf_ble_dfu.c
+//  $(SDK_ROOT)/components/libraries/bootloader/ble_dfu/nrf_ble_dfu.c
 
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
