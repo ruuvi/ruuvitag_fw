@@ -32,6 +32,8 @@
 #include "LIS2DH12.h"
 #include "bme280.h"
 #include "nrf_delay.h"
+//#include "boards.h"
+#include "acceleration.h"
 
 #include "nrf_drv_gpiote.h"
 
@@ -68,31 +70,53 @@ static void power_manage(void)
 }
 
 /**
+ * Initialize leds
+ *
+ * This function initializes GPIO for leds
+ *
+ */
+static void init_leds(void)
+{
+    nrf_gpio_cfg_output (LED_RED);
+    nrf_gpio_pin_set(LED_RED);
+    nrf_gpio_cfg_output (LED_GREEN);
+    nrf_gpio_pin_set(LED_GREEN);
+    NRF_LOG_DEBUG("LEDs init\r\n");
+}
+
+static void movementDetected(void)
+{
+    nrf_gpio_pin_toggle(LED_RED);
+    NRF_LOG_INFO ("### Movement detected ###\n");
+}
+
+/**
  * @brief Function for application main entry.
  */
 int main(void)
 {
     uint32_t err_code, humidity, pressure;
     int32_t testX, testY, testZ, temperature;
-    LIS2DH12_Ret Lis2dh12RetVal;
+    //LIS2DH12_Ret Lis2dh12RetVal;
     nrf_clock_lf_cfg_t clock_lf_cfg = NRF_CLOCK_LFCLKSRC;
 
     // Initialize.
     err_code = NRF_LOG_INIT(NULL);
     APP_ERROR_CHECK(err_code);
+    init_leds();
+    nrf_gpio_pin_clear(LED_RED); // Red LED will turn off after initialization was successful
 
     // Initialize the SoftDevice handler module, necessary for power saving modes to work
     SOFTDEVICE_HANDLER_INIT(&clock_lf_cfg, NULL);
 
     APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
     err_code = bsp_init(BSP_INIT_LED, APP_TIMER_TICKS(100, APP_TIMER_PRESCALER), NULL);
-    nrf_gpio_cfg_output(17);
-    nrf_gpio_pin_clear(17);
+
     APP_ERROR_CHECK(err_code);
 	
 
 
-    NRF_LOG_DEBUG("LIS2DH12 init Start\r\n");
+/*    NRF_LOG_DEBUG("LIS2DH12 init Start\r\n");
     Lis2dh12RetVal = LIS2DH12_init(LIS2DH12_POWER_LOW, LIS2DH12_SCALE2G, NULL);
 
     if (LIS2DH12_RET_OK == Lis2dh12RetVal)
@@ -103,7 +127,7 @@ int main(void)
     {
         NRF_LOG_ERROR("LIS2DH12 init Failed: Error Code: %d\r\n", (int32_t)Lis2dh12RetVal);
         //TODO: Enter error handler?
-    }
+    }*/
     
     NRF_LOG_DEBUG("BME280 init Start\r\n");
     // Read calibration
@@ -114,24 +138,26 @@ int main(void)
     bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
     //Start measurement
     bme280_set_mode(BME280_MODE_NORMAL);
+    acceleration_init();
+    acceleration_initMovementAlert(100,100,100,500,movementDetected);
 
     NRF_LOG_DEBUG("BME280 init done\r\n");   
-
+    nrf_gpio_pin_set(LED_RED);
     // Enter main loop.
     for (;; )
     {
-         NRF_LOG_DEBUG("Loopin'\r\n");
-
+         NRF_LOG_DEBUG("Looping'\r\n");
+         nrf_gpio_pin_clear(LED_GREEN);
 
 
          LIS2DH12_getALLmG(&testX, &testY, &testZ);
-         NRF_LOG_INFO ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d", testX, testY, testZ);
+         NRF_LOG_INFO ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d\n", testX, testY, testZ);
 
          temperature = bme280_get_temperature();
          pressure = bme280_get_pressure();
          humidity = bme280_get_humidity();
-         NRF_LOG_INFO ("temperature: %d, pressure: %d, humidity: %d", temperature, pressure, humidity);
-
+         NRF_LOG_DEBUG ("temperature: %d, pressure: %d, humidity: %d\n", temperature, pressure, humidity);
+         nrf_gpio_pin_set(LED_GREEN);
          power_manage();
     }
 }
