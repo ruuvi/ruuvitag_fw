@@ -42,6 +42,8 @@
 #define APP_TIMER_PRESCALER             0                                 /**< Value of the RTC1 PRESCALER register. */
 #define APP_TIMER_OP_QUEUE_SIZE         4                                 /**< Size of timer operation queues. */
 
+static bool movementFlag  = false;                                        /**< true when movement was detected */
+
 /**@brief Callback function for asserts in the SoftDevice.
  *
  * @details This function will be called in case of an assert in the SoftDevice.
@@ -87,6 +89,7 @@ static void init_leds(void)
 static void movementDetected(void)
 {
     nrf_gpio_pin_toggle(LED_RED);
+    movementFlag = true;
     NRF_LOG_INFO ("### Movement detected ###\n");
 }
 
@@ -138,8 +141,11 @@ int main(void)
     bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
     //Start measurement
     bme280_set_mode(BME280_MODE_NORMAL);
+    // Init acceleration library
     acceleration_init();
-    acceleration_initMovementAlert(100,100,100,500,movementDetected);
+    // used functions of acceleration library
+    acceleration_initMovementAlert(100,100,100,500,APP_TIMER_PRESCALER,movementDetected);
+    acceleration_initMovingAverage(10);
 
     NRF_LOG_DEBUG("BME280 init done\r\n");   
     nrf_gpio_pin_set(LED_RED);
@@ -151,12 +157,18 @@ int main(void)
 
 
          LIS2DH12_getALLmG(&testX, &testY, &testZ);
-         NRF_LOG_INFO ("X-Axis: %d, Y-Axis: %d, Z-Axis: %d\n", testX, testY, testZ);
+         NRF_LOG_INFO ("X-Axis; %d; Y-Axis; %d; Z-Axis; %d\n", testX, testY, testZ);
+         acceleration_getAllAvgMG(&testX, &testY, &testZ);
+         NRF_LOG_INFO ("X-AxisFilterd; %d; Y-AxisFiltered; %d; Z-AxisFiltered; %d\n", testX, testY, testZ);
 
          temperature = bme280_get_temperature();
          pressure = bme280_get_pressure();
          humidity = bme280_get_humidity();
          NRF_LOG_DEBUG ("temperature: %d, pressure: %d, humidity: %d\n", temperature, pressure, humidity);
+         if (true == movementFlag)
+         {
+             NRF_LOG_INFO ("Movement detected %d milliseconds before\n", acceleration_getElapsedTime());
+         }
          nrf_gpio_pin_set(LED_GREEN);
          power_manage();
     }

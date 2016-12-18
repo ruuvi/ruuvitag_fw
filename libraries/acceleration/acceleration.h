@@ -5,6 +5,7 @@
 
 Library for Acceleration Sensor Functionalities:
  - Movement alert with configurable threshold
+ - Calculate moving average for acceleration sensor values
 
 More maybe coming up in future
 
@@ -62,6 +63,7 @@ extern void acceleration_init(void);
  * @param[in] thresLevelY   Threshold Level for X Axis in mG, when to report a movement Event. Allowed Range: 0..2000
  * @param[in] thresLevelZ   Threshold Level for X Axis in mG, when to report a movement Event. Allowed Range: 0..2000
  * @param[in] debounceTimeMs  Debounce time in miliseconds
+ * @param[in] rtc1Prescaler Value of the RTC1 PRESCALER register (must be the same value that was passed to APP_TIMER_INIT()).
  * @param[in] accCB         Functionpointer for Movement Event
  *
  * @return ACCELERATION_RET_OK          Init successful
@@ -72,6 +74,7 @@ extern void acceleration_initMovementAlert(
     uint32_t thresLevelY,
     uint32_t thresLevelZ,
     uint32_t debounceTimeMs,
+    uint32_t rtc1Prescaler,
     acceleration_event_t accCB);
 
 /**
@@ -81,7 +84,7 @@ extern void acceleration_initMovementAlert(
  *
  * @param[in] numVal    Number of values to take in account for moving average
  */
-extern void acceleration_initMovingAverage(uint32_t numVal);
+extern void acceleration_initMovingAverage(uint8_t numVal);
 
 
 /**
