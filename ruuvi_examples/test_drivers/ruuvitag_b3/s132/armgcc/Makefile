@@ -33,10 +33,11 @@ SRC_FILES += \
   $(SDK_ROOT)/components/toolchain/system_nrf52.c \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
   $(PROJ_DIR)/../../bsp/bsp.c \
-  $(PROJ_DIR)/main.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../drivers/LIS2DH12/LIS2DH12.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
+  $(PROJ_DIR)/../../libraries/acceleration/acceleration.c \
+  $(PROJ_DIR)/main.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -112,6 +113,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/drivers_nrf/clock \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler \
   $(SDK_ROOT)/components/libraries/log/src \
+  $(PROJ_DIR)/../../libraries/acceleration \
   $(PROJ_DIR)/../../bsp \
   $(PROJ_DIR)/../../drivers/spi/ \
   $(PROJ_DIR)/../../drivers/LIS2DH12 \

@@ -32,7 +32,7 @@
 #include "nrf_bootloader_info.h"
 
 //  Set your own bootloader name at
-//  ./nRF5_SDK_12.0.0_12f24da/components/libraries/bootloader/ble_dfu/nrf_ble_dfu.c
+//  $(SDK_ROOT)/components/libraries/bootloader/ble_dfu/nrf_ble_dfu.c
 
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
@@ -53,7 +53,8 @@ void app_error_handler_bare(uint32_t error_code)
 static void leds_init(void)
 {
     nrf_gpio_range_cfg_output(LED_START, LED_STOP);
-    nrf_gpio_pins_set(LEDS_MASK);
+    nrf_gpio_pin_set(LED_RED);
+    nrf_gpio_pin_set(LED_GREEN);
     nrf_gpio_pin_clear(BSP_LED_2);
 }
 

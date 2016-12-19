@@ -8,7 +8,7 @@ else
 	TOP := `pwd`
 endif
 
-SDK_VERSION := 12.1.0_0d23e2a
+SDK_VERSION := 12.2.0_f012efa
 SDK_URL     := https://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v12.x.x
 SDK_FILE    := nRF5_SDK_$(SDK_VERSION).zip
 

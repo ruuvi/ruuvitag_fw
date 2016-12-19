@@ -97,7 +97,7 @@ extern LIS2DH12_Ret LIS2DH12_init(LIS2DH12_PowerMode powerMode, LIS2DH12_Scale s
     g_fp_drdyCb = drdyCB;
 
     /* Initialize SPI */
-    if (!spi_isInitialized())
+    if (false == spi_isInitialized())
     {
         spi_init();
     }

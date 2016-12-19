@@ -2,7 +2,7 @@ PROJECT_NAME     := weather_station_ruuvitag-b3_s132
 TARGETS          := weather_station
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := ../../../../../nRF5_SDK_12.1.0_0d23e2a
+SDK_ROOT := ../../../../../nRF5_SDK_12.2.0_f012efa
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/weather_station.out: \
@@ -15,6 +15,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/LIS2DH12/LIS2DH12.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../libraries/base91/base91.c \
+  $(PROJ_DIR)/../../libraries/base64/base64.c \
   $(PROJ_DIR)/../../libraries/bluetooth/bluetooth_core.c \
   $(PROJ_DIR)/../../libraries/bluetooth/eddystone.c \
   $(PROJ_DIR)/main.c \
@@ -58,6 +59,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../drivers/LIS2DH12 \
   $(PROJ_DIR)/../../drivers/spi/ \
   $(PROJ_DIR)/../../libraries/base91 \
+  $(PROJ_DIR)/../../libraries/base64 \
   $(PROJ_DIR)/../../libraries/bluetooth \
   $(SDK_ROOT)/components \
   $(SDK_ROOT)/components/ble/ble_advertising \
