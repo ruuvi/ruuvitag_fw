@@ -1,3 +1,5 @@
+#ifndef BME280_H
+#define BME280_H
 /*
  * BOSH BME280 driver.
  *
@@ -33,6 +35,16 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "nrf.h"
+#include "spi.h"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+#include "nrf_drv_timer.h"
+#include "nrf_drv_gpiote.h"
+#include "bsp.h"
+#include "app_scheduler.h"
+#include "nordic_common.h"
+#include "app_timer_appsh.h"
 
 struct comp_params {
 	uint16_t dig_T1;
@@ -52,7 +64,7 @@ struct comp_params {
 	uint8_t  dig_H3;
 	int16_t  dig_H4;
 	int16_t  dig_H5;
-	uint8_t  dig_H6;
+	int8_t   dig_H6;
 };
 
 struct bme280_driver {
@@ -71,6 +83,17 @@ enum BME280_MODE {
 	BME280_MODE_FORCED = 0x01,
 	BME280_MODE_NORMAL = 0x03
 };
+
+/** States of the module */
+typedef enum
+{
+    BME280_RET_OK = 0,                  /**< Ok */
+    BME280_NOT_SUPPORTED = 1,           /**< Feature not supported at the moment */
+    BME280_INVALID = 2,                 /**< Returned data may be not valid, because of Power Down Mode or Data not ready */
+    BME280_RET_NULL = 4,                /**< NULL Pointer detected */
+    BME280_RET_ERROR_SELFTEST = 8,      /**< Selftest  failed */
+    BME280_RET_ERROR = 16               /**< Not otherwise specified error */
+} BME280_Ret;
 
 #define BME280REG_CALIB_00	(0x88)
 #define BME280REG_ID		(0xD0)
@@ -98,18 +121,18 @@ enum BME280_MODE {
 #define BME280_OVERSAMPLING_8		(0x04)
 #define BME280_OVERSAMPLING_16		(0x05)
 
-void bme280_init();
-void bme280_set_mode(enum BME280_MODE mode);
+BME280_Ret bme280_init();
+BME280_Ret bme280_set_mode(enum BME280_MODE mode);
 int  bme280_is_measuring(void);
-void bm280_read_measurements();
-void bme280_set_oversampling_hum(uint8_t os);
-void bme280_set_oversampling_temp(uint8_t os);
-void bme280_set_oversampling_press(uint8_t os);
+BME280_Ret bme280_read_measurements();
+BME280_Ret bme280_set_oversampling_hum(uint8_t os);
+BME280_Ret bme280_set_oversampling_temp(uint8_t os);
+BME280_Ret bme280_set_oversampling_press(uint8_t os);
 int32_t  bme280_get_temperature(void);
 uint32_t bme280_get_pressure(void);
 uint32_t bme280_get_humidity(void);
+uint8_t  bme280_read_reg(uint8_t reg);
+BME280_Ret bme280_write_reg(uint8_t reg, uint8_t value);
+BME280_Ret bme280_platform_init();
 
-void    bme280_platform_init();
-uint8_t bme280_read_reg(uint8_t reg);
-void    bme280_write_reg(uint8_t reg, uint8_t value);
-
+#endif

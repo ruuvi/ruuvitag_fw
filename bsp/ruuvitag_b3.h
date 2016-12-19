@@ -18,6 +18,8 @@
 #define BSP_LED_1_MASK (1<<BSP_LED_1)
 #define LEDS_MASK      (BSP_LED_0_MASK | BSP_LED_1_MASK)
 #define LEDS_INV_MASK  LEDS_MASK // LEDs are lit when GPIO low
+#define LED_RED LED_1
+#define LED_GREEN LED_2
 
 // XXX A workaround to use Nordic SDK 12.0.0 DFU bootloader code which relies on BSP_BUTTON_3
 #define BUTTONS_NUMBER 3
@@ -54,5 +56,15 @@
                                  .rc_ctiv       = 0,                                \
                                  .rc_temp_ctiv  = 0,                                \
                                  .xtal_accuracy = NRF_CLOCK_LF_XTAL_ACCURACY_20_PPM}
+
+//Timers for sensors and main loop - caused high power consumption and interference with softdevice.
+//Use APP TIMER based on LFCLK instead unless you absolutely need these.
+//#define RUUVITAG_PROGRAM_TIMER 0
+//#define RUUVITAG_LIS2DH12_TIMER 1
+//#define RUUVITAG_BME280_TIMER 2
+//#define RUUVITAG_USER_TIMER 3
+
+#define RUUVITAG_APP_TIMER_PRESCALER 0 //App timer increments at 32.768 kHz
+#define RUUVITAG_APP_TIMER_OP_QUEUE_SIZE 16 //16 ops in time queue max
 
 #endif // RUUVITAG_B2_H

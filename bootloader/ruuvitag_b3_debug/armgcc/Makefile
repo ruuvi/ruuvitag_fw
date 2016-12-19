@@ -2,7 +2,7 @@ PROJECT_NAME     := bootloader_dfu_ble_s132_ruuvitag_b3_debug
 TARGETS          := ruuvitag_b3_bootloader
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := $(abspath ../../../nRF5_SDK_12.0.0_12f24da)
+SDK_ROOT := $(abspath ../../../nRF5_SDK_12.2.0_f012efa)
 PROJ_DIR := $(abspath ../..)
 
 $(OUTPUT_DIRECTORY)/ruuvitag_b3_bootloader.out: \
@@ -28,10 +28,11 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \
   $(SDK_ROOT)/components/libraries/crypto/nrf_crypto.c \
   $(SDK_ROOT)/components/libraries/sha256/sha256.c \
+  $(SDK_ROOT)/components/libraries/queue/nrf_queue.c \
+  $(SDK_ROOT)/components/drivers_nrf/rng/nrf_drv_rng.c \
   $(SDK_ROOT)/external/nano-pb/pb_common.c \
   $(SDK_ROOT)/external/nano-pb/pb_decode.c \
   $(SDK_ROOT)/components/drivers_nrf/common/nrf_drv_common.c \
-  $(SDK_ROOT)/components/drivers_nrf/rng/nrf_drv_rng.c \
   $(SDK_ROOT)/components/drivers_nrf/hal/nrf_nvmc.c \
   $(SDK_ROOT)/components/libraries/bootloader/ble_dfu/nrf_ble_dfu.c \
   $(SDK_ROOT)/external/segger_rtt/RTT_Syscalls_GCC.c \
@@ -69,6 +70,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/experimental_section_vars \
   $(SDK_ROOT)/components/libraries/fstorage \
   $(SDK_ROOT)/components/libraries/util \
+  $(SDK_ROOT)/components/libraries/queue/ \
   $(SDK_ROOT)/components \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler \
   $(SDK_ROOT)/components/libraries/timer \
