@@ -1,12 +1,12 @@
 PROJECT_NAME     := ble_app_eddystone_pca10040_s132
-TARGETS          := nrf52832_xxaa
+TARGETS          := eddystone
 OUTPUT_DIRECTORY := _build
 
 SDK_ROOT := ../../../../../nRF5_SDK_12.2.0_f012efa
 PROJ_DIR := ../../..
 
-$(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
-  LINKER_SCRIPT  := ble_app_eddystone_gcc_nrf52.ld
+$(OUTPUT_DIRECTORY)/eddystone.out: \
+  LINKER_SCRIPT  := eddystone.ld
 
 # Source files common to all targets
 SRC_FILES += \
@@ -257,12 +257,12 @@ LDFLAGS += --specs=nano.specs -lc -lnosys
 .PHONY: $(TARGETS) default all clean help flash flash_softdevice
 
 # Default target - first one defined
-default: nrf52832_xxaa
+default: eddystone
 
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo 	nrf52832_xxaa
+	@echo 	eddystone
 
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
 
