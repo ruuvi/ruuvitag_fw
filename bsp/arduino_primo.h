@@ -21,14 +21,12 @@ extern "C" {
 
 #define LED_1          25
 
+#define LEDS_ACTIVE_STATE 0
+
 #define LEDS_LIST { LED_1}
 
 #define BSP_LED_0      LED_1
 
-#define BSP_LED_0_MASK (1<<BSP_LED_0)
-
-#define LEDS_MASK      (BSP_LED_0_MASK)
-/* all LEDs are lit when GPIO is low */
 #define LEDS_INV_MASK  0
 
 #define BUTTONS_NUMBER 1
@@ -38,13 +36,11 @@ extern "C" {
 #define BUTTON_STOP    7
 #define BUTTON_PULL    NRF_GPIO_PIN_PULLUP
 
+#define BUTTONS_ACTIVE_STATE 0
+
 #define BUTTONS_LIST { BUTTON_1 }
 
 #define BSP_BUTTON_0   BUTTON_1
-
-#define BSP_BUTTON_0_MASK (1<<BSP_BUTTON_0)
-
-#define BUTTONS_MASK   (1<<BSP_BUTTON_0)
 
 #define RX_PIN_NUMBER  11
 #define TX_PIN_NUMBER  12

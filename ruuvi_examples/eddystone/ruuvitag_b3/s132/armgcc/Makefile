@@ -49,7 +49,7 @@ SRC_FILES += \
   $(SDK_ROOT)/external/segger_rtt/RTT_Syscalls_GCC.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
-  $(SDK_ROOT)/components/boards/boards.c \
+  $(SDK_ROOT)/../bsp/boards.c \
   $(SDK_ROOT)/components/drivers_nrf/clock/nrf_drv_clock.c \
   $(SDK_ROOT)/components/drivers_nrf/common/nrf_drv_common.c \
   $(SDK_ROOT)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c \
@@ -91,7 +91,7 @@ INC_FOLDERS += \
   $(PROJ_DIR) \
   $(SDK_ROOT)/components/libraries/gpiote \
   $(SDK_ROOT)/components/drivers_nrf/gpiote \
-  $(SDK_ROOT)/components/boards \
+  $(SDK_ROOT)/../bsp \
   $(SDK_ROOT)/components/drivers_nrf/common \
   $(SDK_ROOT)/components/ble/ble_advertising \
   $(SDK_ROOT)/components/drivers_nrf/adc \
@@ -191,7 +191,8 @@ LIB_FILES += \
 CFLAGS += -DNRF52
 CFLAGS += -DNRF52_PAN_64
 CFLAGS += -DSOFTDEVICE_PRESENT
-CFLAGS += -DBOARD_PCA10040
+CFLAGS += -DBOARD_CUSTOM
+CFLAGS += -DBOARD_RUUVITAG_B3
 CFLAGS += -DNRF52832
 CFLAGS += -DNRF_LOG_USES_RTT=1
 CFLAGS += -DNRF52_PAN_58

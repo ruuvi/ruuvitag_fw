@@ -16,6 +16,8 @@
 extern "C" {
 #endif
 
+#include "nrf_gpio.h"
+
 // LEDs definitions for PCA10031
 #define LEDS_NUMBER    3
 
@@ -24,6 +26,10 @@ extern "C" {
 #define LED_RGB_GREEN  22
 #define LED_RGB_BLUE   23
 #define LED_STOP       23
+
+#define LEDS_ACTIVE_STATE 1
+
+#define LEDS_INV_MASK  LEDS_MASK
 
 #define LED_RGB_RED_MASK    (1<<LED_RGB_RED)
 #define LED_RGB_GREEN_MASK  (1<<LED_RGB_GREEN)
@@ -35,18 +41,9 @@ extern "C" {
 #define BSP_LED_1 LED_RGB_GREEN
 #define BSP_LED_2 LED_RGB_BLUE
 
-#define BSP_LED_0_MASK    (1<<BSP_LED_0)
-#define BSP_LED_1_MASK    (1<<BSP_LED_1)
-#define BSP_LED_2_MASK    (1<<BSP_LED_2)
-
-#define LEDS_MASK      (BSP_LED_0_MASK | BSP_LED_1_MASK | BSP_LED_2_MASK)
-//defines which LEDs are lit when signal is low
-#define LEDS_INV_MASK  LEDS_MASK
-
 // there are no user buttons
 #define BUTTONS_NUMBER 0
 #define BUTTONS_LIST {}
-#define BUTTONS_MASK   0x00000000
 
 // UART connection with J-Link
 #define RX_PIN_NUMBER  11
@@ -64,7 +61,6 @@ extern "C" {
                                  .rc_temp_ctiv  = 0,                                \
                                  .xtal_accuracy = NRF_CLOCK_LF_XTAL_ACCURACY_20_PPM}
 #endif
-
 
 #ifdef __cplusplus
 }
