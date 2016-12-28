@@ -15,8 +15,6 @@
 #include "app_timer.h"
 #include "bsp.h"
 
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
 
 /**@brief Function for initializing the BLE stack.
  *

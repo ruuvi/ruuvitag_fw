@@ -22,6 +22,6 @@
 
 #define NON_CONNECTABLE_ADV_INTERVAL    MSEC_TO_UNITS(330, UNIT_0_625_MS) /**< The advertising interval for non-connectable advertisement (100 ms). This value can vary between 100 ms and 10.24 s). */
 
-#define BLE_TX_POWER                    4                                 /** dBm **/
+#define BLE_TX_POWER                    0                                 /** dBm **/
 
 #endif

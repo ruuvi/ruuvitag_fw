@@ -27,6 +27,7 @@
 #include "softdevice_handler.h"
 #include "app_timer.h"
 #include "eddystone_config.h"
+#include "bluetooth_config.h"
 #include "bsp.h"
 
 #include "nrf_log.h"

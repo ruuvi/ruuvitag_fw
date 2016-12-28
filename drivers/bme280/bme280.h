@@ -45,8 +45,6 @@
 #include <stdbool.h>
 #include "nrf.h"
 #include "spi.h"
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
 #include "nrf_drv_timer.h"
 #include "nrf_drv_gpiote.h"
 #include "bsp.h"
