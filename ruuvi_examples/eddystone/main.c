@@ -43,9 +43,9 @@
 #include "nrf_log_ctrl.h"
 
 #define DEAD_BEEF                   0xDEADBEEF       //!< Value used as error code on stack dump, can be used to identify stack location on stack unwind.
-#define NON_CONNECTABLE_ADV_LED_PIN BSP_BOARD_LED_0  //!< Toggles when non-connectable advertisement is sent.
-#define CONNECTED_LED_PIN           BSP_BOARD_LED_1  //!< Is on when device has connected.
-#define CONNECTABLE_ADV_LED_PIN     BSP_BOARD_LED_2  //!< Is on when device is advertising connectable advertisements.
+#define NON_CONNECTABLE_ADV_LED_PIN BSP_BOARD_LED_1  //!< Toggles when non-connectable advertisement is sent.
+#define CONNECTED_LED_PIN           BSP_BOARD_LED_0  //!< Is on when device has connected.
+#define CONNECTABLE_ADV_LED_PIN     BSP_BOARD_LED_0  //!< Is on when device is advertising connectable advertisements.
 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -235,8 +235,10 @@ static void conn_params_init(void)
  */
 static void power_manage(void)
 {
+    bsp_board_led_off(NON_CONNECTABLE_ADV_LED_PIN);
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
+    bsp_board_led_on(NON_CONNECTABLE_ADV_LED_PIN);
 }
 
 
@@ -249,7 +251,7 @@ static void on_es_evt(nrf_ble_es_evt_t evt)
     switch(evt)
     {
         case NRF_BLE_ES_EVT_ADVERTISEMENT_SENT:
-            bsp_board_led_invert(NON_CONNECTABLE_ADV_LED_PIN);
+            //bsp_board_led_invert(NON_CONNECTABLE_ADV_LED_PIN);
             break;
         
         case NRF_BLE_ES_EVT_CONNECTABLE_ADV_STARTED:

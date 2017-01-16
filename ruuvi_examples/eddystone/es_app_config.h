@@ -30,10 +30,10 @@
 // EID security
 #define MAC_RANDOMIZED //!< Configuration option to specify whether the BLE address should be randomized when advertising EIDs.
 
-#define APP_CONFIG_LOCK_CODE {0xFF, 0xFF, 0xFF, 0xFF, \
-                              0xFF, 0xFF, 0xFF, 0xFF, \
-                              0xFF, 0xFF, 0xFF, 0xFF, \
-                              0xFF, 0xFF, 0xFF, 0xFF} //!< Beacon lock code. @warning This lock code must be changed before going to production.
+#define APP_CONFIG_LOCK_CODE {0x00, 0x11, 0x22, 0x33, \
+                              0x44, 0x55, 0x66, 0x77, \
+                              0x88, 0x99, 0xAA, 0xBB, \
+                              0xCC, 0xDD, 0xEE, 0xFF} //!< Beacon lock code. @warning This lock code must be changed before going to production.
 
 #ifdef NRF52 
 #define APP_CONFIG_CALIBRATED_RANGING_DATA {-49, -39, -29, -24, -19, -14, -9, -7, -5}   //!< Calibrated TX power at 0 m. See the nRF52 Product Specification for corresponding TX values.
@@ -55,7 +55,7 @@
 
 
 // BLE CONFIGS
-#define APP_DEVICE_NAME                     "nRF5x_Eddystone"                           //!< Advertised device name in the scan response when in connectable mode.
+#define APP_DEVICE_NAME                     "RuuviTag"                           //!< Advertised device name in the scan response when in connectable mode.
 #define IS_SRVC_CHANGED_CHARACT_PRESENT     0                                           //!< Information whether the service changed characteristic is available. If it is not enabled, the server's database cannot be changed for the lifetime of the device.
 #define MAX_ADV_INTERVAL                   (10240)                                      //!< Maximum connection interval (in ms).
 #define MIN_CONN_ADV_INTERVAL              (20)                                         //!< Minimum connection interval (in ms).
@@ -112,17 +112,16 @@
 
 // Eddystone URL data
 #define APP_ES_URL_FRAME_TYPE    ES_FRAME_TYPE_URL                 //!< URL Frame type (fixed at 0x10).
-#define APP_ES_URL_SCHEME        0x01                              //!< URL prefix scheme according to specification (0x01 = "https://www").
-#define APP_ES_URL_URL           0x6e, 0x6f, 0x72, 0x64, \
-                                 0x69, 0x63, 0x73, 0x65, \
-                                 0x6d,0x69, 0x00                   //!< "nordicsemi.com". Last byte suffix 0x00 = ".com" according to specification.
+#define APP_ES_URL_SCHEME        0x03                              //!< URL prefix scheme according to specification (0x03 = "https://").
+#define APP_ES_URL_URL           'r', 'u', 'u', '.', 'v', 'i', \
+                                 '/', 's', 'e', 't', 'u', 'p'      //!< "ruu.vi/setup"
 
 #define DEFAULT_FRAME_TYPE       APP_ES_URL_FRAME_TYPE             //!< Frame type of default frame.
 #define DEFAULT_FRAME_TX_POWER   0x00                              //!< Default frame TX power.
 
 /** @brief This value should mimic the data that would be written to the RW ADV Slot characteristic (for example, no RSSI for UID). */
 #define DEFAULT_FRAME_DATA              {DEFAULT_FRAME_TYPE, DEFAULT_FRAME_TX_POWER, APP_ES_URL_SCHEME, APP_ES_URL_URL}
-#define DEFAULT_FRAME_LENGTH            14                                //!< 1 - Frame Type, 1 - TX - power 1 - URL Scheme, URL - 11 = 14
+#define DEFAULT_FRAME_LENGTH            15                                //!< 1 - Frame Type, 1 - TX - power 1 - URL Scheme, URL - 12 = 15
 
 // TIMER CONFIGS
 #define APP_TIMER_PRESCALER             0                          //!< Value of the RTC1 PRESCALER register (4095 = 125 ms per tick).

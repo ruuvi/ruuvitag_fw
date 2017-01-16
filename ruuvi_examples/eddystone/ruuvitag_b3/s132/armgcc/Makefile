@@ -2,7 +2,7 @@ PROJECT_NAME     := ble_app_eddystone_pca10040_s132
 TARGETS          := eddystone
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := ../../../../../nRF5_SDK_12.2.0_f012efa
+SDK_ROOT := ../../../../../nRF5_SDK_12.2.0_debug
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/eddystone.out: \
@@ -212,7 +212,8 @@ CFLAGS += -DNRF52_PAN_55
 CFLAGS += -DS132
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
-CFLAGS +=  -Wall -Werror -O3 -g3
+#-Werror
+CFLAGS +=  -Wall  -O3 -g3
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
