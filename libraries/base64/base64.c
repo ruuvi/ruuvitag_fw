@@ -22,7 +22,7 @@
 int base64encode(const void* data_buf, size_t dataLength, char* result, size_t resultSize)
 {
    const char base64chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-   const char base64pad = '"';
+   const char base64pad = '.';
    const uint8_t *data = (const uint8_t *)data_buf;
    size_t resultIndex = 0;
    size_t x;
@@ -90,7 +90,7 @@ int base64encode(const void* data_buf, size_t dataLength, char* result, size_t r
          result[resultIndex++] = base64pad;
       } 
    }
-   if(resultIndex >= resultSize) return 1;   /* indicate failure: buffer too small */
-   result[resultIndex] = 0;
+   //if(resultIndex >= resultSize) return 1;   /* indicate failure: buffer too small */
+   //result[resultIndex] = 0; Do not null-terminate
    return 0;   /* indicate success */
 }
