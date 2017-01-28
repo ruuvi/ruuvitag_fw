@@ -5,6 +5,7 @@
  *
  * Copyright (c) 2016, Offcode Ltd. All rights reserved.
  * Author: Janne Rosberg <janne@offcode.fi>
+ * Author: Otso Jousimaa <otso@ruuvi.com> (see changelog)
  *
  * Reference: BST-BME280-DS001-11 | Revision 1.2 | October 2015
  *
@@ -31,6 +32,13 @@
  * CONTRACT,  STRICT LIABILITY,  OR TORT  (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * Changes
+ *
+ * 2017-01-28 Otso Jousimaa Add comments.
+ *
  */
 
 #include <stdint.h>
@@ -128,8 +136,25 @@ BME280_Ret bme280_read_measurements();
 BME280_Ret bme280_set_oversampling_hum(uint8_t os);
 BME280_Ret bme280_set_oversampling_temp(uint8_t os);
 BME280_Ret bme280_set_oversampling_press(uint8_t os);
+
+/**
+ * Returns temperature in DegC, resolution is 0.01 DegC.
+ * Output value of “2134” equals 21.34 DegC.
+ */
 int32_t  bme280_get_temperature(void);
+
+/**
+ * Returns pressure in Pa as unsigned 32 bit integer in Q24.8 format
+ * (24 integer bits and 8 fractional bits).
+ * Output value of “24674867” represents 24674867/256 = 96386.2 Pa = 963.862 hPa
+ */
 uint32_t bme280_get_pressure(void);
+
+/**
+ * Returns humidity in %RH as unsigned 32 bit integer in Q22.10 format
+ * (22 integer and 10 fractional bits).
+ * Output value of “50532” represents 50532/1024 = 49.356 %RH
+ */
 uint32_t bme280_get_humidity(void);
 uint8_t  bme280_read_reg(uint8_t reg);
 BME280_Ret bme280_write_reg(uint8_t reg, uint8_t value);
