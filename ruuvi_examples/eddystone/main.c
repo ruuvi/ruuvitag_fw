@@ -38,9 +38,11 @@
 #include "nrf_ble_es.h"
 #include "fstorage.h"
 
-#define NRF_LOG_MODULE_NAME "APP"
+#define NRF_LOG_MODULE_NAME "MAIN"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
+
+#include "init.h"
 
 #define DEAD_BEEF                   0xDEADBEEF       //!< Value used as error code on stack dump, can be used to identify stack location on stack unwind.
 #define NON_CONNECTABLE_ADV_LED_PIN BSP_BOARD_LED_1  //!< Toggles when non-connectable advertisement is sent.
@@ -172,43 +174,6 @@ static void gap_params_init(void)
 }
 
 
-/**@brief Function for initializing the BLE stack.
- *
- * @details Initializes the SoftDevice and the BLE event interrupt.
- */
-static void ble_stack_init(void)
-{
-    uint32_t            err_code;
-    nrf_clock_lf_cfg_t  lf_clock_config;
-    
-    lf_clock_config.source          = NRF_CLOCK_LF_SRC_XTAL;
-    lf_clock_config.rc_ctiv         = 0;
-    lf_clock_config.rc_temp_ctiv    = 0;
-    lf_clock_config.xtal_accuracy   = NRF_CLOCK_LF_XTAL_ACCURACY_20_PPM;
-
-    // Initialize the SoftDevice handler module.
-    SOFTDEVICE_HANDLER_INIT(&lf_clock_config, NULL);
-
-    ble_enable_params_t ble_enable_params;
-    err_code = softdevice_enable_get_default_config(CENTRAL_LINK_COUNT,
-                                                    PERIPHERAL_LINK_COUNT,
-                                                    &ble_enable_params);
-    APP_ERROR_CHECK(err_code);
-
-    // Enable BLE stack.
-    err_code = softdevice_enable(&ble_enable_params);
-    APP_ERROR_CHECK(err_code);
-
-    // Subscribe for BLE events.
-    err_code = softdevice_ble_evt_handler_set(ble_evt_dispatch);
-    APP_ERROR_CHECK(err_code);
-    
-    // Subscribe for system events.
-    err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
-    APP_ERROR_CHECK(err_code);
-}
-
-
 /**@brief Function for initializing the Connection Parameters module.
  */
 static void conn_params_init(void)
@@ -232,6 +197,7 @@ static void conn_params_init(void)
 
 
 /**@brief Function for doing power management.
+ *        Turns green led on when device exits sleep
  */
 static void power_manage(void)
 {
@@ -312,14 +278,23 @@ int main(void)
     uint32_t err_code;
 
     // Initialize.
-    err_code = NRF_LOG_INIT(NULL);
+    init_log(); //TODO: Check for errors
+    
+    init_ble(); //TODO: Check for errors
+
+    // Subscribe for BLE events.
+    err_code = softdevice_ble_evt_handler_set(ble_evt_dispatch);
     APP_ERROR_CHECK(err_code);
     
+    // Subscribe for system events.
+    err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
+    APP_ERROR_CHECK(err_code);
+
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
     APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, true);
     err_code = bsp_init(BSP_INIT_LED, APP_TIMER_TICKS(100, APP_TIMER_PRESCALER), NULL);
     APP_ERROR_CHECK(err_code);
-    ble_stack_init();
+
     gap_params_init();
     conn_params_init();
     button_init();
