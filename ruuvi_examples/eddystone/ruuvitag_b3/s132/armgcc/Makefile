@@ -12,6 +12,7 @@ $(OUTPUT_DIRECTORY)/eddystone.out: \
 SRC_FILES += \
   $(PROJ_DIR)/main.c \
   $(PROJ_DIR)/ruuvitag_b3/s132/init.c \
+  $(PROJ_DIR)/SDK_overrides/es_battery_voltage_saadc.c \
   $(PROJ_DIR)/../../bsp/bsp.c \
   $(PROJ_DIR)/../../bsp/bsp_btn_ble.c \
   $(PROJ_DIR)/../../bsp/bsp_nfc.c \
@@ -39,7 +40,6 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/experimental_eddystone/es_adv_frame.c \
   $(SDK_ROOT)/components/libraries/experimental_eddystone/es_adv_timing.c \
   $(SDK_ROOT)/components/libraries/experimental_eddystone/es_adv_timing_resolver.c \
-  $(SDK_ROOT)/components/libraries/experimental_eddystone/es_battery_voltage_saadc.c \
   $(SDK_ROOT)/components/libraries/experimental_eddystone/es_flash.c \
   $(SDK_ROOT)/components/libraries/experimental_eddystone/es_gatts.c \
   $(SDK_ROOT)/components/libraries/experimental_eddystone/es_security.c \
@@ -222,7 +222,7 @@ CFLAGS += -DS132
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
 #-Werror
-CFLAGS +=  -Wall  -O3 -g3
+CFLAGS +=  -Wall -Werror -O3 -g3
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
