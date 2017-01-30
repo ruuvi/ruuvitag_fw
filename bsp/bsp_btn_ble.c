@@ -143,28 +143,15 @@ static uint32_t advertising_buttons_configure()
  *          appropriate BSP event.
  *
  * @param[out] p_startup_event  Where to put the extracted BSP event.
- *
- * @retval NRF_SUCCESS  Extraction was successful.
- * @return A propagated error code.
  */
-static uint32_t startup_event_extract(bsp_event_t * p_startup_event)
+static void startup_event_extract(bsp_event_t * p_startup_event)
 {
-    uint32_t err_code;
-    bool wakeup_button_is_pressed, bond_erase_button_is_pressed;
-
-    // Read buttons
-    err_code = bsp_button_is_pressed(BTN_ID_WAKEUP, &wakeup_button_is_pressed);
-    RETURN_ON_ERROR(err_code);
-
-    err_code = bsp_button_is_pressed(BTN_ID_WAKEUP_BOND_DELETE, &bond_erase_button_is_pressed);
-    RETURN_ON_ERROR(err_code);
-
     // React to button states
-    if (bond_erase_button_is_pressed)
+    if (bsp_button_is_pressed(BTN_ID_WAKEUP_BOND_DELETE))
     {
         *p_startup_event = BSP_EVENT_CLEAR_BONDING_DATA;
     }
-    else if (wakeup_button_is_pressed)
+    else if (bsp_button_is_pressed(BTN_ID_WAKEUP))
     {
         *p_startup_event = BSP_EVENT_WAKEUP;
     }
@@ -172,17 +159,17 @@ static uint32_t startup_event_extract(bsp_event_t * p_startup_event)
     {
         *p_startup_event = BSP_EVENT_NOTHING;
     }
-
-    return NRF_SUCCESS;
 }
 
 
 uint32_t bsp_btn_ble_sleep_mode_prepare(void)
 {
-    uint32_t err_code = bsp_wakeup_buttons_set((1 << BTN_ID_WAKEUP) | (1 << BTN_ID_WAKEUP_BOND_DELETE));
-
+    uint32_t err_code = bsp_wakeup_button_enable(BTN_ID_WAKEUP); 
     RETURN_ON_ERROR_NOT_NOT_SUPPORTED(err_code);
 
+    err_code = bsp_wakeup_button_enable(BTN_ID_WAKEUP_BOND_DELETE); 
+    RETURN_ON_ERROR_NOT_NOT_SUPPORTED(err_code);
+    
     return NRF_SUCCESS;
 }
 
@@ -227,8 +214,7 @@ uint32_t bsp_btn_ble_init(bsp_btn_ble_error_handler_t error_handler, bsp_event_t
 
     if (p_startup_bsp_evt != NULL)
     {
-        err_code = startup_event_extract(p_startup_bsp_evt);
-        RETURN_ON_ERROR(err_code);
+        startup_event_extract(p_startup_bsp_evt);
     }
 
     if (m_num_connections == 0)

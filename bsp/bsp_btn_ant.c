@@ -91,7 +91,7 @@ static uint32_t searching_buttons_configure(void)
 
 uint32_t bsp_btn_ant_sleep_mode_prepare(void)
 {
-    uint32_t err_code = bsp_wakeup_buttons_set(1 << BTN_ID_WAKEUP);
+    uint32_t err_code = bsp_wakeup_button_enable(BTN_ID_WAKEUP);
     RETURN_ON_ERROR_NOT_NOT_SUPPORTED(err_code);
 
     return NRF_SUCCESS;

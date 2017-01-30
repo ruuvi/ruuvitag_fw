@@ -12,7 +12,9 @@
 
 #include "bsp_nfc.h"
 #include "bsp.h"
+#include "nrf_peripherals.h"
 
+#ifndef BSP_SIMPLE
 #define BTN_ACTION_SLEEP          BSP_BUTTON_ACTION_RELEASE    /**< Button action used to put the application into sleep mode. */
 
 ret_code_t bsp_nfc_btn_init(uint32_t sleep_button)
@@ -33,6 +35,11 @@ ret_code_t bsp_nfc_btn_deinit(uint32_t sleep_button)
 
 ret_code_t bsp_nfc_sleep_mode_prepare(void)
 {
-    uint32_t err_code = bsp_wakeup_nfc_set();
-    return err_code;
+#if defined(NFCT_PRESENT)
+    NRF_NFCT->TASKS_SENSE = 1;
+    return NRF_SUCCESS;
+#else
+    return NRF_ERROR_NOT_SUPPORTED;
+#endif
 }
+#endif //BSP_SIMPLE
