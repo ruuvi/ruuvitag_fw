@@ -2,7 +2,7 @@ PROJECT_NAME     := template-application_ruuvitag-b3_s132
 TARGETS          := template_application
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := ../../../../../nRF5_SDK_12.1.0_0d23e2a
+SDK_ROOT := ../../../../../nRF5_SDK_12.2.0_f012efa
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/template_application.out: \
@@ -35,7 +35,6 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
   $(SDK_ROOT)/components/libraries/scheduler/app_scheduler.c \
   $(SDK_ROOT)/components/libraries/timer/app_timer_appsh.c \
-  $(SDK_ROOT)/components/libraries/timer/app_timer.c \
   $(SDK_ROOT)/components/libraries/timer/app_timer.c \
   $(SDK_ROOT)/components/libraries/util/app_error_weak.c \
   $(SDK_ROOT)/components/libraries/util/app_error.c \
@@ -134,7 +133,6 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/mailbox \
   $(SDK_ROOT)/components/libraries/mem_manager \
   $(SDK_ROOT)/components/libraries/pwm \
-  $(SDK_ROOT)/components/libraries/scheduler \
   $(SDK_ROOT)/components/libraries/scheduler \
   $(SDK_ROOT)/components/libraries/slip \
   $(SDK_ROOT)/components/libraries/timer \

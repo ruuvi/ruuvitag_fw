@@ -33,8 +33,6 @@
 #include "app_timer_appsh.h"
 #include "nrf_drv_clock.h"
 #include "nrf_gpio.h"
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
 #include "nrf_delay.h" //Use with care, consumes lot of power
 
 //BSP
@@ -52,6 +50,8 @@
 
 //SDK configuration
 //#define NRF_LOG_ENABLED 1 //Uncomment to enable logging. This causes increased current consumption, even if logging is not used.
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
 
 //Constants
 #define DEAD_BEEF                       0xDEADBEEF                        /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */

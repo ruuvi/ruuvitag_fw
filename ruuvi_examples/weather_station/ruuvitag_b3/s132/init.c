@@ -1,5 +1,9 @@
 #include "init.h"
 
+#define NRF_LOG_MODULE_NAME "INIT"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+
 /**
  * Initialize logging
  *
