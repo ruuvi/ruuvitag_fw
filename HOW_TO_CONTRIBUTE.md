@@ -11,6 +11,7 @@ To develop for RuuviTags you essentially need only your computer, a device with 
 and a single Ruuvitag. 
 
 On a modern computer you can try out our development virtual machine image [here](http://46.101.140.152/RuuviBuilder_public_01.ova).
+user name is "ruuvi-user", and password is "ruuvi-user".
 If you want to setup your environment, you need :
 
 - git
