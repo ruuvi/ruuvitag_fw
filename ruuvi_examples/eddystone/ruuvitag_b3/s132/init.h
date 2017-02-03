@@ -23,18 +23,15 @@
 
 //BSP
 #include "bsp.h"
+#include "bsp_config.h"
 
 //Drivers
 #include "LIS2DH12.h"
 #include "bme280.h"
 
-//Libraries
-#include "bluetooth_core.h"
-
 //Timers
 #define APP_TIMER_PRESCALER             RUUVITAG_APP_TIMER_PRESCALER      /**< Value of the RTC1 PRESCALER register. */
-#define APP_TIMER_OP_QUEUE_SIZE         RUUVITAG_APP_TIMER_OP_QUEUE_SIZE  /**< Size of timer operation queues. */
-// Scheduler settings                                         
+#define APP_TIMER_OP_QUEUE_SIZE         RUUVITAG_APP_TIMER_OP_QUEUE_SIZE  /**< Size of timer operation queues. */                                  
 #define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, sizeof(nrf_drv_gpiote_pin_t))
 #define SCHED_QUEUE_SIZE                10
 

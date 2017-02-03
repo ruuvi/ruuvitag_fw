@@ -15,24 +15,18 @@
 
 #include "es.h"
 #include "boards.h"
-
+#include "bsp_config.h"
 #include "init.h"
 
 /**
- * @file
- * @defgroup eddystone_app_config Application configuration
- * @brief Configuration settings for the application.
+ * @brief Bluetooth configuration settings for the application.
  * @details These configuration settings are defined in the application.
- * You can find the configuration file at 
- * <tt>examples\ble_peripheral\ble_app_eddystone\es_app_config.h</tt>.
- * @ingroup eddystone
- * @{
  */
 
-
-
 // BLE CONFIGS
-#define APP_DEVICE_NAME                     "RuuviTag"                           //!< Advertised device name in the scan response when in connectable mode.
+#define APP_COMPANY_IDENTIFIER              0xFFFF                                      //!< Test identifier, must be changed when in production
+#define APP_DEVICE_NAME                     "RuuviTag"                                  //!< Advertised device name in the scan response when in connectable mode.
+#define APP_BEACON_INFO_LENGTH              24                                          //!< Manufacturer specific data length. in bytes
 #define IS_SRVC_CHANGED_CHARACT_PRESENT     0                                           //!< Information whether the service changed characteristic is available. If it is not enabled, the server's database cannot be changed for the lifetime of the device.
 #define MAX_ADV_INTERVAL                   (10240)                                      //!< Maximum connection interval (in ms).
 #define MIN_CONN_ADV_INTERVAL              (20)                                         //!< Minimum connection interval (in ms).

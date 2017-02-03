@@ -1,4 +1,5 @@
 #include "init.h"
+#include "bluetooth_core.h"
 
 #define NRF_LOG_MODULE_NAME "INIT"
 #include "nrf_log.h"

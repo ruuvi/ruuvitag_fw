@@ -116,7 +116,7 @@ static void eddystone_advertising_init(char* url, uint8_t length)
     m_adv_params.type        = BLE_GAP_ADV_TYPE_ADV_NONCONN_IND;
     m_adv_params.p_peer_addr = NULL;                                // Undirected advertisement.
     m_adv_params.fp          = BLE_GAP_ADV_FP_ANY;
-    m_adv_params.interval    = NON_CONNECTABLE_ADV_INTERVAL;
+    m_adv_params.interval    = APP_CFG_NON_CONN_ADV_INTERVAL_MS;
     m_adv_params.timeout     = APP_CFG_NON_CONN_ADV_TIMEOUT;
 }
 

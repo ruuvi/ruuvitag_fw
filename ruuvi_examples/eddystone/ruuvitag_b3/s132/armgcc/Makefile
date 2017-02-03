@@ -82,6 +82,8 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../drivers/LIS2DH12 \
   $(PROJ_DIR)/../../drivers/spi/ \
   $(PROJ_DIR)/../../libraries/bluetooth/ \
+  $(PROJ_DIR)/ruuvitag_b3/s132/config \
+  $(PROJ_DIR)/occ/occ/OberonHAPCryptoP256 \
   $(PROJ_DIR)/ruuvitag_b3/s132/ \
   $(PROJ_DIR)/ruuvitag_b3/s132/config \
   $(PROJ_DIR)/occ/occ/OberonHAPCrypto \
@@ -154,7 +156,6 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/hci \
   $(SDK_ROOT)/components/libraries/usbd/class/hid/kbd \
   $(SDK_ROOT)/components/drivers_nrf/spi_slave \
-  $(PROJ_DIR)/occ/occ/OberonHAPCryptoP256 \
   $(SDK_ROOT)/components/drivers_nrf/lpcomp \
   $(SDK_ROOT)/components/libraries/timer \
   $(SDK_ROOT)/components/drivers_nrf/power \
