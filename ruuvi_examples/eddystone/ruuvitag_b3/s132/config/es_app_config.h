@@ -44,7 +44,7 @@
 
 // ES CONFIGS
 #define APP_MAX_ADV_SLOTS                   5                 //!< Maximum number of advertisement slots.
-#define APP_MAX_EID_SLOTS                   APP_MAX_ADV_SLOTS /**< @brief Maximum number of EID slots.
+#define APP_MAX_EID_SLOTS                   1                 /**< @brief Maximum number of EID slots.
                                                                * @note The maximum number of EID slots must be equal to the maximum number of advertisement slots (@ref APP_MAX_ADV_SLOTS). If your application does not adhere to this convention, you must modify the @ref eddystone_security module, because the security module maps the security slots' slot numbers 1 to 1 to the slots'. */
 #define APP_ETLM_DELAY_MS                   300               //!< The delay that is introduced between advertisement slots of type eTLM.
 
