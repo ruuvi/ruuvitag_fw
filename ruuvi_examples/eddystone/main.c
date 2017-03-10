@@ -269,6 +269,17 @@ static void button_init(void)
     APP_ERROR_CHECK(err_code);
 }
 
+/**
+ *  @brief pull CS of sensors up to keep them powered off
+ */
+static void gpio_init()
+{
+    nrf_gpio_cfg_output	(SPIM0_SS_HUMI_PIN);
+    nrf_gpio_pin_set(SPIM0_SS_HUMI_PIN);
+    nrf_gpio_cfg_output	(SPIM0_SS_ACC_PIN);
+    nrf_gpio_pin_set(SPIM0_SS_ACC_PIN);
+}
+
 
 /**
  * @brief Function for application main entry.
@@ -299,6 +310,7 @@ int main(void)
     conn_params_init();
     button_init();
     nrf_ble_es_init(on_es_evt);
+    gpio_init();
     
     NRF_LOG_INFO("Start!\r\n");
     // Enter main loop.
