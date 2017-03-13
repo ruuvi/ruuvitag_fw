@@ -16,6 +16,8 @@
 extern "C" {
 #endif
 
+#include "nrf_gpio.h"
+
 // Definitions for PCA10000 v2.0.0 or higher
 #if 1
 
@@ -32,19 +34,15 @@ extern "C" {
 #define BSP_LED_2  LED_RGB_BLUE
 #define LED_STOP   LED_RGB_BLUE
 
+#define LEDS_ACTIVE_STATE 0
+
 #define BUTTONS_LIST {}
 #define LEDS_LIST { LED_RGB_RED, LED_RGB_GREEN, LED_RGB_BLUE }
 
-#define BSP_LED_0_MASK    (1<<LED_RGB_RED)
-#define BSP_LED_1_MASK    (1<<LED_RGB_GREEN)
-#define BSP_LED_2_MASK    (1<<LED_RGB_BLUE)
-
-#define LEDS_MASK      (BSP_LED_0_MASK | BSP_LED_1_MASK | BSP_LED_2_MASK)
 #define LEDS_INV_MASK  LEDS_MASK
 
 // there are no buttons on this board
 #define BUTTONS_NUMBER 0
-#define BUTTONS_MASK   0x00000000
 
 // UART pins connected to J-Link
 #define RX_PIN_NUMBER  11
@@ -69,8 +67,6 @@ extern "C" {
                                  .rc_ctiv       = 0,                                \
                                  .rc_temp_ctiv  = 0,                                \
                                  .xtal_accuracy = NRF_CLOCK_LF_XTAL_ACCURACY_20_PPM}
-
-
 
 #ifdef __cplusplus
 }

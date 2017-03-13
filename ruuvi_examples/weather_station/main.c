@@ -33,6 +33,8 @@
 #include "app_timer_appsh.h"
 #include "nrf_drv_clock.h"
 #include "nrf_gpio.h"
+
+#define NRF_LOG_MODULE_NAME "MAIN"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 

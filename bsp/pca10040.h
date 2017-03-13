@@ -16,6 +16,8 @@
 extern "C" {
 #endif
 
+#include "nrf_gpio.h"
+
 // LEDs definitions for PCA10040
 #define LEDS_NUMBER    4
 
@@ -25,6 +27,10 @@ extern "C" {
 #define LED_3          19
 #define LED_4          20
 #define LED_STOP       20
+   
+#define LEDS_ACTIVE_STATE 0
+
+#define LEDS_INV_MASK  LEDS_MASK
 
 #define LEDS_LIST { LED_1, LED_2, LED_3, LED_4 }
 
@@ -32,15 +38,6 @@ extern "C" {
 #define BSP_LED_1      LED_2
 #define BSP_LED_2      LED_3
 #define BSP_LED_3      LED_4
-
-#define BSP_LED_0_MASK (1<<BSP_LED_0)
-#define BSP_LED_1_MASK (1<<BSP_LED_1)
-#define BSP_LED_2_MASK (1<<BSP_LED_2)
-#define BSP_LED_3_MASK (1<<BSP_LED_3)
-
-#define LEDS_MASK      (BSP_LED_0_MASK | BSP_LED_1_MASK | BSP_LED_2_MASK | BSP_LED_3_MASK)
-/* all LEDs are lit when GPIO is low */
-#define LEDS_INV_MASK  LEDS_MASK
 
 #define BUTTONS_NUMBER 4
 
@@ -52,19 +49,14 @@ extern "C" {
 #define BUTTON_STOP    16
 #define BUTTON_PULL    NRF_GPIO_PIN_PULLUP
 
+#define BUTTONS_ACTIVE_STATE 0
+
 #define BUTTONS_LIST { BUTTON_1, BUTTON_2, BUTTON_3, BUTTON_4 }
 
 #define BSP_BUTTON_0   BUTTON_1
 #define BSP_BUTTON_1   BUTTON_2
 #define BSP_BUTTON_2   BUTTON_3
 #define BSP_BUTTON_3   BUTTON_4
-
-#define BSP_BUTTON_0_MASK (1<<BSP_BUTTON_0)
-#define BSP_BUTTON_1_MASK (1<<BSP_BUTTON_1)
-#define BSP_BUTTON_2_MASK (1<<BSP_BUTTON_2)
-#define BSP_BUTTON_3_MASK (1<<BSP_BUTTON_3)
-
-#define BUTTONS_MASK   0x001E0000
 
 #define RX_PIN_NUMBER  8
 #define TX_PIN_NUMBER  6
@@ -154,7 +146,6 @@ extern "C" {
                                  .rc_ctiv       = 0,                                \
                                  .rc_temp_ctiv  = 0,                                \
                                  .xtal_accuracy = NRF_CLOCK_LF_XTAL_ACCURACY_20_PPM}
-
 
 #ifdef __cplusplus
 }

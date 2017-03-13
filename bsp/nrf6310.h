@@ -36,6 +36,8 @@ extern "C" {
 #define BSP_LED_6      LED_6
 #define BSP_LED_7      LED_7
 
+#define LEDS_ACTIVE_STATE 1
+
 #define BUTTON_START   0
 #define BUTTON_0       0
 #define BUTTON_1       1
@@ -57,32 +59,15 @@ extern "C" {
 #define BSP_BUTTON_6   BUTTON_6
 #define BSP_BUTTON_7   BUTTON_7
 
+#define BUTTONS_ACTIVE_STATE 1
+
 #define BUTTONS_LIST {BUTTON_0, BUTTON_1, BUTTON_2, BUTTON_3, BUTTON_4, BUTTON_5, BUTTON_6, BUTTON_7}
 #define LEDS_LIST {LED_0, LED_1, LED_2, LED_3, LED_4, LED_5, LED_6, LED_7}
 
-#define BUTTONS_NUMBER 8
-#define LEDS_NUMBER    8
-#define BUTTONS_MASK   0x000000FF
-#define LEDS_MASK      0x0000FF00
 #define LEDS_INV_MASK  0x00000000
 
-#define BSP_BUTTON_0_MASK (1<<0)
-#define BSP_BUTTON_1_MASK (1<<1)
-#define BSP_BUTTON_2_MASK (1<<2)
-#define BSP_BUTTON_3_MASK (1<<3)
-#define BSP_BUTTON_4_MASK (1<<4)
-#define BSP_BUTTON_5_MASK (1<<5)
-#define BSP_BUTTON_6_MASK (1<<6)
-#define BSP_BUTTON_7_MASK (1<<7)
-
-#define BSP_LED_0_MASK    (1<<8)
-#define BSP_LED_1_MASK    (1<<9)
-#define BSP_LED_2_MASK    (1<<10)
-#define BSP_LED_3_MASK    (1<<11)
-#define BSP_LED_4_MASK    (1<<12)
-#define BSP_LED_5_MASK    (1<<13)
-#define BSP_LED_6_MASK    (1<<14)
-#define BSP_LED_7_MASK    (1<<15)
+#define BUTTONS_NUMBER 8
+#define LEDS_NUMBER    8
 
 #define RX_PIN_NUMBER  16    // UART RX pin number.
 #define TX_PIN_NUMBER  17    // UART TX pin number.

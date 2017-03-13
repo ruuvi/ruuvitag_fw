@@ -26,21 +26,16 @@ extern "C" {
 #define LED_C        15 //LED C on N5 Starter Kit IO Board
 #define LED_D        30 //LED D on N5 Starter Kit IO Board
 
+#define LEDS_ACTIVE_STATE 0
+
 #define LEDS_LIST { LED_A, LED_B, LED_C, LED_D }
+
+#define LEDS_INV_MASK  LEDS_MASK
 
 #define BSP_LED_0      LED_A
 #define BSP_LED_1      LED_B
 #define BSP_LED_2      LED_C
 #define BSP_LED_3      LED_D
-
-#define BSP_LED_0_MASK (1<<BSP_LED_0)
-#define BSP_LED_1_MASK (1<<BSP_LED_1)
-#define BSP_LED_2_MASK (1<<BSP_LED_2)
-#define BSP_LED_3_MASK (1<<BSP_LED_3)
-
-#define LEDS_MASK      (BSP_LED_0_MASK | BSP_LED_1_MASK | BSP_LED_2_MASK | BSP_LED_3_MASK)
-/* all LEDs are lit when GPIO is low */
-#define LEDS_INV_MASK  LEDS_MASK
 
 #define BUTTONS_NUMBER 4
 
@@ -51,17 +46,13 @@ extern "C" {
 #define BUTTON_D     11 //BUTTON D on N5 Starter Kit IO Board
 #define BUTTON_PULL  NRF_GPIO_PIN_PULLUP
 
+#define BUTTONS_ACTIVE_STATE 0
+
 #define BSP_BUTTON_0   BUTTON_A
 #define BSP_BUTTON_1   BUTTON_B
 #define BSP_BUTTON_2   BUTTON_C
 #define BSP_BUTTON_3   BUTTON_D
 
-#define BSP_BUTTON_0_MASK (1<<BSP_BUTTON_0)
-#define BSP_BUTTON_1_MASK (1<<BSP_BUTTON_1)
-#define BSP_BUTTON_2_MASK (1<<BSP_BUTTON_2)
-#define BSP_BUTTON_3_MASK (1<<BSP_BUTTON_3)
-
-#define BUTTONS_MASK   0x00801804 // b100000000001100000000100
 #define BUTTONS_LIST { BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_D }
 
 // Battery board pull-up switches

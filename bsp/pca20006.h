@@ -16,6 +16,8 @@
 extern "C" {
 #endif
 
+#include "nrf_gpio.h"
+
 // LEDs and buttons definition for PCA20006 board (beacon)
 #define LEDS_NUMBER    3
 
@@ -23,30 +25,26 @@ extern "C" {
 #define LED_RGB_GREEN  12
 #define LED_RGB_BLUE   15
 
+#define LEDS_ACTIVE_STATE 0
+
 #define BSP_LED_0 LED_RGB_RED
 #define BSP_LED_1 LED_RGB_GREEN
 #define BSP_LED_2 LED_RGB_BLUE
 
 #define LEDS_LIST { LED_RGB_RED, LED_RGB_GREEN, LED_RGB_BLUE}
 
-#define BSP_LED_0_MASK    (1<<BSP_LED_0)
-#define BSP_LED_1_MASK    (1<<BSP_LED_1)
-#define BSP_LED_2_MASK    (1<<BSP_LED_2)
-#define LEDS_MASK      (BSP_LED_0_MASK | BSP_LED_1_MASK | BSP_LED_2_MASK)
 #define LEDS_INV_MASK  LEDS_MASK
 
 #define BUTTON_0       8
 #define BUTTON_1       18
 #define BUTTON_PULL    NRF_GPIO_PIN_PULLUP
 
+#define BUTTONS_ACTIVE_STATE 0
+
 #define BSP_BUTTON_0   BUTTON_0
 #define BSP_BUTTON_1   BUTTON_1
 
 #define BUTTONS_NUMBER 2
-
-#define BSP_BUTTON_0_MASK (1<<BUTTON_0)
-#define BSP_BUTTON_1_MASK (1<<BUTTON_1)
-#define BUTTONS_MASK   (BSP_BUTTON_0_MASK | BSP_BUTTON_1_MASK)
 
 #define BUTTONS_LIST { BUTTON_0, BUTTON_1 }
 

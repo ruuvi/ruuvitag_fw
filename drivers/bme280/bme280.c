@@ -43,6 +43,10 @@
 
 #include "bme280.h"
 
+#define NRF_LOG_MODULE_NAME "BME280"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+
 
 struct bme280_driver bme280; /* global instance */
 // Scheduler settings

@@ -27,6 +27,8 @@
 #include "softdevice_handler.h"
 #include "bsp.h"
 #include "app_timer.h"
+
+#define NRF_LOG_MODULE_NAME "MAIN"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 

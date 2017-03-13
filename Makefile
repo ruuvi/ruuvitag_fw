@@ -49,9 +49,11 @@ $(SDK_DIR)/external/micro-ecc/micro-ecc:
 fw:
 	@echo build FW
 	$(MAKE) -C ruuvi_examples/ble_app_beacon/ruuvitag_b3/s132/armgcc
+	$(MAKE) -C ruuvi_examples/eddystone/ruuvitag_b3/s132/armgcc
 	$(MAKE) -C ruuvi_examples/test_drivers/ruuvitag_b3/s132/armgcc
 	$(MAKE) -C ruuvi_examples/template_app/ruuvitag_b3/s132/armgcc
 	$(MAKE) -C ruuvi_examples/weather_station/ruuvitag_b3/s132/armgcc
+
 
 bootloader:
 	@echo build bootloader
@@ -61,6 +63,7 @@ bootloader:
 clean:
 	@echo cleaning B3 build files…
 	$(MAKE) -C ruuvi_examples/ble_app_beacon/ruuvitag_b3/s132/armgcc clean
+	$(MAKE) -C ruuvi_examples/eddystone/ruuvitag_b3/s132/armgcc clean
 	$(MAKE) -C ruuvi_examples/test_drivers/ruuvitag_b3/s132/armgcc clean
 	$(MAKE) -C ruuvi_examples/template_app/ruuvitag_b3/s132/armgcc clean
 	$(MAKE) -C bootloader/ruuvitag_b3_debug/armgcc clean
