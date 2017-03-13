@@ -28,6 +28,7 @@
 #define APP_DEVICE_NAME                     "RuuviTag"                                  //!< Advertised device name in the scan response when in connectable mode.
 #define APP_BEACON_INFO_LENGTH              24                                          //!< Manufacturer specific data length. in bytes
 #define BLE_COMPANY_IDENTIFIER              0x0499                                      /**< Test and development **/
+#define APP_COMPANY_IDENTIFIER              BLE_COMPANY_IDENTIFIER                      /** For ble core **/
 #define IS_SRVC_CHANGED_CHARACT_PRESENT     1                                           //!< Information whether the service changed characteristic is available. If it is not enabled, the server's database cannot be changed for the lifetime of the device.
 
 #define MAX_ADV_INTERVAL                   (10240)                                      //!< Maximum connection interval (in ms).

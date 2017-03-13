@@ -140,6 +140,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/twi \
   $(SDK_ROOT)/components/libraries/uart \
   $(SDK_ROOT)/components/libraries/util \
+  $(SDK_ROOT)/components/libraries/experimental_eddystone \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler \
   $(SDK_ROOT)/components/softdevice/s132/headers \
   $(SDK_ROOT)/components/softdevice/s132/headers/nrf52 \

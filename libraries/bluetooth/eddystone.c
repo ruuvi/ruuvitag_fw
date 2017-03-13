@@ -26,7 +26,7 @@
 #include "nordic_common.h"
 #include "softdevice_handler.h"
 #include "app_timer.h"
-#include "eddystone_config.h"
+#include "es_app_config.h"
 #include "bluetooth_config.h"
 #include "bsp.h"
 
@@ -39,10 +39,9 @@ static ble_gap_adv_params_t m_adv_params;                                 /**< P
 
 static uint8_t eddystone_url_data[19] =   /**< Information advertised by the Eddystone URL frame type. */
 {
-    APP_EDDYSTONE_URL_FRAME_TYPE,   // Eddystone URL frame type.
-    APP_EDDYSTONE_RSSI,             // RSSI value at 0 m.
-    APP_EDDYSTONE_URL_SCHEME,       // Scheme or prefix for URL ("http", "http://www", etc.)
-    APP_EDDYSTONE_URL_BASE          // URL with a maximum length of 17 bytes. Last byte is suffix (".com", ".org", etc.)
+    APP_ES_URL_FRAME_TYPE,   // Eddystone URL frame type.
+    DEFAULT_FRAME_TX_POWER,  // RSSI value at 0 m. TODO: use value set up by application rather than default value
+    APP_ES_URL_SCHEME       // Scheme or prefix for URL ("http", "http://www", etc.)
 };
 
 /** @snippet [Eddystone UID data] */
@@ -76,14 +75,14 @@ static void eddystone_advertising_init(char* url, uint8_t length)
     uint32_t      err_code;
     ble_advdata_t advdata;
     uint8_t       flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
-    ble_uuid_t    adv_uuids[] = {{APP_EDDYSTONE_UUID, BLE_UUID_TYPE_BLE}};
+    ble_uuid_t    adv_uuids[] = {{APP_ES_UUID, BLE_UUID_TYPE_BLE}};
 
     uint8_array_t eddystone_data_array;                             // Array for Service Data structure.
 /** @snippet [Eddystone data array] */
 
-    eddystone_url_data[0] = APP_EDDYSTONE_URL_FRAME_TYPE;   // Eddystone URL frame type.
-    eddystone_url_data[1] = APP_EDDYSTONE_RSSI;             // RSSI value at 0 m.
-    eddystone_url_data[2] = APP_EDDYSTONE_URL_SCHEME;       // Scheme or prefix for URL ("http", "http://www", etc.)
+    eddystone_url_data[0] = APP_ES_URL_FRAME_TYPE;   // Eddystone URL frame type.
+    eddystone_url_data[1] = DEFAULT_FRAME_TX_POWER;             // RSSI value at 0 m.
+    eddystone_url_data[2] = APP_ES_URL_SCHEME;       // Scheme or prefix for URL ("http", "http://www", etc.)
     for (int ii = 0; ii < length; ii++)
     {
        eddystone_url_data[3+ii] = url[ii];  // URL with a maximum length of 17 bytes. Last byte is suffix (".com", ".org", etc.)
@@ -94,7 +93,7 @@ static void eddystone_advertising_init(char* url, uint8_t length)
 /** @snippet [Eddystone data array] */
 
     ble_advdata_service_data_t service_data;                        // Structure to hold Service Data.
-    service_data.service_uuid = APP_EDDYSTONE_UUID;                 // Eddystone UUID to allow discoverability on iOS devices.
+    service_data.service_uuid = APP_ES_UUID;                 // Eddystone UUID to allow discoverability on iOS devices.
     service_data.data = eddystone_data_array;                       // Array for service advertisement data.
 
     // Build and set advertising data.
