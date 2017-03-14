@@ -102,7 +102,7 @@ void on_ble_evt(ble_evt_t * p_ble_evt)
             break; // BLE_GATTS_EVT_TIMEOUT
 
         case BLE_EVT_TX_COMPLETE:
-            NRF_LOG_INFO("BLE TX Buffer handled");
+            NRF_LOG_DEBUG("BLE TX Buffer handled\r\n");
             break; // BLE_EVT_TX_COMPLETE
 
 #if (NRF_SD_BLE_API_VERSION == 3)

@@ -16,6 +16,10 @@
  * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
  */
 
+#include "ble_advdata.h"
+#include "ble_advertising.h"
+#include "nrf_assert.h"
+
 #include "bluetooth_core.h"
 #include "ble_advdata.h"
 #include "ble_advertising.h"
@@ -170,11 +174,21 @@ uint32_t bluetooth_advertise_data(uint8_t *data, uint8_t length)
     advdata.name_type               = BLE_ADVDATA_FULL_NAME;
     advdata.include_appearance      = true;
 //    advdata.uuids_complete.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]);
-//    advdata.uuids_complete.p_uuids  = m_adv_uuids;
+//    advdata.uuids_complete.p_uuids  = m_adv_uuids; TODO
 
     advdata.flags                 = flags;
     advdata.p_manuf_specific_data = &manuf_specific_data;
+    
+    ble_adv_modes_config_t options = {0};
+    options.ble_adv_fast_enabled  = true;
+    options.ble_adv_fast_interval = APP_ADV_INTERVAL;
+    options.ble_adv_fast_timeout  = APP_ADV_TIMEOUT_IN_SECONDS;
+    
+    err_code = ble_advertising_init(&advdata, NULL, &options, NULL, NULL);
+    APP_ERROR_CHECK(err_code);
+    
 
+}
 
     // Initialize advertising parameters (used when starting advertising).
     uint8_t *m_beacon_info = malloc(length);                   /**< Information advertised by the Beacon. */
