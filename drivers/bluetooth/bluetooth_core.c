@@ -89,6 +89,14 @@ uint32_t ble_tx_power_set(int8_t power)
  *
  * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
  */
+ /**@brief Function for starting advertising.
+ *
+ * @param connectable
+ * BLE_GAP_ADV_TYPE_ADV_IND         //Connectable, undirected, not implemented
+ * BLE_GAP_ADV_TYPE_ADV_DIRECT_IND  //Connectable, directed, not implemented
+ * BLE_GAP_ADV_TYPE_ADV_SCAN_IND    //Scannable, undirected, not implemented
+ * BLE_GAP_ADV_TYPE_ADV_NONCONN_IND //Non-connectable, undirected, implemented
+ */
 static uint16_t advertising_interval = APP_CFG_NON_CONN_ADV_INTERVAL_MS;
 uint32_t bluetooth_advertising_init(void)
 {
@@ -134,29 +142,33 @@ uint32_t bluetooth_advertise_data(uint8_t *data, uint8_t length)
     err_code = bluetooth_advertising_init();
     
     ble_advdata_t advdata;
-    uint8_t       flags = BLE_GAP_ADV_FLAG_BR_EDR_NOT_SUPPORTED;
+    uint8_t       flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE; //BLE_GAP_ADV_FLAG_BR_EDR_NOT_SUPPORTED; TODO define in BLE Config
 
     ble_advdata_manuf_data_t manuf_specific_data;
+
+    manuf_specific_data.company_identifier = APP_COMPANY_IDENTIFIER;
+    manuf_specific_data.data.p_data        = (uint8_t *) m_beacon_info;
+    manuf_specific_data.data.size          = info_size;
 
     // Build and set advertising data.
     memset(&advdata, 0, sizeof(advdata));
 
-    advdata.name_type             = BLE_ADVDATA_NO_NAME;
+    advdata.name_type               = BLE_ADVDATA_FULL_NAME;
+    advdata.include_appearance      = true;
+//    advdata.uuids_complete.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]);
+//    advdata.uuids_complete.p_uuids  = m_adv_uuids;
+
     advdata.flags                 = flags;
     advdata.p_manuf_specific_data = &manuf_specific_data;
 
     // Initialize advertising parameters (used when starting advertising).
     uint8_t *m_beacon_info = malloc(length);                   /**< Information advertised by the Beacon. */
 
-    //m_beacon_info[0] =      0x02,                // Manufacturer specific information. Specifies the device type in this
-                                                 // implementation.
-    //m_beacon_info[1] =      length,              // Manufacturer specific information. Specifies the length of the
-                                                 // manufacturer specific data in this implementation.
-    memcpy(m_beacon_info, data, length);      // copy rest of data to broadcast
+    memcpy(m_beacon_info, data, length);      // copydata to broadcast
 
     manuf_specific_data.company_identifier = BLE_COMPANY_IDENTIFIER;
-    manuf_specific_data.data.p_data = m_beacon_info;
-    manuf_specific_data.data.size   =  length;
+    manuf_specific_data.data.p_data        = m_beacon_info;
+    manuf_specific_data.data.size          =  length;
 
     err_code = ble_advdata_set(&advdata, NULL);
     APP_ERROR_CHECK(err_code);
