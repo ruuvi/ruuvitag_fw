@@ -58,7 +58,21 @@ uint32_t ble_stack_init(void)
                                                     PERIPHERAL_LINK_COUNT,
                                                     &ble_enable_params);
     APP_ERROR_CHECK(err_code);
-
+    
+    #define BLE_ATTRIBUTE_TABLE_SIZE 0x1000
+    #ifdef BLE_ATTRIBUTE_TABLE_SIZE
+    //Adjust attribute table size, linkerscript has to be adjusted if this value is changed
+    NRF_LOG_INFO("Attribute table size: %d\r\n", ble_enable_params.gatts_enable_params.attr_tab_size);
+    ble_enable_params.gatts_enable_params.attr_tab_size   = BLE_ATTRIBUTE_TABLE_SIZE;
+    NRF_LOG_INFO("Attribute table size: %d\r\n", ble_enable_params.gatts_enable_params.attr_tab_size);
+    #endif
+    
+    //Adjust UUID count
+    #define BLE_UUID_COUNT 10
+    #ifdef BLE_UUID_COUNT
+    ble_enable_params.common_enable_params.vs_uuid_count = BLE_UUID_COUNT;
+    #endif 
+    
     //Check the ram settings against the used number of links
     CHECK_RAM_START_ADDR(CENTRAL_LINK_COUNT,PERIPHERAL_LINK_COUNT);
 
@@ -161,6 +175,7 @@ uint32_t bluetooth_advertise_data(uint8_t *data, uint8_t length)
     advdata.flags                 = flags;
     advdata.p_manuf_specific_data = &manuf_specific_data;
 
+
     // Initialize advertising parameters (used when starting advertising).
     uint8_t *m_beacon_info = malloc(length);                   /**< Information advertised by the Beacon. */
 
@@ -172,6 +187,13 @@ uint32_t bluetooth_advertise_data(uint8_t *data, uint8_t length)
 
     err_code = ble_advdata_set(&advdata, NULL);
     APP_ERROR_CHECK(err_code);
+
+
+    err_code = sd_ble_gap_adv_start(&m_adv_params);
+    if(NRF_SUCCESS != err_code)
+    {
+        NRF_LOG_INFO("Advertisement fail: %d \r\n",err_code);
+    }
 
     free(m_beacon_info);
 
