@@ -126,19 +126,16 @@ int main(void)
   
     //Visually display init status. Hangs if there was an error, waits 3 seconds on success
     init_blink_status(init_status);
-
-    // Start execution.
-    uint32_t err_code;
   
     //100 Hz sample rate 
     LIS2DH12_setPowerMode(LIS2DH12_POWER_NORMAL);
   
     NRF_LOG_INFO("Bluetooth Dev Studio Start Advertising \r\n");
-    err_code = ble_advertising_start(BLE_ADV_MODE_FAST);
-    APP_ERROR_CHECK(err_code);
+    advertising_start(BLE_GAP_ADV_TYPE_ADV_IND);
 
     nrf_gpio_pin_set(LED_RED);//Turn RED led off.
 
+    NRF_LOG_INFO("Execute schedule after init \r\n");
     //Clear schedule to avoid bad data at boot
     app_sched_execute();
 

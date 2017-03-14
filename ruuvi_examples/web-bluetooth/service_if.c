@@ -14,15 +14,19 @@
 #include "ble_acceleration_service.h" 
 #include "ble_nordic_uart_service.h" 
 
+//For size definitions
+#include "application.h"
+
+//Globally visible so application can access values - statics TODO
 static ble_ess_t    m_ess; 
 static ble_dis_t    m_dis; 
 static ble_bas_t    m_bas; 
 static ble_tps_t    m_tps; 
-static ble_acceleration_service_t    m_acceleration_service; 
+ble_acceleration_service_t    m_acceleration_service; 
 static ble_nordic_uart_service_t    m_nordic_uart_service; 
 
 uint8_t	m_dis_ieee_11073_20601_regulatory_certification_data_list_initial_value_data_arr[1]; 
-uint8_t m_acceleration_service_imu_data_initial_value_imu_array_arr[1]; 
+uint8_t m_acceleration_service_imu_data_initial_value_imu_array_arr[IMU_DATA_SIZE]; 
 uint8_t m_nordic_uart_service_tx_initial_value_tx_arr[1]; 
 uint8_t m_nordic_uart_service_rx_initial_value_rx_arr[1]; 
 
@@ -223,6 +227,7 @@ uint32_t bluetooth_init(void)
     ess_init.ble_ess_barometric_pressure_trend_initial_value.barometric_pressure_trend.barometric_pressure_trend = BAROMETRIC_PRESSURE_TREND_UNKNOWN; 
 
     err_code = ble_ess_init(&m_ess, &ess_init);
+    NRF_LOG_INFO("ESS Init %d\r\n", err_code);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -258,6 +263,7 @@ uint32_t bluetooth_init(void)
            sizeof(dis_init.ble_dis_pnp_id_initial_value.product_version));
 
     err_code = ble_dis_init(&m_dis, &dis_init);
+    NRF_LOG_INFO("DIS Init %d\r\n", err_code);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -273,6 +279,7 @@ uint32_t bluetooth_init(void)
            sizeof(bas_init.ble_bas_battery_level_initial_value.level));
 
     err_code = ble_bas_init(&m_bas, &bas_init);
+    NRF_LOG_INFO("BAS Init %d\r\n", err_code);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -287,6 +294,7 @@ uint32_t bluetooth_init(void)
            sizeof(tps_init.ble_tps_tx_power_level_initial_value.tx_power));
 
     err_code = ble_tps_init(&m_tps, &tps_init);
+    NRF_LOG_INFO("TPS Init %d\r\n", err_code);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -296,10 +304,11 @@ uint32_t bluetooth_init(void)
     memset(&acceleration_service_init, 0, sizeof(acceleration_service_init));
 
     acceleration_service_init.evt_handler = on_acceleration_service_evt; 
-    acceleration_service_init.ble_acceleration_service_imu_data_initial_value.imu_array.size = 1;
+    acceleration_service_init.ble_acceleration_service_imu_data_initial_value.imu_array.size = IMU_DATA_SIZE;
     acceleration_service_init.ble_acceleration_service_imu_data_initial_value.imu_array.p_data = m_acceleration_service_imu_data_initial_value_imu_array_arr; 
 
     err_code = ble_acceleration_service_init(&m_acceleration_service, &acceleration_service_init);
+    NRF_LOG_INFO("Acceleration Init %d\r\n", err_code);    
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -315,6 +324,7 @@ uint32_t bluetooth_init(void)
     nordic_uart_service_init.ble_nordic_uart_service_rx_initial_value.rx.p_data = m_nordic_uart_service_rx_initial_value_rx_arr; 
 
     err_code = ble_nordic_uart_service_init(&m_nordic_uart_service, &nordic_uart_service_init);
+    NRF_LOG_INFO("UART Init %d\r\n", err_code);    
     if (err_code != NRF_SUCCESS)
     {
         return err_code;

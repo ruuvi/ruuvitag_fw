@@ -159,8 +159,9 @@ void services_init(void)
 
     err_code = nrf_ble_qwr_init(&m_qwr, &qwr_init);
     APP_ERROR_CHECK(err_code);
-
+    NRF_LOG_INFO("QWR Init\r\n");
     err_code = bluetooth_init();
+    NRF_LOG_INFO("Bluetooth Init %d\r\n", err_code);
     APP_ERROR_CHECK(err_code);
 }
 
