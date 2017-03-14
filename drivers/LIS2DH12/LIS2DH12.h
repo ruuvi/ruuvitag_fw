@@ -18,12 +18,7 @@ extern "C"
 /* INCLUDES ***************************************************************************************/
 #include <stdbool.h>
 #include <stdint.h>
-#include "app_error.h"
 
-#include "nrf_drv_gpiote.h"
-#include "app_scheduler.h"
-#include "nordic_common.h"
-#include "app_timer_appsh.h"
 
 /* CONSTANTS **************************************************************************************/
 #define LIS2DH12_FIFO_MAX_LENGTH 32
