@@ -83,8 +83,8 @@ void timer_lis2dh12_event_handler(void* p_context);
 
 
 /* VARIABLES **************************************************************************************/
-static LIS2DH12_drdy_event_t g_fp_drdyCb = NULL;        /**< Data Ready Callback */
-static sensor_buffer_t g_sensorData;                    /**< Union to covert raw data to value for each axis */
+static LIS2DH12_drdy_event_t g_fp_drdyCb = NULL;             /**< Data Ready Callback */
+static sensor_buffer_t g_sensorData;                         /**< Union to covert raw data to value for each axis */
 static LIS2DH12_PowerMode g_powerMode = LIS2DH12_POWER_DOWN; /**< Current power mode */
 static LIS2DH12_Scale g_scale = LIS2DH12_SCALE2G;       /**< Selected scale */
 static uint8_t g_mgpb = 1;                              /**< milli-g per bit */
@@ -151,7 +151,7 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
     switch(g_scale)
     {
     case LIS2DH12_SCALE2G:
-      g_mgpb = 1; 
+      g_mgpb = 1;                           //Sensitivity per bit
       break;
     case LIS2DH12_SCALE4G:
       g_mgpb = 2; 
@@ -173,6 +173,7 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
         ctrl1RegVal |= LIS2DH_ODR_MASK_100HZ;
         g_mgpb = 4 << g_scale; // 4mg per bits at normal power/2g, adjust by scaling
         g_resolution = 10;
+        ctrl4RegVal |= LIS2DH_HR_MASK;
         time_ms = 10U;
         break;
     case LIS2DH12_POWER_LOW:
@@ -180,7 +181,6 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
         g_mgpb = 4 << g_scale; // 4 bits per mg at normal power/2g, adjust by scaling
         g_resolution = 10;
         time_ms = 1000U;
-
         break;
     case LIS2DH12_POWER_FAST:
         ctrl1RegVal |= (LIS2DH_ODR_MASK_1620HZ | LIS2DH_LPEN_MASK);
@@ -260,7 +260,7 @@ extern LIS2DH12_Ret LIS2DH12_getYmG(int32_t* const accY)
         //Scale value, note: values from accelerometer are 16-bit left-justified in all cases. "Extra" LSBs will be noise 
         //Do not bit shift mg as bit shifting negative values is implementation specific operation.
         //Scale 1/1024 to 1 / 1000.
-        *accY = g_sensorData.sensor.y / (2 << (g_scale)) * g_mgpb;
+        *accY = g_sensorData.sensor.y / (1 << g_resolution) * g_mgpb;
     }
 
     return retVal;
@@ -280,7 +280,7 @@ extern LIS2DH12_Ret LIS2DH12_getZmG(int32_t* const accZ)
         //Do not bit shift mg as bit shifting negative values is implementation specific operation.
         //Scale 1/1024 to 1 / 1000.
         NRF_LOG_DEBUG("Raw value: %d\r\n", g_sensorData.sensor.z);
-        *accZ = g_sensorData.sensor.z / (2 << (g_scale)) * g_mgpb;
+        *accZ = g_sensorData.sensor.z / (1 << g_resolution) * g_mgpb;
     }
 
     return retVal;
@@ -389,7 +389,7 @@ static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite)
 {
     LIS2DH12_Ret retVal = LIS2DH12_RET_ERROR;
     SPI_Ret retValSpi = SPI_RET_ERROR;
-    uint8_t to_read[2] = {0U}; /* dummy, not used for writing */
+    uint8_t to_read[2] = {0U};  /* dummy, not used for writing */
     uint8_t to_write[2] = {0U};
     uint8_t ii = 0; /* retry counter */
 
