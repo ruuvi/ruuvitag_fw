@@ -343,7 +343,7 @@ uint8_t init_sensors(void)
     //Init accelerometer lis2dh12
     uint8_t retval = 0;
     LIS2DH12_Ret Lis2dh12RetVal;
-    Lis2dh12RetVal = LIS2DH12_init(LIS2DH12_POWER_DOWN, LIS2DH12_SCALE16G, accelerometer_callback);
+    Lis2dh12RetVal = LIS2DH12_init(LIS2DH12_POWER_DOWN, LIS2DH12_SCALE2G, accelerometer_callback);
 
     if (LIS2DH12_RET_OK == Lis2dh12RetVal)
     {
