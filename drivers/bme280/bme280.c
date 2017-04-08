@@ -42,6 +42,7 @@
 #include <stdbool.h>
 
 #include "bme280.h"
+#include "application.h"
 
 #define NRF_LOG_MODULE_NAME "BME280"
 #include "nrf_log.h"
@@ -133,8 +134,8 @@ BME280_Ret bme280_init()
 BME280_Ret bme280_set_mode(enum BME280_MODE mode)
 {
 	uint8_t conf;
-        uint32_t err_code = 0;
-        BME280_Ret status = BME280_RET_ERROR;
+  uint32_t err_code = 0;
+  BME280_Ret status = BME280_RET_ERROR;
 
 	conf = bme280_read_reg(BME280REG_CTRL_MEAS);
 	conf = conf & 0b11111100;
@@ -145,7 +146,7 @@ BME280_Ret bme280_set_mode(enum BME280_MODE mode)
         case BME280_MODE_NORMAL:
             /* start sample timer with sample time according to selected sample frequency TODO adjust polling frequency */
             /* TODO Adjust sampling interval */
-            err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(1000u, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+            err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(APPLICATION_ENVIRONMENTAL_INTERVAL, RUUVITAG_APP_TIMER_PRESCALER), NULL);
             APP_ERROR_CHECK(err_code);
             status = bme280_write_reg(BME280REG_CTRL_MEAS, conf);
             break;
@@ -168,6 +169,22 @@ BME280_Ret bme280_set_mode(enum BME280_MODE mode)
   return status;
 }
 
+/*
+ *  TODO: Adjust timer frequency by BME280 sampling speed.
+ */
+BME280_Ret bme280_set_interval(enum BME280_INTERVAL interval)
+{
+	uint8_t conf;
+  BME280_Ret status = BME280_RET_ERROR;
+
+	conf   = bme280_read_reg(BME280REG_CONFIG);
+	conf   = conf &~ BME280_INTERVAL_MASK;
+	conf  |= interval;      
+  status = bme280_write_reg(BME280REG_CONFIG, conf);
+
+  return status;
+}
+
 
 int bme280_is_measuring(void)
 {
@@ -175,9 +192,13 @@ int bme280_is_measuring(void)
 
 	s = bme280_read_reg(BME280REG_STATUS);
 	if (s & 0b00001000)
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 
@@ -360,9 +381,11 @@ BME280_Ret bme280_write_reg(uint8_t reg, uint8_t value)
  */
 void timer_bme280_event_handler(void* p_context)
 {
-    //uint32_t err_code;
-    //NRF_LOG_DEBUG("BME280 Timer event'\r\n");
-    //bme280_read_measurements();
-    //err_code = app_timer_stop(bme280_timer_id);
-    //APP_ERROR_CHECK(err_code);
+//    uint32_t err_code;
+//    NRF_LOG_DEBUG("BME280 Timer event'\r\n");
+//    bme280_read_measurements();
+    bme280_read_measurements(); //read previous data
+    environmental_accumulate();
+//err_code = app_timer_stop(bme280_timer_id);
+//APP_ERROR_CHECK(err_code);
 }
