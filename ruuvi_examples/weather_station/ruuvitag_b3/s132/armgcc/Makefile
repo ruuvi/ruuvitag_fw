@@ -19,6 +19,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../libraries/base64/base64.c \
   $(PROJ_DIR)/../../libraries/bluetooth/bluetooth_core.c \
   $(PROJ_DIR)/../../libraries/bluetooth/eddystone.c \
+  $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/sensortag.c \
   $(PROJ_DIR)/main.c \
   $(SDK_ROOT)/components/libraries/button/app_button.c \
   $(SDK_ROOT)/components/ble/common/ble_advdata.c \
@@ -31,6 +32,8 @@ SRC_FILES += \
   $(SDK_ROOT)/components/drivers_nrf/spi_master/nrf_drv_spi.c \
   $(SDK_ROOT)/components/drivers_nrf/timer/nrf_drv_timer.c \
   $(SDK_ROOT)/components/drivers_nrf/uart/nrf_drv_uart.c \
+  $(SDK_ROOT)/components/drivers_nrf/saadc/nrf_drv_saadc.c \
+  $(SDK_ROOT)/components/drivers_nrf/hal/nrf_saadc.c \
   $(SDK_ROOT)/components/libraries/fifo/app_fifo.c \
   $(SDK_ROOT)/components/libraries/hardfault/hardfault_implementation.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
@@ -61,6 +64,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../libraries/base91 \
   $(PROJ_DIR)/../../libraries/base64 \
   $(PROJ_DIR)/../../libraries/bluetooth \
+  $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats \
   $(SDK_ROOT)/components \
   $(SDK_ROOT)/components/ble/ble_advertising \
   $(SDK_ROOT)/components/ble/ble_dtm \

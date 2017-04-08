@@ -13,9 +13,10 @@
 #ifndef BLUETOOTH_CONFIG_H
 #define BLUETOOTH_CONFIG_H 
 
-#define APP_COMPANY_IDENTIFIER              0xFFFF                                      //!< Test identifier, must be changed when in production
-#define APP_DEVICE_NAME                     "RuuviTag"                                  //!< Advertised device name in the scan response when in connectable mode.
-#define APP_BEACON_INFO_LENGTH              24                                          //!< Manufacturer specific data length. in bytes
+#define BLE_COMPANY_IDENTIFIER          0xFFFF                            /**< Ruuvi **/
+#define APP_DEVICE_NAME                 "RuuviTag"                        //!< Advertised device name in the scan response when in connectable mode.
+
+#define APP_BEACON_INFO_LENGTH          24                                //!< Manufacturer specific data length. in bytes
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                 /**< Include the service changed characteristic. If not enabled, the server's database cannot be changed for the lifetime of the device. */
 
