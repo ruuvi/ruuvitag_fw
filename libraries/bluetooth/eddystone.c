@@ -53,7 +53,7 @@ static void eddystone_advertising_init(char* url, uint8_t length)
     uint8_array_t eddystone_data_array;                             // Array for Service Data structure.
 /** @snippet [Eddystone data array] */
     char eddystone_url_data[21] = {0};
-    eddystone_url_data[0] = APP_ES_UID_FRAME_TYPE;   // Eddystone URL frame type.
+    eddystone_url_data[0] = APP_ES_URL_FRAME_TYPE;   // Eddystone URL frame type.
     eddystone_url_data[1] = -7;             // RSSI value at 0 m. at 0 dbm transmit. TODO
     eddystone_url_data[2] = APP_ES_URL_SCHEME;       // Scheme or prefix for URL ("http", "http://www", etc.)
     for (int ii = 0; ii < length; ii++)
