@@ -42,7 +42,6 @@
 #include <stdbool.h>
 
 #include "bme280.h"
-#include "application.h"
 
 #define NRF_LOG_MODULE_NAME "BME280"
 #include "nrf_log.h"
@@ -133,10 +132,11 @@ BME280_Ret bme280_init()
  */
 BME280_Ret bme280_set_mode(enum BME280_MODE mode)
 {
-	uint8_t conf;
+	uint8_t conf, reg;
   uint32_t err_code = 0;
   BME280_Ret status = BME280_RET_ERROR;
-
+  reg = bme280_read_reg(BME280REG_CTRL_HUM);
+  bme280_write_reg(BME280REG_CTRL_HUM, reg);  //HUMIDITY must be written first
 	conf = bme280_read_reg(BME280REG_CTRL_MEAS);
 	conf = conf & 0b11111100;
 	conf |= mode;
@@ -146,7 +146,7 @@ BME280_Ret bme280_set_mode(enum BME280_MODE mode)
         case BME280_MODE_NORMAL:
             /* start sample timer with sample time according to selected sample frequency TODO adjust polling frequency */
             /* TODO Adjust sampling interval */
-            err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(APPLICATION_ENVIRONMENTAL_INTERVAL, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+            err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(1000, RUUVITAG_APP_TIMER_PRESCALER), NULL);
             APP_ERROR_CHECK(err_code);
             status = bme280_write_reg(BME280REG_CTRL_MEAS, conf);
             break;
@@ -204,7 +204,10 @@ int bme280_is_measuring(void)
 
 BME280_Ret bme280_set_oversampling_hum(uint8_t os)
 {
-	return bme280_write_reg(BME280REG_CTRL_HUM, os);
+  bme280_write_reg(BME280REG_CTRL_HUM, os);
+  uint8_t reg;
+  reg = bme280_read_reg(BME280REG_CTRL_MEAS);
+	return bme280_write_reg(BME280REG_CTRL_MEAS, reg); //Change becomes effective after writing temp/pres
          
 }
 
@@ -212,7 +215,8 @@ BME280_Ret bme280_set_oversampling_hum(uint8_t os)
 BME280_Ret bme280_set_oversampling_temp(uint8_t os)
 {
 	uint8_t reg;
-
+  reg = bme280_read_reg(BME280REG_CTRL_HUM);
+  bme280_write_reg(BME280REG_CTRL_HUM, reg);  //HUMIDITY must be written first
 	reg = bme280_read_reg(BME280REG_CTRL_MEAS);
 	reg = reg & 0b00011111;
 	reg |= os << 5;
@@ -223,7 +227,8 @@ BME280_Ret bme280_set_oversampling_temp(uint8_t os)
 BME280_Ret bme280_set_oversampling_press(uint8_t os)
 {
 	uint8_t reg;
-
+  reg = bme280_read_reg(BME280REG_CTRL_HUM);
+  bme280_write_reg(BME280REG_CTRL_HUM, reg);  //HUMIDITY must be written first
 	reg = bme280_read_reg(BME280REG_CTRL_MEAS);
 	reg = reg & 0b11100011;
 	reg |= os << 2;
@@ -381,11 +386,6 @@ BME280_Ret bme280_write_reg(uint8_t reg, uint8_t value)
  */
 void timer_bme280_event_handler(void* p_context)
 {
-//    uint32_t err_code;
-//    NRF_LOG_DEBUG("BME280 Timer event'\r\n");
-//    bme280_read_measurements();
+    //NRF_LOG_INFO("BME\r\n");
     bme280_read_measurements(); //read previous data
-    environmental_accumulate();
-//err_code = app_timer_stop(bme280_timer_id);
-//APP_ERROR_CHECK(err_code);
 }
