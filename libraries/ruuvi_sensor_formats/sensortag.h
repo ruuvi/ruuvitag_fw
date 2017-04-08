@@ -1,7 +1,8 @@
 #ifndef SENSORTAG_H
 #define SENSORTAG_H
 
-
+#include <stdbool.h>
+#include <stdint.h>
 
 /*
 0:   uint8_t     format;          // (0x03 = realtime sensor readings base64)
@@ -42,13 +43,13 @@ uint16_t    vbat;           // mv
  *  @param raw_p raw pressure as given by BME280, uint32_t, multiplied by 256
  *  @param acceleration along 3 axes in milliG, X Y Z. 
  */
-void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32_t raw_h, uint16_t vbat int32_t acc[3]);
+void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32_t raw_h, uint16_t vbat, int32_t acc[3]);
 
 /**
  *  Parses sensor values into RuuviTag format.
  *  @param char* data_buffer character array with length of 14 bytes
  */
-void encodeToSensorDataFormat(char* data_buffer, ruuvi_sensor_t* data);
+void encodeToSensorDataFormat(uint8_t* data_buffer, ruuvi_sensor_t* data);
 
 /**
  *  Encodes sensor data into given char* url. The base url must have the base of url written by caller.

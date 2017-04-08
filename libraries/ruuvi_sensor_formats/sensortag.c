@@ -13,7 +13,7 @@
  *  @param raw_p raw pressure as given by BME280, uint32_t, multiplied by 256
  *  @param acceleration along 3 axes in milliG, X Y Z. 
  */
-void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32_t raw_h, uint16_t vbat int32_t acc[3])
+void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32_t raw_h, uint16_t vbat, int32_t acc[3])
 {
    
     NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d", raw_t, raw_p, raw_h);
@@ -35,8 +35,8 @@ void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32
 
     // Set accelerometer data
     data->accX = acc[0];
-    data->accY = accy[0];
-    data->accZ = accz[0];
+    data->accY = acc[1];
+    data->accZ = acc[2];
 
 }
 
@@ -44,7 +44,7 @@ void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32
  *  Parses sensor values into RuuviTag format.
  *  @param char* data_buffer character array with length of 14 bytes
  */
-void encodeToSensorDataFormat(char* data_buffer, ruuvi_sensor_t* data)
+void encodeToSensorDataFormat(uint8_t* data_buffer, ruuvi_sensor_t* data)
 {
     //serialize values into a string
     data_buffer[0] = SENSOR_TAG_DATA_FORMAT;
@@ -84,7 +84,7 @@ void encodeToUrlDataFromat(char* url, uint8_t base_length, ruuvi_sensor_t* data)
     pack[5] = (data->pressure)&0xFF;
      
     /// Encoding 48 bits using Base64 produces max 8 chars.
-    memset(&url_payload, 0, sizeof(URL_PAYLOAD_LENGTH));
+    memset(&(url[base_length]), 0, sizeof(URL_PAYLOAD_LENGTH));
     base64encode(pack, sizeof(pack), &(url[base_length]), URL_PAYLOAD_LENGTH);
 
 }
