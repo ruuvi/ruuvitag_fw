@@ -60,10 +60,6 @@
 #include "bluetooth_config.h"
 
 
-//Macros
-#define swap_u32(num) ((num>>24)&0xff) | ((num<<8)&0xff0000) | ((num>>8)&0xff00) | ((num<<24)&0xff000000);
-#define float2fix(a) ((int)((a)*256.0))   //Convert float to fix. a is a float
-
 //Constants
 #define DEAD_BEEF                       0xDEADBEEF                        /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
@@ -97,6 +93,10 @@ static void power_manage(void)
     {
         nrf_gpio_pin_set(LED_GREEN); 
         nrf_gpio_pin_set(LED_RED);       //Clear both leds before sleep 
+        
+    }
+    else {
+    highres = !highres;
     }
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
@@ -109,6 +109,19 @@ static void power_manage(void)
     }
 }
 
+static void updateAdvertisement(void)
+{
+  if(highres){
+    bluetooth_advertise_data(data_buffer, sizeof(data_buffer));
+  }
+  else 
+  {
+    eddystone_advertise_url(url_buffer, sizeof(url_buffer));
+    NRF_LOG_DEBUG("Updated eddystone URL\r\n");
+  }
+}
+
+
 // Timeout handler for the repeated timer
 static void main_timer_handler(void * p_context)
 {
@@ -117,7 +130,7 @@ static void main_timer_handler(void * p_context)
     uint32_t raw_p = bme280_get_pressure();
     uint32_t raw_h = bme280_get_humidity();
    
-    NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d", raw_t, raw_p, raw_h);
+    //NRF_LOG_INFO("temperature: %d, pressure: %d, humidity: %d\r\n", raw_t, raw_p, raw_h);
     
     // Get accelerometer data
     int32_t acc[3] ,accx, accy, accz;
@@ -141,20 +154,10 @@ static void main_timer_handler(void * p_context)
     {
       encodeToUrlDataFromat(url_buffer, URL_BASE_LENGTH, &data);
     }
+    updateAdvertisement();
 
 }
 
-static void updateAdvertisement(void)
-{
-  if(highres){
-    bluetooth_advertise_data(data_buffer, sizeof(data_buffer));
-  }
-  else 
-  {
-    eddystone_advertise_url(url_buffer, sizeof(url_buffer));
-    NRF_LOG_DEBUG("Updated eddystone URL");
-  }
-}
 
 /**
  * @brief Function for application main entry.
@@ -192,10 +195,6 @@ int main(void)
     
     bluetooth_advertise_data(data_buffer, sizeof(data_buffer));
     NRF_LOG_INFO("Advertising init\r\n");  
-    
-    //uint32_t err_code = ble_advertising_start(BLE_ADV_MODE_FAST);
-    //APP_ERROR_CHECK(err_code);
-    NRF_LOG_INFO("Advertising started\r\n");
 
     //Visually display init status. Hangs if there was an error, waits 3 seconds on success
     init_blink_status(init_status);
@@ -209,7 +208,6 @@ int main(void)
     // Enter main loop.
     for (;; )
     {
-      updateAdvertisement();
       if(NRF_LOG_PROCESS() == false){
          app_sched_execute();
          power_manage();

@@ -64,7 +64,7 @@
 #define APP_ES_UUID                  0xFEAA                        //!< UUID for Eddystone beacons according to specification.
 
 // Eddystone UID data
-#define APP_ES_UID_FRAME_TYPE   0x00                               //!< UID frame type (fixed at 0x00).
+#define APP_ES_UID_FRAME_TYPE    0x00                               //!< UID frame type (fixed at 0x00).
 #define APP_ES_UID_NAMESPACE     0xD5, 0x76, 0x28, 0xE8, \
                                         0x32, 0xB2, 0x73, 0x2A, \
                                         0x60, 0x17                 /**< First 10-bytes of SHA-1 of "ruu.vi" as Eddystone UID ID namespace. */
