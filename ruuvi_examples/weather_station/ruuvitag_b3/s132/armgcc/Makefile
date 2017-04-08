@@ -11,6 +11,7 @@ $(OUTPUT_DIRECTORY)/weather_station.out: \
 SRC_FILES += \
   ../init.c \
   $(PROJ_DIR)/../../bsp/bsp.c \
+  $(PROJ_DIR)/../../drivers/battery/battery_voltage_saadc.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
   $(PROJ_DIR)/../../drivers/LIS2DH12/LIS2DH12.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
@@ -56,6 +57,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../drivers/bme280 \
   $(PROJ_DIR)/../../drivers/LIS2DH12 \
   $(PROJ_DIR)/../../drivers/spi/ \
+  $(PROJ_DIR)/../../drivers/battery/ \
   $(PROJ_DIR)/../../libraries/base91 \
   $(PROJ_DIR)/../../libraries/base64 \
   $(PROJ_DIR)/../../libraries/bluetooth \
