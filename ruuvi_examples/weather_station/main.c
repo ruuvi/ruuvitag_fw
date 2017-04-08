@@ -27,6 +27,7 @@
 
 //Nordic SDK
 #include "ble_advdata.h"
+#include "ble_advertising.h"
 #include "nordic_common.h"
 #include "softdevice_handler.h"
 #include "app_scheduler.h"
@@ -162,12 +163,13 @@ int main(void)
 {
     uint8_t init_status = 0; // counter, gets incremented by each failed init. It Is 0 in the end if init was ok.
     //setup leds. LEDs are active low, so setting high them turns leds off.
-    init_status += init_leds(); //INIT leds first and turn RED on
-    nrf_gpio_pin_clear(LED_RED);//If INIT fails at later stage, RED will stay lit.
-
+    
     // Initialize log
     init_status += init_log();
-
+    
+    init_status += init_leds(); //INIT leds first and turn RED on
+    nrf_gpio_pin_clear(LED_RED);//If INIT fails at later stage, RED will stay lit.
+    
     // Initialize buttons
     init_status += init_buttons();
 
@@ -187,6 +189,13 @@ int main(void)
     bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
     bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
     NRF_LOG_INFO("BME280 configuration done\r\n");
+    
+    bluetooth_advertise_data(data_buffer, sizeof(data_buffer));
+    NRF_LOG_INFO("Advertising init\r\n");  
+    
+    //uint32_t err_code = ble_advertising_start(BLE_ADV_MODE_FAST);
+    //APP_ERROR_CHECK(err_code);
+    NRF_LOG_INFO("Advertising started\r\n");
 
     //Visually display init status. Hangs if there was an error, waits 3 seconds on success
     init_blink_status(init_status);
@@ -201,7 +210,6 @@ int main(void)
     for (;; )
     {
       updateAdvertisement();
-      //Log is disabled in SDK_CONFIG, has no effect
       if(NRF_LOG_PROCESS() == false){
          app_sched_execute();
          power_manage();

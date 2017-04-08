@@ -34,7 +34,10 @@ SRC_FILES += \
   $(SDK_ROOT)/components/drivers_nrf/uart/nrf_drv_uart.c \
   $(SDK_ROOT)/components/drivers_nrf/saadc/nrf_drv_saadc.c \
   $(SDK_ROOT)/components/drivers_nrf/hal/nrf_saadc.c \
+  $(SDK_ROOT)/components/ble/ble_advertising/ble_advertising.c \
   $(SDK_ROOT)/components/libraries/fifo/app_fifo.c \
+  $(SDK_ROOT)/components/libraries/fds/fds.c \
+  $(SDK_ROOT)/components/libraries/fstorage/fstorage.c \
   $(SDK_ROOT)/components/libraries/hardfault/hardfault_implementation.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
