@@ -16,7 +16,7 @@
 void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32_t raw_h, uint16_t vbat, int32_t acc[3])
 {
    
-    NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d", raw_t, raw_p, raw_h);
+    NRF_LOG_INFO("temperature: %d, pressure: %d, humidity: %d", raw_t, raw_p, raw_h);
     /*
     0:   uint8_t     format;          // (0x02 = realtime sensor readings base64)
     1:   uint8_t     humidity;        // one lsb is 0.5%
@@ -78,10 +78,22 @@ void encodeToUrlDataFromat(char* url, uint8_t base_length, ruuvi_sensor_t* data)
     char pack[6] = {0};
     pack[0] = WEATHER_STATION_URL_FORMAT;
     pack[1] = data->humidity;
-    pack[2] = (data->temperature)>>8;
-    pack[3] = (data->temperature)&0xFF;
-    pack[4] = (data->pressure)>>8;
-    pack[5] = (data->pressure)&0xFF;
+    //Round decimals
+    int16_t temperature = data->temperature;
+    if(temperature > 0)
+    {
+      temperature = temperature - (temperature%100);
+    }
+    else
+    {
+      temperature = temperature + (temperature%100);
+    }
+    pack[2] = (temperature)>>8;
+    pack[3] = (temperature)&0xFF;
+    uint16_t pressure = data->pressure;
+    pressure = pressure - (pressure%100);
+    pack[4] = (pressure)>>8;
+    pack[5] = (pressure)&0xFF;
      
     /// Encoding 48 bits using Base64 produces max 8 chars.
     memset(&(url[base_length]), 0, sizeof(URL_PAYLOAD_LENGTH));
