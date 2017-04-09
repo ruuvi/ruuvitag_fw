@@ -136,8 +136,9 @@ BME280_Ret bme280_set_mode(enum BME280_MODE mode)
   uint32_t err_code = 0;
   BME280_Ret status = BME280_RET_ERROR;
   reg = bme280_read_reg(BME280REG_CTRL_HUM);
+  conf = bme280_read_reg(BME280REG_CTRL_MEAS);
+  NRF_LOG_DEBUG("CONFIG before mode: %x\r\n", conf);
   bme280_write_reg(BME280REG_CTRL_HUM, reg);  //HUMIDITY must be written first
-	conf = bme280_read_reg(BME280REG_CTRL_MEAS);
 	conf = conf & 0b11111100;
 	conf |= mode;
 
@@ -149,6 +150,8 @@ BME280_Ret bme280_set_mode(enum BME280_MODE mode)
             err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(1000, RUUVITAG_APP_TIMER_PRESCALER), NULL);
             APP_ERROR_CHECK(err_code);
             status = bme280_write_reg(BME280REG_CTRL_MEAS, conf);
+            //conf = bme280_read_reg(BME280REG_CTRL_MEAS);
+            //NRF_LOG_DEBUG("Mode: %x\r\n", conf);
             break;
 
         case BME280_MODE_FORCED:
@@ -204,36 +207,36 @@ int bme280_is_measuring(void)
 
 BME280_Ret bme280_set_oversampling_hum(uint8_t os)
 {
-  bme280_write_reg(BME280REG_CTRL_HUM, os);
-  uint8_t reg;
-  reg = bme280_read_reg(BME280REG_CTRL_MEAS);
-	return bme280_write_reg(BME280REG_CTRL_MEAS, reg); //Change becomes effective after writing temp/pres
-         
+
+	uint8_t meas;
+  meas = bme280_read_reg(BME280REG_CTRL_MEAS);
+	bme280_write_reg(BME280REG_CTRL_HUM, os);
+	return bme280_write_reg(BME280REG_CTRL_MEAS, meas); //Changes to humi take effect after write to meas
 }
 
 
 BME280_Ret bme280_set_oversampling_temp(uint8_t os)
 {
-	uint8_t reg;
-  reg = bme280_read_reg(BME280REG_CTRL_HUM);
-  bme280_write_reg(BME280REG_CTRL_HUM, reg);  //HUMIDITY must be written first
-	reg = bme280_read_reg(BME280REG_CTRL_MEAS);
-	reg = reg & 0b00011111;
-	reg |= os << 5;
-	return bme280_write_reg(BME280REG_CTRL_MEAS, reg);
+	uint8_t humi, meas;
+  humi = bme280_read_reg(BME280REG_CTRL_HUM);
+  meas = bme280_read_reg(BME280REG_CTRL_MEAS);
+	bme280_write_reg(BME280REG_CTRL_HUM, humi);
+	meas &= 0b00011111;
+	meas |= (os<<5);
+	return bme280_write_reg(BME280REG_CTRL_MEAS, meas);
 }
 
 
 BME280_Ret bme280_set_oversampling_press(uint8_t os)
 {
-	uint8_t reg;
-  reg = bme280_read_reg(BME280REG_CTRL_HUM);
-  bme280_write_reg(BME280REG_CTRL_HUM, reg);  //HUMIDITY must be written first
-	reg = bme280_read_reg(BME280REG_CTRL_MEAS);
-	reg = reg & 0b11100011;
-	reg |= os << 2;
-	return bme280_write_reg(BME280REG_CTRL_MEAS, reg);
-}
+	uint8_t humi, meas;
+  humi = bme280_read_reg(BME280REG_CTRL_HUM);
+  meas = bme280_read_reg(BME280REG_CTRL_MEAS);
+	bme280_write_reg(BME280REG_CTRL_HUM, humi);
+  meas &= 0b11100011;
+	meas |= (os<<2);
+	return bme280_write_reg(BME280REG_CTRL_MEAS, meas);
+	}
 
 
 /**
