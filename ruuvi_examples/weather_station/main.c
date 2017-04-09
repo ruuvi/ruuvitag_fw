@@ -78,7 +78,7 @@ APP_TIMER_DEF(main_timer_id);                                             /** Cr
 
 //Payload requires 8 characters
 #define URL_BASE_LENGTH 8
-static char url_buffer[16] = {'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
+static char url_buffer[17] = {'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
 static uint8_t data_buffer[18] = { 0 };
 bool model_plus = false; //Flag for sensors available
 bool highres    = false; //Flag for used mode
@@ -172,7 +172,8 @@ void main_timer_handler(void * p_context)
     //NRF_LOG_INFO("temperature: , pressure: , humidity: ");
     //Embed data into structure for parsing
     parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
-    NRF_LOG_INFO("temperature: %d, pressure: %d, humidity: %d\r\n", raw_t, raw_p, raw_h);
+    NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d x: %d y: %d z: %d\r\n", raw_t, raw_p, raw_h, acc[0], acc[1], acc[2]);
+    NRF_LOG_INFO("VBAT: %d send %d \r\n", vbat, data.vbat);
     if(highres)
     {
       //Prepare bytearray to broadcast

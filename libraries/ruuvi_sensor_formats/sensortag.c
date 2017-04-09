@@ -1,5 +1,7 @@
 #include "sensortag.h"
 
+#include <stdint.h>
+
 #include "base64.h"
 
 #define NRF_LOG_MODULE_NAME "SENSORLIB"
@@ -16,7 +18,7 @@
 void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32_t raw_h, uint16_t vbat, int32_t acc[3])
 {
    
-    NRF_LOG_INFO("temperature: %d, pressure: %d, humidity: %d", raw_t, raw_p, raw_h);
+    NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d\r\n", raw_t, raw_p, raw_h);
     /*
     0:   uint8_t     format;          // (0x02 = realtime sensor readings base64)
     1:   uint8_t     humidity;        // one lsb is 0.5%
@@ -37,6 +39,8 @@ void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32
     data->accX = acc[0];
     data->accY = acc[1];
     data->accZ = acc[2];
+    
+    data->vbat = vbat;
 
 }
 
@@ -74,8 +78,15 @@ void encodeToSensorDataFormat(uint8_t* data_buffer, ruuvi_sensor_t* data)
  */
 void encodeToUrlDataFromat(char* url, uint8_t base_length, ruuvi_sensor_t* data)
 {
+
+    //Create pseudo-unique name
+    unsigned int mac0 =  NRF_FICR->DEVICEID[0];
+    uint8_t serial[2];
+    serial[0] = mac0      & 0xFF;
+    serial[1] = (mac0>>8) & 0xFF;
+    
     //serialize values into a string
-    char pack[6] = {0};
+    char pack[8] = {0};
     pack[0] = WEATHER_STATION_URL_FORMAT;
     pack[1] = data->humidity;
     //Round decimals
@@ -94,6 +105,8 @@ void encodeToUrlDataFromat(char* url, uint8_t base_length, ruuvi_sensor_t* data)
     pressure = pressure - (pressure%100);
     pack[4] = (pressure)>>8;
     pack[5] = (pressure)&0xFF;
+    pack[6] = serial[0];
+    pack[7] = serial[1];
      
     /// Encoding 48 bits using Base64 produces max 8 chars.
     memset(&(url[base_length]), 0, sizeof(URL_PAYLOAD_LENGTH));
