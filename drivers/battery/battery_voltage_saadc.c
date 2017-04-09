@@ -56,9 +56,6 @@ void battery_voltage_init(void)
     err_code = nrf_drv_saadc_buffer_convert(&adc_buf[0], 1);
     APP_ERROR_CHECK(err_code);
 
-    err_code = nrf_drv_saadc_buffer_convert(&adc_buf[1], 1);
-    APP_ERROR_CHECK(err_code);
-
     err_code = nrf_drv_saadc_sample();
     APP_ERROR_CHECK(err_code);
 }
