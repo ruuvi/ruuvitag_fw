@@ -148,13 +148,14 @@ uint8_t init_sensors(void)
     {
         retval = 1;
         NRF_LOG_ERROR("LIS2DH12 init Failed: Error Code: %d\r\n", (int32_t)Lis2dh12RetVal);
+        return retval;
     }
 
     // Read calibration
     BME280_Ret BME280RetVal;
     BME280RetVal = bme280_init();
+    bme280_set_mode(BME280_MODE_SLEEP); //Set sleep mode to allow configuration, sensor might have old config
     BME280RetVal |= bme280_set_interval(BME280_STANDBY_1000_MS);
-    BME280RetVal |= bme280_set_mode(BME280_MODE_NORMAL);
 
     if (BME280_RET_OK == BME280RetVal)
     {

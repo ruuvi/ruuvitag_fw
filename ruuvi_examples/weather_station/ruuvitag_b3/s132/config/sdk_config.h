@@ -1086,7 +1086,7 @@
 // <7=> 7 
 
 #ifndef SAADC_CONFIG_IRQ_PRIORITY
-#define SAADC_CONFIG_IRQ_PRIORITY 6
+#define SAADC_CONFIG_IRQ_PRIORITY 7
 #endif
 
 #endif //SAADC_ENABLED
@@ -2178,7 +2178,7 @@
 
 //==========================================================
 // <e> NRF_LOG_ENABLED - nrf_log - Logging
-//==========================================================
+//=========================================================
 #ifndef NRF_LOG_ENABLED
 #define NRF_LOG_ENABLED 0
 #endif
@@ -2264,7 +2264,7 @@
 // <i> Must be power of 2
 
 #ifndef NRF_LOG_DEFERRED_BUFSIZE
-#define NRF_LOG_DEFERRED_BUFSIZE 256
+#define NRF_LOG_DEFERRED_BUFSIZE 512
 #endif
 
 #endif //NRF_LOG_DEFERRED

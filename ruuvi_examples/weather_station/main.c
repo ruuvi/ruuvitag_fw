@@ -74,7 +74,7 @@ APP_TIMER_DEF(main_timer_id);                                             /** Cr
 
 //milliseconds until main loop timer function is called. Other timers can bring
 //application out of sleep at higher (or lower) interval
-#define MAIN_LOOP_INTERVAL 5000u 
+#define MAIN_LOOP_INTERVAL 1000u 
 
 //Payload requires 8 characters
 #define URL_BASE_LENGTH 8
@@ -82,6 +82,7 @@ static char url_buffer[16] = {'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
 static uint8_t data_buffer[18] = { 0 };
 bool model_plus = false; //Flag for sensors available
 bool highres    = false; //Flag for used mode
+bool debounce   = true;
 
 static ruuvi_sensor_t data;
 
@@ -93,10 +94,16 @@ static void power_manage(void)
     {
         nrf_gpio_pin_set(LED_GREEN); 
         nrf_gpio_pin_set(LED_RED);       //Clear both leds before sleep 
+        debounce = true;
         
     }
-    else {
-    highres = !highres;
+    else //Change mode on button press
+    {
+      if(debounce){
+        highres = !highres;
+        debounce = false;
+      }
+      
     }
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
@@ -117,34 +124,55 @@ static void updateAdvertisement(void)
   else 
   {
     eddystone_advertise_url(url_buffer, sizeof(url_buffer));
-    NRF_LOG_DEBUG("Updated eddystone URL\r\n");
+    NRF_LOG_INFO("Updated eddystone URL\r\n");
   }
 }
 
 
 // Timeout handler for the repeated timer
-static void main_timer_handler(void * p_context)
+void main_timer_handler(void * p_context)
 {
-    // Get raw environmental data
-    int32_t raw_t = bme280_get_temperature();
-    uint32_t raw_p = bme280_get_pressure();
-    uint32_t raw_h = bme280_get_humidity();
+
+    static int32_t raw_t  = 0;
+    static uint32_t raw_p = 0;
+    static uint32_t raw_h = 0;
+    int32_t accx, accy, accz;
+    static int32_t acc[3] = {0};
+
+    //If we have all the sensors
+    if(model_plus)
+    {
+      
+      // Get raw environmental data
+      raw_t = bme280_get_temperature();
+      raw_p = bme280_get_pressure();
+      raw_h = bme280_get_humidity();
    
-    //NRF_LOG_INFO("temperature: %d, pressure: %d, humidity: %d\r\n", raw_t, raw_p, raw_h);
+      //NRF_LOG_INFO("temperature: %d, pressure: %d, humidity: %d\r\n", raw_t, raw_p, raw_h);
     
-    // Get accelerometer data
-    int32_t acc[3] ,accx, accy, accz;
-    LIS2DH12_getALLmG(&accx, &accy, &accz);    
-    acc[0] = accx;
-    acc[1] = accy;
-    acc[2] = accz;
+      // Get accelerometer data
+      LIS2DH12_getALLmG(&accx, &accy, &accz);    
+      acc[0] = accx;
+      acc[1] = accy;
+      acc[2] = accz;
+    }
+    
+    // If only temperature sensor is present
+    else 
+    {
+      int32_t temp;                                        // variable to hold temp reading
+      (void)sd_temp_get(&temp);                            // get new temperature
+      temp *= 25;                                          // SD return temp * 4. Ruuvi format expects temp * 100. 4*25 = 100.
+      raw_t = (int32_t) temp;
+    }
 
     //Get battery voltage
-    uint8_t vbat = getBattery();
-
+    static uint16_t vbat = 0;
+    vbat = getBattery();
+    //NRF_LOG_INFO("temperature: , pressure: , humidity: ");
     //Embed data into structure for parsing
     parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
-    
+    NRF_LOG_INFO("temperature: %d, pressure: %d, humidity: %d\r\n", raw_t, raw_p, raw_h);
     if(highres)
     {
       //Prepare bytearray to broadcast
@@ -179,22 +207,39 @@ int main(void)
     //Initialize BLE Stack. Required in all applications for timer operation
     init_status += init_ble();
     ble_tx_power_set(BLE_TX_POWER);
-
+    
     // Initialize the application timer module.
     init_status += init_timer(main_timer_id, MAIN_LOOP_INTERVAL, main_timer_handler);
-
-    //Initialize BME 280 and lis2dh12 
-    init_status += init_sensors();
-    //start accelerometer if present
-    LIS2DH12_init(LIS2DH12_POWER_LOW, LIS2DH12_SCALE2G, NULL);
-    //setup BME280 if present
-    bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
-    bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
-    bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
-    NRF_LOG_INFO("BME280 configuration done\r\n");
     
+    
+    
+
+    //Initialize BME 280 and lis2dh12. Requires timer running.
+    if(!init_sensors()){
+      model_plus = true;
+      //start accelerometer if present
+      LIS2DH12_init(LIS2DH12_POWER_LOW, LIS2DH12_SCALE2G, NULL);
+      
+      //setup BME280 if present
+      bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
+      //uint8_t conf = bme280_read_reg(BME280REG_CTRL_MEAS);
+      //NRF_LOG_DEBUG("CONFIG: %x\r\n", conf);
+      bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
+      bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
+      //conf = bme280_read_reg(BME280REG_CTRL_MEAS);
+      //NRF_LOG_DEBUG("CONFIG: %x\r\n", conf);
+      bme280_set_mode(BME280_MODE_NORMAL);
+      NRF_LOG_INFO("BME280 configuration done\r\n");
+      }
+      
+    //Initialise ADC for battery reads
+    battery_voltage_init();
+      
+    //app_sched_execute();
     bluetooth_advertise_data(data_buffer, sizeof(data_buffer));
     NRF_LOG_INFO("Advertising init\r\n");  
+    
+        
 
     //Visually display init status. Hangs if there was an error, waits 3 seconds on success
     init_blink_status(init_status);
@@ -208,9 +253,9 @@ int main(void)
     // Enter main loop.
     for (;; )
     {
-      if(NRF_LOG_PROCESS() == false){
+      //if(NRF_LOG_PROCESS() == false){
          app_sched_execute();
          power_manage();
-      }
+      //}
     }
 }
