@@ -40,6 +40,7 @@
 #include "nrf_log_ctrl.h"
 
 //BSP
+//#define BSP_SIMPLE
 #include "bsp.h"
 
 //Drivers
@@ -74,7 +75,7 @@ APP_TIMER_DEF(main_timer_id);                                             /** Cr
 
 //milliseconds until main loop timer function is called. Other timers can bring
 //application out of sleep at higher (or lower) interval
-#define MAIN_LOOP_INTERVAL 1000u 
+#define MAIN_LOOP_INTERVAL 5000u 
 
 //Payload requires 8 characters
 #define URL_BASE_LENGTH 8
@@ -85,6 +86,21 @@ bool highres    = false; //Flag for used mode
 bool debounce   = true;
 
 static ruuvi_sensor_t data;
+
+
+/**@brief Function for handling bsp events.
+ */
+void bsp_evt_handler(bsp_event_t evt)
+{
+    switch (evt)
+    {
+        case BSP_EVENT_KEY_0:
+            NRF_LOG_INFO("PRESS\r\n");
+            
+        default:
+            return; // no implementation needed
+    }
+}
 
 /**@brief Function for doing power management.
  */
@@ -102,6 +118,14 @@ static void power_manage(void)
       if(debounce){
         highres = !highres;
         debounce = false;
+        if(highres)
+        {
+          LIS2DH12_setPowerMode(LIS2DH12_POWER_LOW);
+        }
+        else
+        {
+          LIS2DH12_setPowerMode(LIS2DH12_POWER_DOWN);
+        }
       }
       
     }
@@ -193,6 +217,7 @@ void main_timer_handler(void * p_context)
  */
 int main(void)
 {
+    
     uint8_t init_status = 0; // counter, gets incremented by each failed init. It Is 0 in the end if init was ok.
     //setup leds. LEDs are active low, so setting high them turns leds off.
     
@@ -203,7 +228,10 @@ int main(void)
     nrf_gpio_pin_clear(LED_RED);//If INIT fails at later stage, RED will stay lit.
     
     // Initialize buttons
-    init_status += init_buttons();
+    //init_status += init_buttons();
+
+
+
 
     //Initialize BLE Stack. Required in all applications for timer operation
     init_status += init_ble();
@@ -212,14 +240,19 @@ int main(void)
     // Initialize the application timer module.
     init_status += init_timer(main_timer_id, MAIN_LOOP_INTERVAL, main_timer_handler);
     
-    
+    uint32_t err_code;
+
+    err_code = bsp_init(BSP_INIT_BUTTONS,
+                        APP_TIMER_TICKS(100, RUUVITAG_APP_TIMER_PRESCALER),
+                        bsp_evt_handler);
+    APP_ERROR_CHECK(err_code);
     
 
     //Initialize BME 280 and lis2dh12. Requires timer running.
     if(!init_sensors()){
       model_plus = true;
-      //start accelerometer if present
-      LIS2DH12_init(LIS2DH12_POWER_LOW, LIS2DH12_SCALE2G, NULL);
+      //init accelerometer if present
+      LIS2DH12_init(LIS2DH12_POWER_DOWN, LIS2DH12_SCALE2G, NULL);
       
       //setup BME280 if present
       bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
@@ -229,7 +262,7 @@ int main(void)
       bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
       //conf = bme280_read_reg(BME280REG_CTRL_MEAS);
       //NRF_LOG_DEBUG("CONFIG: %x\r\n", conf);
-      bme280_set_mode(BME280_MODE_NORMAL);
+      bme280_set_mode(BME280_MODE_FORCED);
       NRF_LOG_INFO("BME280 configuration done\r\n");
       }
       
