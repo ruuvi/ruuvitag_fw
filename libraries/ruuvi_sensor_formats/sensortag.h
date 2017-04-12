@@ -1,8 +1,10 @@
 #ifndef SENSORTAG_H
 #define SENSORTAG_H
 
+
 #include <stdbool.h>
 #include <stdint.h>
+
 
 /*
 0:   uint8_t     format;          // (0x03 = realtime sensor readings base64)
@@ -19,8 +21,10 @@
 
 #define WEATHER_STATION_URL_FORMAT      0x02				  /**< Base64 */
 
+
 #define EDDYSTONE_URL_MAX_LENGTH 17
 #define URL_PAYLOAD_LENGTH 9
+
 #define URL_BASE_MAX_LENGTH (EDDYSTONE_URL_MAX_LENGTH - URL_PAYLOAD_LENGTH)
 
 // Sensor values
@@ -45,11 +49,13 @@ uint16_t    vbat;           // mv
  */
 void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32_t raw_h, uint16_t vbat, int32_t acc[3]);
 
+
 /**
  *  Parses sensor values into RuuviTag format.
  *  @param char* data_buffer character array with length of 14 bytes
  */
 void encodeToSensorDataFormat(uint8_t* data_buffer, ruuvi_sensor_t* data);
+
 
 /**
  *  Encodes sensor data into given char* url. The base url must have the base of url written by caller.

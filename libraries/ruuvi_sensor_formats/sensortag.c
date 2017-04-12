@@ -1,5 +1,6 @@
 #include "sensortag.h"
 
+
 #include <stdint.h>
 
 #include "base64.h"
@@ -15,10 +16,12 @@
  *  @param raw_p raw pressure as given by BME280, uint32_t, multiplied by 256
  *  @param acceleration along 3 axes in milliG, X Y Z. 
  */
+
 void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32_t raw_h, uint16_t vbat, int32_t acc[3])
 {
    
     NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d\r\n", raw_t, raw_p, raw_h);
+
     /*
     0:   uint8_t     format;          // (0x02 = realtime sensor readings base64)
     1:   uint8_t     humidity;        // one lsb is 0.5%
@@ -42,13 +45,16 @@ void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32
     
     data->vbat = vbat;
 
+
 }
 
 /**
  *  Parses sensor values into RuuviTag format.
  *  @param char* data_buffer character array with length of 14 bytes
  */
+
 void encodeToSensorDataFormat(uint8_t* data_buffer, ruuvi_sensor_t* data)
+
 {
     //serialize values into a string
     data_buffer[0] = SENSOR_TAG_DATA_FORMAT;
@@ -78,6 +84,7 @@ void encodeToSensorDataFormat(uint8_t* data_buffer, ruuvi_sensor_t* data)
  */
 void encodeToUrlDataFromat(char* url, uint8_t base_length, ruuvi_sensor_t* data)
 {
+
 
     //Create pseudo-unique name
     unsigned int mac0 =  NRF_FICR->DEVICEID[0];
