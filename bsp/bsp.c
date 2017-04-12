@@ -25,6 +25,10 @@
 #include "app_button.h"
 #endif // BSP_SIMPLE
 
+#define NRF_LOG_MODULE_NAME "BSP_C"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+
 #if LEDS_NUMBER > 0 && !(defined BSP_SIMPLE)
 static bsp_indication_t m_stable_state        = BSP_INDICATE_IDLE;
 static bool             m_leds_clear          = false;
@@ -431,7 +435,7 @@ uint32_t bsp_init(uint32_t type, uint32_t ticks_per_100ms, bsp_event_callback_t 
 
 #if (BUTTONS_NUMBER > 0) && !(defined BSP_SIMPLE)
     m_registered_callback = callback;
-
+    NRF_LOG_INFO("START BUTTON INIT\r\n");
     // BSP will support buttons and generate events
     if (type & BSP_INIT_BUTTONS)
     {
@@ -439,11 +443,13 @@ uint32_t bsp_init(uint32_t type, uint32_t ticks_per_100ms, bsp_event_callback_t 
 
         for (num = 0; ((num < BUTTONS_NUMBER) && (err_code == NRF_SUCCESS)); num++)
         {
+            NRF_LOG_INFO("ASSIGN %d\r\n", num);
             err_code = bsp_event_to_button_action_assign(num, BSP_BUTTON_ACTION_PUSH, BSP_EVENT_DEFAULT);
         }
 
         if (err_code == NRF_SUCCESS)
         {
+            NRF_LOG_INFO("INIT \r\n");
             err_code = app_button_init((app_button_cfg_t *)app_buttons,
                                        BUTTONS_NUMBER,
                                        ticks_per_100ms / 2);
@@ -451,11 +457,13 @@ uint32_t bsp_init(uint32_t type, uint32_t ticks_per_100ms, bsp_event_callback_t 
 
         if (err_code == NRF_SUCCESS)
         {
+            NRF_LOG_INFO("Enable \r\n");
             err_code = app_button_enable();
         }
 
         if (err_code == NRF_SUCCESS)
         {
+            NRF_LOG_INFO("Create \r\n");
             err_code = app_timer_create(&m_button_timer_id,
                                         APP_TIMER_MODE_SINGLE_SHOT,
                                         button_timer_handler);

@@ -13,6 +13,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define NRF_LOG_MODULE_NAME "BOARDS_C"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+
 #if LEDS_NUMBER > 0
 static const uint8_t m_board_led_list[LEDS_NUMBER] = LEDS_LIST;
 #endif
@@ -110,6 +114,7 @@ void bsp_board_buttons_init(void)
     uint32_t i;
     for(i = 0; i < BUTTONS_NUMBER; ++i)
     {
+        NRF_LOG_INFO("BUTTON %d\r\n", i);
         nrf_gpio_cfg_input(m_board_btn_list[i], BUTTON_PULL);
     }
 }
