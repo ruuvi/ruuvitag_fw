@@ -121,13 +121,16 @@ static void power_manage(void)
       if(debounce){
         highres = !highres;
         debounce = false;
-        if(highres)
+        if(model_plus)
         {
-          LIS2DH12_setPowerMode(LIS2DH12_POWER_LOW);
-        }
-        else
-        {
-          LIS2DH12_setPowerMode(LIS2DH12_POWER_DOWN);
+          if(highres)
+          {
+            LIS2DH12_setPowerMode(LIS2DH12_POWER_LOW);
+          }
+          else
+          {
+            LIS2DH12_setPowerMode(LIS2DH12_POWER_DOWN);
+          }
         }
       }
       
@@ -174,6 +177,9 @@ void main_timer_handler(void * p_context)
       raw_t = bme280_get_temperature();
       raw_p = bme280_get_pressure();
       raw_h = bme280_get_humidity();
+      
+      //Start sensor read for next pass
+      bme280_set_mode(BME280_MODE_FORCED);
    
       //NRF_LOG_INFO("temperature: %d, pressure: %d, humidity: %d\r\n", raw_t, raw_p, raw_h);
     
