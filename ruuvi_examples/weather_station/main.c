@@ -89,17 +89,20 @@ static ruuvi_sensor_t data;
 
 
 /**@brief Function for handling bsp events.
+ * Not actually used, BSP event brings device out of 
+ * power manager
  */
 void bsp_evt_handler(bsp_event_t evt)
 {
-    switch (evt)
+/*    switch (evt)
     {
-        case BSP_EVENT_KEY_0:
+        case BSP_EVENT_KEY_1:
             NRF_LOG_INFO("PRESS\r\n");
             
         default:
             return; // no implementation needed
     }
+*/
 }
 
 /**@brief Function for doing power management.
