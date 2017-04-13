@@ -16,10 +16,11 @@
 10-11: int16_t   acceleration_z;  // mg
 12-13: int16_t   vbat;            // mv
 */
-#define SENSOR_TAG_DATA_FORMAT           0x03				  /**< raw binary, includes acceleration */
-#define SENSORTAG_ENCODED_DATA_LENGTH     14          /* 14 bytes  */
+#define SENSOR_TAG_DATA_FORMAT          0x03				  /**< raw binary, includes acceleration */
+#define SENSORTAG_ENCODED_DATA_LENGTH   14            /* 14 bytes  */
 
 #define WEATHER_STATION_URL_FORMAT      0x02				  /**< Base64 */
+#define WEATHER_STATION_URL_ID_FORMAT   0x04				  /**< Base64, with ID byte */
 
 
 #define EDDYSTONE_URL_MAX_LENGTH 17
@@ -64,7 +65,7 @@ void encodeToSensorDataFormat(uint8_t* data_buffer, ruuvi_sensor_t* data);
  *  
  *  @param url pointer to character array with max length of 18
  *  @param base_length length of base url. The payload will be written starting at index at base length
- *  @
+ *  @param data pointer to ruuvi_sensor_t which contains current sensor data to be encoded
  */
 void encodeToUrlDataFromat(char* url, uint8_t base_length, ruuvi_sensor_t* data);
 

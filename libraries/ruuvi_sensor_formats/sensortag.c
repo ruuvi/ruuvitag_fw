@@ -94,7 +94,7 @@ void encodeToUrlDataFromat(char* url, uint8_t base_length, ruuvi_sensor_t* data)
     
     //serialize values into a string
     char pack[8] = {0};
-    pack[0] = WEATHER_STATION_URL_FORMAT;
+    pack[0] = WEATHER_STATION_URL_ID_FORMAT;
     pack[1] = data->humidity;
     //Round decimals
     int16_t temperature = data->temperature;
