@@ -16,4 +16,12 @@
  *  @param resultSize size of result buffer
  *  @return 1 on error, 0 on success.
  */
+ 
+#ifndef BASE64_H
+#define BASE64_H
+
+#include <stdlib.h>
+
 int base64encode(const void* data_buf, size_t dataLength, char* result, size_t resultSize);
+
+#endif

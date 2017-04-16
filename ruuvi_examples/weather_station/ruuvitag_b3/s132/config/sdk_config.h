@@ -380,7 +380,7 @@
 // <e> GPIOTE_ENABLED - nrf_drv_gpiote - GPIOTE peripheral driver
 //==========================================================
 #ifndef GPIOTE_ENABLED
-#define GPIOTE_ENABLED 0
+#define GPIOTE_ENABLED 1
 #endif
 #if  GPIOTE_ENABLED
 // <o> GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS - Number of lower power input pins 
@@ -404,6 +404,60 @@
 #ifndef GPIOTE_CONFIG_IRQ_PRIORITY
 #define GPIOTE_CONFIG_IRQ_PRIORITY 6
 #endif
+
+// <e> GPIOTE_CONFIG_LOG_ENABLED - Enables logging in the module.
+//==========================================================
+#ifndef GPIOTE_CONFIG_LOG_ENABLED
+#define GPIOTE_CONFIG_LOG_ENABLED 1
+#endif
+#if  GPIOTE_CONFIG_LOG_ENABLED
+// <o> GPIOTE_CONFIG_LOG_LEVEL  - Default Severity level
+ 
+// <0=> Off 
+// <1=> Error 
+// <2=> Warning 
+// <3=> Info 
+// <4=> Debug 
+
+#ifndef GPIOTE_CONFIG_LOG_LEVEL
+#define GPIOTE_CONFIG_LOG_LEVEL 3
+#endif
+
+// <o> GPIOTE_CONFIG_INFO_COLOR  - ANSI escape code prefix.
+ 
+// <0=> Default 
+// <1=> Black 
+// <2=> Red 
+// <3=> Green 
+// <4=> Yellow 
+// <5=> Blue 
+// <6=> Magenta 
+// <7=> Cyan 
+// <8=> White 
+
+#ifndef GPIOTE_CONFIG_INFO_COLOR
+#define GPIOTE_CONFIG_INFO_COLOR 0
+#endif
+
+// <o> GPIOTE_CONFIG_DEBUG_COLOR  - ANSI escape code prefix.
+ 
+// <0=> Default 
+// <1=> Black 
+// <2=> Red 
+// <3=> Green 
+// <4=> Yellow 
+// <5=> Blue 
+// <6=> Magenta 
+// <7=> Cyan 
+// <8=> White 
+
+#ifndef GPIOTE_CONFIG_DEBUG_COLOR
+#define GPIOTE_CONFIG_DEBUG_COLOR 0
+#endif
+
+#endif //GPIOTE_CONFIG_LOG_ENABLED
+// </e>
+
 
 #endif //GPIOTE_ENABLED
 // </e>
@@ -1035,7 +1089,7 @@
 // <e> SAADC_ENABLED - nrf_drv_saadc - SAADC peripheral driver
 //==========================================================
 #ifndef SAADC_ENABLED
-#define SAADC_ENABLED 0
+#define SAADC_ENABLED 1
 #endif
 #if  SAADC_ENABLED
 // <o> SAADC_CONFIG_RESOLUTION  - Resolution
@@ -1069,7 +1123,7 @@
  
 
 #ifndef SAADC_CONFIG_LP_MODE
-#define SAADC_CONFIG_LP_MODE 0
+#define SAADC_CONFIG_LP_MODE 1
 #endif
 
 // <o> SAADC_CONFIG_IRQ_PRIORITY  - Interrupt priority
@@ -1086,7 +1140,7 @@
 // <7=> 7 
 
 #ifndef SAADC_CONFIG_IRQ_PRIORITY
-#define SAADC_CONFIG_IRQ_PRIORITY 6
+#define SAADC_CONFIG_IRQ_PRIORITY 7
 #endif
 
 #endif //SAADC_ENABLED
@@ -1636,7 +1690,7 @@
  
 
 #ifndef UART0_CONFIG_USE_EASY_DMA
-#define UART0_CONFIG_USE_EASY_DMA 1
+#define UART0_CONFIG_USE_EASY_DMA 0
 #endif
 
 // <q> UART_EASY_DMA_SUPPORT  - Driver supporting EasyDMA
@@ -1786,7 +1840,7 @@
 // <e> APP_UART_ENABLED - app_uart - UART driver
 //==========================================================
 #ifndef APP_UART_ENABLED
-#define APP_UART_ENABLED 1
+#define APP_UART_ENABLED 0
 #endif
 #if  APP_UART_ENABLED
 // <o> APP_UART_DRIVER_INSTANCE  - UART instance used
@@ -1878,7 +1932,7 @@
 // <e> FSTORAGE_ENABLED - fstorage - Flash storage module
 //==========================================================
 #ifndef FSTORAGE_ENABLED
-#define FSTORAGE_ENABLED 0
+#define FSTORAGE_ENABLED 1
 #endif
 #if  FSTORAGE_ENABLED
 // <o> FS_QUEUE_SIZE - Configures the size of the internal queue. 
@@ -2178,7 +2232,7 @@
 
 //==========================================================
 // <e> NRF_LOG_ENABLED - nrf_log - Logging
-//==========================================================
+//=========================================================
 #ifndef NRF_LOG_ENABLED
 #define NRF_LOG_ENABLED 0
 #endif
@@ -2257,14 +2311,14 @@
 // <i> Log data is buffered and can be processed in idle.
 //==========================================================
 #ifndef NRF_LOG_DEFERRED
-#define NRF_LOG_DEFERRED 1
+#define NRF_LOG_DEFERRED 0
 #endif
 #if  NRF_LOG_DEFERRED
 // <o> NRF_LOG_DEFERRED_BUFSIZE - Size of the buffer for logs in words. 
 // <i> Must be power of 2
 
 #ifndef NRF_LOG_DEFERRED_BUFSIZE
-#define NRF_LOG_DEFERRED_BUFSIZE 256
+#define NRF_LOG_DEFERRED_BUFSIZE 512
 #endif
 
 #endif //NRF_LOG_DEFERRED
@@ -2330,12 +2384,12 @@
 
 // <o> NRF_LOG_BACKEND_SERIAL_UART_TX_PIN - UART TX pin 
 #ifndef NRF_LOG_BACKEND_SERIAL_UART_TX_PIN
-#define NRF_LOG_BACKEND_SERIAL_UART_TX_PIN 4
+#define NRF_LOG_BACKEND_SERIAL_UART_TX_PIN 5
 #endif
 
 // <o> NRF_LOG_BACKEND_SERIAL_UART_RX_PIN - UART RX pin 
 #ifndef NRF_LOG_BACKEND_SERIAL_UART_RX_PIN
-#define NRF_LOG_BACKEND_SERIAL_UART_RX_PIN 5
+#define NRF_LOG_BACKEND_SERIAL_UART_RX_PIN 4
 #endif
 
 // <o> NRF_LOG_BACKEND_SERIAL_UART_RTS_PIN - UART RTS pin 

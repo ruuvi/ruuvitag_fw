@@ -132,11 +132,13 @@ BME280_Ret bme280_init()
  */
 BME280_Ret bme280_set_mode(enum BME280_MODE mode)
 {
-	uint8_t conf;
-        uint32_t err_code = 0;
-        BME280_Ret status = BME280_RET_ERROR;
-
-	conf = bme280_read_reg(BME280REG_CTRL_MEAS);
+	uint8_t conf, reg;
+  uint32_t err_code = 0;
+  BME280_Ret status = BME280_RET_ERROR;
+  reg = bme280_read_reg(BME280REG_CTRL_HUM);
+  conf = bme280_read_reg(BME280REG_CTRL_MEAS);
+  NRF_LOG_DEBUG("CONFIG before mode: %x\r\n", conf);
+  bme280_write_reg(BME280REG_CTRL_HUM, reg);  //HUMIDITY must be written first
 	conf = conf & 0b11111100;
 	conf |= mode;
 
@@ -145,9 +147,11 @@ BME280_Ret bme280_set_mode(enum BME280_MODE mode)
         case BME280_MODE_NORMAL:
             /* start sample timer with sample time according to selected sample frequency TODO adjust polling frequency */
             /* TODO Adjust sampling interval */
-            err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(1000u, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+            err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(1000, RUUVITAG_APP_TIMER_PRESCALER), NULL);
             APP_ERROR_CHECK(err_code);
             status = bme280_write_reg(BME280REG_CTRL_MEAS, conf);
+            //conf = bme280_read_reg(BME280REG_CTRL_MEAS);
+            //NRF_LOG_DEBUG("Mode: %x\r\n", conf);
             break;
 
         case BME280_MODE_FORCED:
@@ -168,6 +172,22 @@ BME280_Ret bme280_set_mode(enum BME280_MODE mode)
   return status;
 }
 
+/*
+ *  TODO: Adjust timer frequency by BME280 sampling speed.
+ */
+BME280_Ret bme280_set_interval(enum BME280_INTERVAL interval)
+{
+	uint8_t conf;
+  BME280_Ret status = BME280_RET_ERROR;
+
+	conf   = bme280_read_reg(BME280REG_CONFIG);
+	conf   = conf &~ BME280_INTERVAL_MASK;
+	conf  |= interval;      
+  status = bme280_write_reg(BME280REG_CONFIG, conf);
+
+  return status;
+}
+
 
 int bme280_is_measuring(void)
 {
@@ -175,39 +195,48 @@ int bme280_is_measuring(void)
 
 	s = bme280_read_reg(BME280REG_STATUS);
 	if (s & 0b00001000)
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 
 BME280_Ret bme280_set_oversampling_hum(uint8_t os)
 {
-	return bme280_write_reg(BME280REG_CTRL_HUM, os);
-         
+
+	uint8_t meas;
+  meas = bme280_read_reg(BME280REG_CTRL_MEAS);
+	bme280_write_reg(BME280REG_CTRL_HUM, os);
+	return bme280_write_reg(BME280REG_CTRL_MEAS, meas); //Changes to humi take effect after write to meas
 }
 
 
 BME280_Ret bme280_set_oversampling_temp(uint8_t os)
 {
-	uint8_t reg;
-
-	reg = bme280_read_reg(BME280REG_CTRL_MEAS);
-	reg = reg & 0b00011111;
-	reg |= os << 5;
-	return bme280_write_reg(BME280REG_CTRL_MEAS, reg);
+	uint8_t humi, meas;
+  humi = bme280_read_reg(BME280REG_CTRL_HUM);
+  meas = bme280_read_reg(BME280REG_CTRL_MEAS);
+	bme280_write_reg(BME280REG_CTRL_HUM, humi);
+	meas &= 0b00011111;
+	meas |= (os<<5);
+	return bme280_write_reg(BME280REG_CTRL_MEAS, meas);
 }
 
 
 BME280_Ret bme280_set_oversampling_press(uint8_t os)
 {
-	uint8_t reg;
-
-	reg = bme280_read_reg(BME280REG_CTRL_MEAS);
-	reg = reg & 0b11100011;
-	reg |= os << 2;
-	return bme280_write_reg(BME280REG_CTRL_MEAS, reg);
-}
+	uint8_t humi, meas;
+  humi = bme280_read_reg(BME280REG_CTRL_HUM);
+  meas = bme280_read_reg(BME280REG_CTRL_MEAS);
+	bme280_write_reg(BME280REG_CTRL_HUM, humi);
+  meas &= 0b11100011;
+	meas |= (os<<2);
+	return bme280_write_reg(BME280REG_CTRL_MEAS, meas);
+	}
 
 
 /**
@@ -360,9 +389,6 @@ BME280_Ret bme280_write_reg(uint8_t reg, uint8_t value)
  */
 void timer_bme280_event_handler(void* p_context)
 {
-    //uint32_t err_code;
-    //NRF_LOG_DEBUG("BME280 Timer event'\r\n");
-    //bme280_read_measurements();
-    //err_code = app_timer_stop(bme280_timer_id);
-    //APP_ERROR_CHECK(err_code);
+    //NRF_LOG_INFO("BME\r\n");
+    bme280_read_measurements(); //read previous data
 }

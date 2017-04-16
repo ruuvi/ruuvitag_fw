@@ -11,6 +11,8 @@ $(OUTPUT_DIRECTORY)/weather_station.out: \
 SRC_FILES += \
   ../init.c \
   $(PROJ_DIR)/../../bsp/bsp.c \
+  $(PROJ_DIR)/../../bsp/boards.c \
+  $(PROJ_DIR)/../../drivers/battery/battery_voltage_saadc.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
   $(PROJ_DIR)/../../drivers/LIS2DH12/LIS2DH12.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
@@ -18,8 +20,9 @@ SRC_FILES += \
   $(PROJ_DIR)/../../libraries/base64/base64.c \
   $(PROJ_DIR)/../../libraries/bluetooth/bluetooth_core.c \
   $(PROJ_DIR)/../../libraries/bluetooth/eddystone.c \
+  $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/sensortag.c \
   $(PROJ_DIR)/main.c \
-  $(SDK_ROOT)/components/libraries/button/app_button.c \
+  $(PROJ_DIR)/sdk_overrides/app_button.c \
   $(SDK_ROOT)/components/ble/common/ble_advdata.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_params.c \
   $(SDK_ROOT)/components/ble/common/ble_srv_common.c \
@@ -30,7 +33,13 @@ SRC_FILES += \
   $(SDK_ROOT)/components/drivers_nrf/spi_master/nrf_drv_spi.c \
   $(SDK_ROOT)/components/drivers_nrf/timer/nrf_drv_timer.c \
   $(SDK_ROOT)/components/drivers_nrf/uart/nrf_drv_uart.c \
+  $(SDK_ROOT)/components/drivers_nrf/saadc/nrf_drv_saadc.c \
+  $(SDK_ROOT)/components/drivers_nrf/hal/nrf_saadc.c \
+  $(SDK_ROOT)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c \
+  $(SDK_ROOT)/components/ble/ble_advertising/ble_advertising.c \
   $(SDK_ROOT)/components/libraries/fifo/app_fifo.c \
+  $(SDK_ROOT)/components/libraries/fds/fds.c \
+  $(SDK_ROOT)/components/libraries/fstorage/fstorage.c \
   $(SDK_ROOT)/components/libraries/hardfault/hardfault_implementation.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
@@ -41,6 +50,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/util/app_error.c \
   $(SDK_ROOT)/components/libraries/util/app_util_platform.c \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \
+  $(SDK_ROOT)/components/libraries/util/sdk_errors.c \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
   $(SDK_ROOT)/components/toolchain/gcc/gcc_startup_nrf52.S \
   $(SDK_ROOT)/components/toolchain/system_nrf52.c \
@@ -56,9 +66,11 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../drivers/bme280 \
   $(PROJ_DIR)/../../drivers/LIS2DH12 \
   $(PROJ_DIR)/../../drivers/spi/ \
+  $(PROJ_DIR)/../../drivers/battery/ \
   $(PROJ_DIR)/../../libraries/base91 \
   $(PROJ_DIR)/../../libraries/base64 \
   $(PROJ_DIR)/../../libraries/bluetooth \
+  $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats \
   $(SDK_ROOT)/components \
   $(SDK_ROOT)/components/ble/ble_advertising \
   $(SDK_ROOT)/components/ble/ble_dtm \

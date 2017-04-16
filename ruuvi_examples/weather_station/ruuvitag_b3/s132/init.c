@@ -72,14 +72,14 @@ uint8_t init_timer(app_timer_id_t main_timer_id, uint32_t main_interval, void (*
 {
       // Requires low-frequency clock initialized above
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
-    APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, true);
+    APP_TIMER_APPSH_INIT(RUUVITAG_APP_TIMER_PRESCALER, RUUVITAG_APP_TIMER_OP_QUEUE_SIZE, true);
     // Create timer
     uint32_t err_code = app_timer_create(&main_timer_id,
                                 APP_TIMER_MODE_REPEATED,
                                 timer_handler);
     APP_ERROR_CHECK(err_code);
     //Start timer
-    err_code = app_timer_start(main_timer_id, APP_TIMER_TICKS(main_interval, APP_TIMER_PRESCALER), NULL); // 1 event / 5000 ms
+    err_code = app_timer_start(main_timer_id, APP_TIMER_TICKS(main_interval, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 5000 ms
     APP_ERROR_CHECK(err_code);
     NRF_LOG_INFO("Timers init\r\n");
     return (NRF_SUCCESS == err_code) ? 0 : 1;
@@ -148,11 +148,14 @@ uint8_t init_sensors(void)
     {
         retval = 1;
         NRF_LOG_ERROR("LIS2DH12 init Failed: Error Code: %d\r\n", (int32_t)Lis2dh12RetVal);
+        return retval;
     }
 
     // Read calibration
     BME280_Ret BME280RetVal;
     BME280RetVal = bme280_init();
+    bme280_set_mode(BME280_MODE_SLEEP); //Set sleep mode to allow configuration, sensor might have old config
+    BME280RetVal |= bme280_set_interval(BME280_STANDBY_1000_MS);
 
     if (BME280_RET_OK == BME280RetVal)
     {

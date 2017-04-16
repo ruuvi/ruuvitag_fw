@@ -33,13 +33,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-/*
- * Changes
- *
- * 2017-01-28 Otso Jousimaa Add comments.
- *
- */
+ 
+ /*
+  *  Changelog
+  *  2017-01-28 Otso Jousimaa Add comments.
+  *  2017-04-06: Add t_sb register values
+  */
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -127,21 +126,30 @@ typedef enum
 #define BME280_OVERSAMPLING_8		(0x04)
 #define BME280_OVERSAMPLING_16		(0x05)
 
+#define BME280_INTERVAL_MASK 0xE0
+enum BME280_INTERVAL {
+	BME280_STANDBY_0_5_MS  = 0x0,
+	BME280_STANDBY_62_5_MS = 0x20,
+	BME280_STANDBY_125_MS  = 0x40,
+	BME280_STANDBY_500_MS  = 0x80,
+	BME280_STANDBY_1000_MS = 0xA0
+};
+
 BME280_Ret bme280_init();
 BME280_Ret bme280_set_mode(enum BME280_MODE mode);
+BME280_Ret bme280_set_interval(enum BME280_INTERVAL interval);
 int  bme280_is_measuring(void);
 BME280_Ret bme280_read_measurements();
 BME280_Ret bme280_set_oversampling_hum(uint8_t os);
 BME280_Ret bme280_set_oversampling_temp(uint8_t os);
 BME280_Ret bme280_set_oversampling_press(uint8_t os);
-
 /**
  * Returns temperature in DegC, resolution is 0.01 DegC.
  * Output value of “2134” equals 21.34 DegC.
  */
 int32_t  bme280_get_temperature(void);
 
-/**
+ /**
  * Returns pressure in Pa as unsigned 32 bit integer in Q24.8 format
  * (24 integer bits and 8 fractional bits).
  * Output value of “24674867” represents 24674867/256 = 96386.2 Pa = 963.862 hPa
