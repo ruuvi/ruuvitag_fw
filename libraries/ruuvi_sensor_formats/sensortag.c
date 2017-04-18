@@ -36,7 +36,7 @@ void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32
     data->temperature |= (((raw_t / 100) << 8));       //raw_t is 2:2 signed fixed point in base-10, Drop decimals, scale up to next byte.
     data->temperature |= (raw_t % 100);                //take decimals.
     data->pressure = (uint16_t)((raw_p >> 8) - 50000); //Scale into pa, Shift by -50000 pa as per Ruu.vi interface.
-    data->humidity = (uint8_t)(raw_h >> 9); 
+    data->humidity = (uint8_t)(raw_h >> 9);            //scale into 0.5%
 
     // Set accelerometer data
     data->accX = acc[0];
@@ -95,25 +95,17 @@ void encodeToUrlDataFromat(char* url, uint8_t base_length, ruuvi_sensor_t* data)
     //serialize values into a string
     char pack[8] = {0};
     pack[0] = WEATHER_STATION_URL_ID_FORMAT;
-    pack[1] = data->humidity;
-    //Round decimals
+    uint8_t humidity = data->humidity / 4; //Round to 2 %
+    pack[1] = humidity * 4;
     int16_t temperature = data->temperature;
-    if(temperature > 0)
-    {
-      temperature = temperature - (temperature%100);
-    }
-    else
-    {
-      temperature = temperature + (temperature%100);
-    }
-    pack[2] = (temperature)>>8;
-    pack[3] = (temperature)&0xFF;
-    uint16_t pressure = data->pressure;
-    pressure = pressure - (pressure%100);
+    pack[2] = (temperature) >> 8;
+    pack[3] = 0;          //Round off decimals
+    uint16_t pressure =   data->pressure;
+    pressure = pressure - (pressure % 100); //Round pressure to hPa accuracy
     pack[4] = (pressure)>>8;
     pack[5] = (pressure)&0xFF;
     pack[6] = serial[0];
-    pack[7] = serial[1];
+  
      
     /// Encoding 48 bits using Base64 produces max 8 chars.
     memset(&(url[base_length]), 0, sizeof(URL_PAYLOAD_LENGTH));
