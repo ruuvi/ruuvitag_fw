@@ -24,7 +24,7 @@
                               0xCC, 0xDD, 0xEE, 0xFF} //!< Beacon lock code. @warning This lock code must be changed before going to production.
 
 #ifdef NRF52 
-#define APP_CONFIG_CALIBRATED_RANGING_DATA {-49, -39, -29, -24, -19, -14, -9, -7, -5}   //!< Calibrated TX power at 0 m. See the nRF52 Product Specification for corresponding TX values.
+#define APP_CONFIG_CALIBRATED_RANGING_DATA {-51, -41, -32, -26, -22, -17, -15, -10, -3}   //!< Calibrated TX power at 0 m. See the nRF52 Product Specification for corresponding TX values.
 #elif NRF51
 #define APP_CONFIG_CALIBRATED_RANGING_DATA {-39, -26, -23, -18, -13, -12, -9, -2}       //!< Calibrated TX power at 0 m. See the nRF51 Product Specification for corresponding TX values.
 #else
