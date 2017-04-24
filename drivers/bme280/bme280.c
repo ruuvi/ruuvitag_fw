@@ -147,7 +147,7 @@ BME280_Ret bme280_set_mode(enum BME280_MODE mode)
         case BME280_MODE_NORMAL:
             /* start sample timer with sample time according to selected sample frequency TODO adjust polling frequency */
             /* TODO Adjust sampling interval */
-            err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(1000, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+            err_code = app_timer_start(bme280_timer_id, APP_TIMER_TICKS(1000, RUUVITAG_APP_TIMER_PRESCALER), timer_bme280_event_handler);
             APP_ERROR_CHECK(err_code);
             status = bme280_write_reg(BME280REG_CTRL_MEAS, conf);
             //conf = bme280_read_reg(BME280REG_CTRL_MEAS);
