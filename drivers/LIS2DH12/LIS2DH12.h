@@ -21,7 +21,6 @@ extern "C"
 
 
 /* CONSTANTS **************************************************************************************/
-#define LIS2DH12_FIFO_MAX_LENGTH 32
 
 /* MACROS *****************************************************************************************/
 
@@ -39,12 +38,12 @@ typedef enum
 
 /** Available Power Modes for the LIS2DH12 */
 typedef enum{
-//	LIS2DH12_POWER_NORMAL = 0, /**< Normal Power Mode, 10-bit resoulution, 100Hz, 20uA */
-	LIS2DH12_POWER_LOW = 0,			 /**< Low Power Mode, 10-bit resolution, 1Hz, 2uA */
-	LIS2DH12_POWER_BURST,        /**< 25 Hz 12-bit resolution, Stored to FiFo, read at 1 Hz, 6 µA */	
-//	LIS2DH12_POWER_FAST,		   /**< Low Power Mode, 8-bit resolution, 1620Hz, 100uA */
-//	LIS2DH12_POWER_HIGHRES,		 /**< High Power Mode, 12-bit resolution, 1344Hz, 185uA  */
-	LIS2DH12_POWER_DOWN			     /**< Stop Operation */
+	LIS2DH12_POWER_NORMAL = 0,	/**< Normal Power Mode, 10-bit resoulution, 100Hz, 20uA */
+	LIS2DH12_POWER_LOW,			    /**< Low Power Mode, 10-bit resolution, 1Hz, 2uA */
+	LIS2DH12_POWER_FAST,        /**< Low Power Mode, 8-bit resolution, 1620Hz, 100uA */
+	LIS2DH12_POWER_HIGHRES,	    /**< High Power Mode, 12-bit resolution, 1344Hz, 185uA  */
+	LIS2DH12_POWER_BURST,       /**< 25 Hz 12-bit resolution, Stored to FiFo, read at 1 Hz, 6 µA */
+	LIS2DH12_POWER_DOWN         /**< Stop Operation */
 } LIS2DH12_PowerMode;
 
 /** Available Scales */
@@ -54,13 +53,6 @@ typedef enum{
 	LIS2DH12_SCALE8G = 2,		/**< Scale Selection: +/- 8g */
 	LIS2DH12_SCALE16G = 3		/**< Scale Selection: +/- 16g */
 }LIS2DH12_Scale;
-
-/** Available Resolutions */
-typedef enum{
-	LIS2DH12_RES8BIT = 8,		  /**< 8 extra bits */
-	LIS2DH12_RES10BIT = 6,		/**< 6 extra bits */
-	LIS2DH12_RES12BIT = 4		/**< 4 extra bits */
-}LIS2DH12_Resolution;
 
 /** Data Ready Event Callback Type */
 typedef void (*LIS2DH12_drdy_event_t)(void);
@@ -84,24 +76,8 @@ typedef void (*LIS2DH12_drdy_event_t)(void);
  * @retval LIS2DH12_RET_ERROR 		Something went wrong
  * @retval LIS2DH12_NOT_SUPPORTED 	Requested powerMode or scale not yet supported
  */
-LIS2DH12_Ret LIS2DH12_init(LIS2DH12_PowerMode powerMode, LIS2DH12_Scale scale, LIS2DH12_drdy_event_t drdyCB);
+extern LIS2DH12_Ret LIS2DH12_init(LIS2DH12_PowerMode powerMode, LIS2DH12_Scale scale, LIS2DH12_drdy_event_t drdyCB);
 
-/**
- * Change maximum scale
- *
- * This function changes the maximum scale sensor can measure. 
- *
- * Note: This function only works after correct initialization.
- * Note: After changing the scale, it needs some time till new values are available, see datasheet for details
- * Note: As resolution of LIS2DH12 is fixed, increasing scale leads to reduced sensitivity
- *
- * @param[in] scale Requested scale the LIS2DH12 should work with.
- *
- * @retval LIS2DH12_RET_OK          Change successful
- * @retval LIS2DH12_RET_ERROR       Something went wrong
- *
- */
-LIS2DH12_Ret LIS2DH12_setScale(LIS2DH12_Scale scale);
 
 /**
  * Change power mode
@@ -118,7 +94,7 @@ LIS2DH12_Ret LIS2DH12_setScale(LIS2DH12_Scale scale);
  * @retval LIS2DH12_RET_ERROR       Something went wrong
  *
  */
-LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode);
+extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode);
 
 /**
  * Return X acceleration
@@ -129,7 +105,7 @@ LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode);
  * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
  * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
-LIS2DH12_Ret LIS2DH12_getXmG(int32_t* const accX);
+extern LIS2DH12_Ret LIS2DH12_getXmG(int32_t* const accX);
 
 /**
  * Return Y acceleration
@@ -140,7 +116,7 @@ LIS2DH12_Ret LIS2DH12_getXmG(int32_t* const accX);
  * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
  * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
-LIS2DH12_Ret LIS2DH12_getYmG(int32_t* const accY);
+extern LIS2DH12_Ret LIS2DH12_getYmG(int32_t* const accY);
 
 /**
  * Return Z acceleration
@@ -151,10 +127,11 @@ LIS2DH12_Ret LIS2DH12_getYmG(int32_t* const accY);
  * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
  * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
-LIS2DH12_Ret LIS2DH12_getZmG(int32_t* const accZ);
+extern LIS2DH12_Ret LIS2DH12_getZmG(int32_t* const accZ);
 
 /**
- * Return acceleration of all axis
+ * Return acceleration of all axis.
+ * Reads oldest unread element from Fifo / latest sample from accelerometer. Autoincrements index after read.
  *
  * @param[out] accX Acceleration in mG
  * @param[out] accY Acceleration in mG
@@ -164,7 +141,17 @@ LIS2DH12_Ret LIS2DH12_getZmG(int32_t* const accZ);
  * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
  * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
-LIS2DH12_Ret LIS2DH12_getALLmG(int32_t* const accX, int32_t* const accY, int32_t* const accZ);
+extern LIS2DH12_Ret LIS2DH12_getALLmG(int32_t* const accX, int32_t* const accY, int32_t* const accZ);
+
+/**
+ *  Return number of elements waiting in FiFo. Returns 0 if sample in FiFo is latest, I.E. proper way to read FiFo is:
+ *  uint8_t count = UINT8_T_MAX;
+ *  while (count){
+ *    count = LIS2DH12_getFifoDepth();
+ *    LIS2DH12_getAllmG( ... );
+ *  }
+ */
+int8_t LIS2DH12_getFifoDepth(void);
 
 
 #ifdef __cplusplus

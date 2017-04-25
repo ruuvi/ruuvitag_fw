@@ -83,13 +83,15 @@ void timer_lis2dh12_event_handler(void* p_context);
 
 
 /* VARIABLES **************************************************************************************/
-static LIS2DH12_drdy_event_t g_fp_drdyCb = NULL;             /**< Data Ready Callback */
-static sensor_buffer_t g_sensorData;                         /**< Union to covert raw data to value for each axis */
+static LIS2DH12_drdy_event_t g_fp_drdyCb = NULL;        /**< Data Ready Callback */
+static sensor_buffer_t g_sensorData[25];                /**< Union to covert raw data to value for each axis, conserve room for FiFo */
+static int8_t g_dataIndex = 0;                         /**< Index of data being read */
 static LIS2DH12_PowerMode g_powerMode = LIS2DH12_POWER_DOWN; /**< Current power mode */
 static LIS2DH12_Scale g_scale = LIS2DH12_SCALE2G;       /**< Selected scale */
 static uint8_t g_mgpb = 1;                              /**< milli-g per bit */
 static uint8_t g_resolution = 10;                        /**< milli-g nb of bits */
 static bool g_drdy = false;                             /**< Data Ready flag */
+static bool g_fifo = false;                             /**< using FiFo      */
 
 /* EXTERNAL FUNCTIONS *****************************************************************************/
 
@@ -137,6 +139,7 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
     LIS2DH12_Ret retVal = LIS2DH12_RET_OK;
     uint8_t ctrl1RegVal = 0;
     uint8_t ctrl4RegVal = 0;
+    uint8_t ctrl5RegVal = 0;
     uint32_t time_ms = 0;
     uint32_t err_code; 
 
@@ -151,7 +154,7 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
     switch(g_scale)
     {
     case LIS2DH12_SCALE2G:
-      g_mgpb = 1;                           //Sensitivity per bit
+      g_mgpb = 1; 
       break;
     case LIS2DH12_SCALE4G:
       g_mgpb = 2; 
@@ -175,18 +178,23 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
         g_resolution = 10;
         ctrl4RegVal |= LIS2DH_HR_MASK;
         time_ms = 10U;
+        g_fifo = false;      
         break;
     case LIS2DH12_POWER_LOW:
         ctrl1RegVal |= (LIS2DH_ODR_MASK_1HZ); //Power consumption is same for low-power and normal mode at 1 Hz
         g_mgpb = 4 << g_scale; // 4 bits per mg at normal power/2g, adjust by scaling
         g_resolution = 10;
         time_ms = 1000U;
+        g_fifo = false;
         break;
     case LIS2DH12_POWER_FAST:
         ctrl1RegVal |= (LIS2DH_ODR_MASK_1620HZ | LIS2DH_LPEN_MASK);
         g_mgpb = 16 << g_scale; // 16 mg per bit at low power/2g, adjust by scaling
         g_resolution = 8;
-        time_ms = 1;
+        g_mgpb <<= 2; 
+        time_ms = 1000U;
+        g_fifo = false;      
+        break;
         break;
     case LIS2DH12_POWER_HIGHRES:
         ctrl1RegVal |= LIS2DH_ODR_MASK_HIGH_RES;
@@ -194,10 +202,19 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
         g_mgpb = 1 << g_scale; // 1 mg bits per mg at high power/2g, adjust by scaling
         g_resolution = 12;
         time_ms = 1;
+        g_fifo = false;
+        break;
+    case LIS2DH12_POWER_BURST:
+        ctrl1RegVal |= (LIS2DH_ODR_MASK_25HZ);
+        ctrl4RegVal |= (LIS2DH_HR_MASK);
+        ctrl5RegVal |= (LIS2DH_FIFO_EN_MASK);
+        time_ms = 1000U;
+        g_fifo = true;
         break;
     case LIS2DH12_POWER_DOWN:
         ctrl1RegVal = 0;
         time_ms = 0;
+        g_fifo = false;
         break;
     default:
         retVal = LIS2DH12_RET_ERROR;
@@ -207,6 +224,7 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
     {
         retVal = writeRegister(LIS2DH_CTRL_REG1, ctrl1RegVal);
         retVal |= writeRegister(LIS2DH_CTRL_REG4, ctrl4RegVal);
+        retVal |= writeRegister(LIS2DH_CTRL_REG5, ctrl5RegVal);
     }
 
     /* save power mode to check in get functions if power is enabled */
@@ -237,7 +255,6 @@ extern LIS2DH12_Ret LIS2DH12_getXmG(int32_t* const accX)
     }
     else
     {
-
         //Scale value, note: values from accelerometer are 16-bit 2's complement left-justified in all cases. "Extra" LSBs will be noise 
         //Add 32768 (1<<(16-1) to get positive, shift, substract (1<<(resolution-1), scale voila!
         *accX = (((32768+g_sensorData.sensor.x)>>(16-g_resolution))-(1<<(g_resolution-1)))*g_mgpb ;
@@ -260,7 +277,7 @@ extern LIS2DH12_Ret LIS2DH12_getYmG(int32_t* const accY)
         //Scale value, note: values from accelerometer are 16-bit left-justified in all cases. "Extra" LSBs will be noise 
         //Do not bit shift mg as bit shifting negative values is implementation specific operation.
         //Scale 1/1024 to 1 / 1000.
-        *accY = g_sensorData.sensor.y / (1 << g_resolution) * g_mgpb;
+        *accY = g_sensorData[g_dataIndex].sensor.y / (2 << (g_scale)) * g_mgpb;
     }
 
     return retVal;
@@ -279,13 +296,16 @@ extern LIS2DH12_Ret LIS2DH12_getZmG(int32_t* const accZ)
         //Scale value, note: values from accelerometer are 16-bit left-justified in all cases. "Extra" LSBs will be noise 
         //Do not bit shift mg as bit shifting negative values is implementation specific operation.
         //Scale 1/1024 to 1 / 1000.
-        NRF_LOG_DEBUG("Raw value: %d\r\n", g_sensorData.sensor.z);
-        *accZ = g_sensorData.sensor.z / (1 << g_resolution) * g_mgpb;
+        NRF_LOG_DEBUG("Raw value: %d\r\n", g_sensorData[g_dataIndex].sensor.z);
+        *accZ = g_sensorData[g_dataIndex].sensor.z / (2 << (g_scale)) * g_mgpb;
     }
 
     return retVal;
 }
 
+/**
+ *  Read oldest unread element from Fifo / latest sample from accelerometer. Autoincrements index after read.
+ */
 extern LIS2DH12_Ret LIS2DH12_getALLmG(int32_t* const accX, int32_t* const accY, int32_t* const accZ)
 {
     LIS2DH12_Ret retVal = LIS2DH12_RET_OK;
@@ -301,7 +321,22 @@ extern LIS2DH12_Ret LIS2DH12_getALLmG(int32_t* const accX, int32_t* const accY, 
         LIS2DH12_getZmG(accZ);
     }
 
+    if(g_dataIndex){
+      g_dataIndex--;  //Decrement dataindex if we have elements in FiFo
+    }
     return retVal;
+}
+
+/**
+ *  Return number of elements waiting in FiFo. Returns 0 if sample in FiFo is latest, I.E. proper way to read FiFo is:
+ *  uint8_t count = UINT8_T_MAX;
+ *  while (count){
+ *    count = LIS2DH12_getFifoDepth();
+ *    LIS2DH12_getAllmG( ... );
+ *  }
+ */
+int8_t LIS2DH12_getFifoDepth(void){
+  return g_dataIndex;
 }
 
 /* INTERNAL FUNCTIONS *****************************************************************************/
@@ -389,7 +424,7 @@ static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite)
 {
     LIS2DH12_Ret retVal = LIS2DH12_RET_ERROR;
     SPI_Ret retValSpi = SPI_RET_ERROR;
-    uint8_t to_read[2] = {0U};  /* dummy, not used for writing */
+    uint8_t to_read[2] = {0U}; /* dummy, not used for writing */
     uint8_t to_write[2] = {0U};
     uint8_t ii = 0; /* retry counter */
 
@@ -432,18 +467,41 @@ static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite)
  */
 void timer_lis2dh12_event_handler(void* p_context)
 {
-    NRF_LOG_DEBUG("LIS2DH12 Timer event'\r\n");
+    NRF_LOG_DEBUG("LIS2DH12 Timer event\r\n");
+    LIS2DH12_Ret retVal = LIS2DH12_RET_ERROR;
     //nrf_gpio_pin_toggle(19);
-
-    if (LIS2DH12_RET_OK == readRegister(LIS2DH_OUT_X_L, g_sensorData.raw, SENSOR_DATA_SIZE))
+    g_drdy = false; //Reset data ready flag
+    g_dataIndex = 24; //Reset data index to oldest element
+    if(!g_fifo)
     {
-        /* if read was successfull set data ready */
-        g_drdy = true;
-
-        /* call data ready event callback if registered */
-        if (NULL != g_fp_drdyCb)
-        {
-            g_fp_drdyCb();
-        }
+      g_dataIndex = 0; //Use only newest element if FiFo is not in use
     }
+
+    while ((g_dataIndex >= 0) && (LIS2DH12_RET_OK == (retVal = readRegister(LIS2DH_OUT_X_L, g_sensorData[g_dataIndex].raw, SENSOR_DATA_SIZE))))
+    {
+        g_dataIndex--; //Decrement index to accommodate newer value from FiFo
+        NRF_LOG_DEBUG("%d ", g_dataIndex);    
+    }
+    
+    //If FiFo is in use point to oldest element
+    if(g_fifo)
+    {
+      g_dataIndex = 24;
+      //Reset LIS FiFo
+      writeRegister(LIS2DH_CTRL_REG5, 0);
+      writeRegister(LIS2DH_CTRL_REG5, LIS2DH_FIFO_EN_MASK);
+    }
+
+    /* if read was successfull set data ready */
+    if(LIS2DH12_RET_OK == retVal)
+    {
+      g_drdy = true;
+      /* call data ready event callback if registered and we're at last sample*/
+      if (NULL != g_fp_drdyCb)
+      {
+        g_fp_drdyCb();
+      }
+    }    
+    
+
 }
