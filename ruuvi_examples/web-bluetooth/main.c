@@ -54,6 +54,7 @@
 #include "nrf_ble_qwr.h"
 
 #include "init.h"
+#include "bluetooth_core.h"
 
 #define DEAD_BEEF                        0xDEADBEEF                       /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. **/
 
@@ -129,9 +130,6 @@ int main(void)
   
     //100 Hz sample rate 
     LIS2DH12_setPowerMode(LIS2DH12_POWER_NORMAL);
-  
-    NRF_LOG_INFO("Bluetooth Dev Studio Start Advertising \r\n");
-    advertising_start(BLE_GAP_ADV_TYPE_ADV_IND);
 
     nrf_gpio_pin_set(LED_RED);//Turn RED led off.
 

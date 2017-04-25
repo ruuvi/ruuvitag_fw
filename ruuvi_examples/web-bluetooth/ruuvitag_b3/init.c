@@ -82,8 +82,8 @@ uint8_t init_ble(void)
     gap_params_init();
     NRF_LOG_INFO("GAP init\r\n");
 
-    advertising_init(NULL, 0);            //No manufacturer specific data
-    NRF_LOG_INFO("Advertising init\r\n");
+    NRF_LOG_INFO("Bluetooth Dev Studio Start Advertising \r\n");
+    ble_advertising_start(BLE_GAP_ADV_TYPE_ADV_IND);
 
     services_init();
     NRF_LOG_INFO("Services init\r\n");
