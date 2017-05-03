@@ -25,6 +25,8 @@ typedef enum
     BLE_ESS_TEMPERATURE_EVT_CCCD_WRITE, /**< Temperature CCCD write event. */
     BLE_ESS_HUMIDITY_EVT_NOTIFICATION_ENABLED,  /**< Humidity value notification enabled event. */
     BLE_ESS_HUMIDITY_EVT_NOTIFICATION_DISABLED, /**< Humidity value notification disabled event. */
+    BLE_ESS_HUMIDITY_EVT_CCCD_WRITE, /**< Humidity CCCD write event. */
+    BLE_ESS_HUMIDITY_EVT_WRITE, /**< Humidity write event. */
     BLE_ESS_BAROMETRIC_PRESSURE_TREND_EVT_NOTIFICATION_ENABLED,  /**< Barometric Pressure Trend value notification enabled event. */
     BLE_ESS_BAROMETRIC_PRESSURE_TREND_EVT_NOTIFICATION_DISABLED, /**< Barometric Pressure Trend value notification disabled event. */
 } ble_ess_evt_type_t;
@@ -83,6 +85,7 @@ typedef struct
     ble_ess_evt_type_t evt_type;    /**< Type of event. */
     union {
         uint16_t cccd_value; /**< Holds decoded data in Notify and Indicate event handler. */
+        ble_ess_humidity_t humidity; /**< Holds decoded data in Write event handler. */
     } params;
 } ble_ess_evt_t;
 
@@ -181,6 +184,32 @@ uint32_t ble_ess_temperature_set(ble_ess_t * p_ess, ble_ess_temperature_t * p_te
  */
 uint32_t ble_ess_temperature_send(ble_ess_t * p_ess, ble_ess_temperature_t * p_temperature);
 
+/**@brief Function for setting the Humidity.
+ *
+ * @details Sets a new value of the Humidity characteristic. The new value will be sent
+ *          to the client the next time the client reads the Humidity characteristic.
+ *          This function is only generated if the characteristic's Read property is not 'Excluded'.
+ *
+ * @param[in]   p_ess                 Environmental Sensing Service structure.
+ * @param[in]   p_humidity  New Humidity.
+ *
+ * @return      NRF_SUCCESS on success, otherwise an error code.
+ */
+uint32_t ble_ess_humidity_set(ble_ess_t * p_ess, ble_ess_humidity_t * p_humidity);
+
+/**@brief Function for sending the Humidity.
+ *
+ * @details The application calls this function after having performed a humidity.
+ *          The humidity data is encoded and sent to the client.
+ *          This function is only generated if the characteristic's Notify or Indicate property is not 'Excluded'.
+ *
+ * @param[in]   p_ess                    Environmental Sensing Service structure.
+ * @param[in]   p_humidity               New humidity.
+ *
+ * @return      NRF_SUCCESS on success, otherwise an error code.
+ */
+uint32_t ble_ess_humidity_send(ble_ess_t * p_ess, ble_ess_humidity_t * p_humidity);
+
 /**@brief Function for setting the Barometric Pressure Trend.
  *
  * @details Sets a new value of the Barometric Pressure Trend characteristic. The new value will be sent
@@ -195,3 +224,4 @@ uint32_t ble_ess_temperature_send(ble_ess_t * p_ess, ble_ess_temperature_t * p_t
 uint32_t ble_ess_barometric_pressure_trend_set(ble_ess_t * p_ess, ble_ess_barometric_pressure_trend_t * p_barometric_pressure_trend);
 
 #endif //_BLE_ESS_H__
+

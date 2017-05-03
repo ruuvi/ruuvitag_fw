@@ -28,7 +28,7 @@
 //stdlib
 #include <string.h>
 
-//static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}}; /**< Universally unique service identifiers. */
+static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}}; /**< Universally unique service identifiers. */
 
 /**
  * Initialize logging
@@ -49,6 +49,31 @@ uint8_t init_log(void)
     APP_ERROR_CHECK(err_code);
     NRF_LOG_INFO("Logging init\r\n");
     return (NRF_SUCCESS == err_code) ? 0 : 1;
+}
+
+/**@brief Function for initializing the Advertising functionality.
+ */
+void advertising_init(void)
+{
+    uint32_t      err_code;
+    ble_advdata_t advdata;
+
+    // Build advertising data struct to pass into @ref ble_advertising_init.
+    memset(&advdata, 0, sizeof(advdata));
+
+    advdata.name_type               = BLE_ADVDATA_FULL_NAME;
+    advdata.include_appearance      = true;
+    advdata.flags                   = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+    advdata.uuids_complete.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]);
+    advdata.uuids_complete.p_uuids  = m_adv_uuids;
+
+    ble_adv_modes_config_t options = {0};
+    options.ble_adv_fast_enabled  = true;
+    options.ble_adv_fast_interval = APP_ADV_INTERVAL;
+    options.ble_adv_fast_timeout  = APP_ADV_TIMEOUT_IN_SECONDS;
+
+    err_code = ble_advertising_init(&advdata, NULL, &options, on_adv_evt, NULL);
+    APP_ERROR_CHECK(err_code);
 }
 
 /**
@@ -74,6 +99,8 @@ uint8_t init_ble(void)
     err_code =  ble_stack_init();
     NRF_LOG_INFO("BLE Stack init\r\n");
     APP_ERROR_CHECK(err_code);
+    
+    init_register_events();
 
     //Initialize Peer Manager, erase bonds
     peer_manager_init(true);
@@ -82,19 +109,22 @@ uint8_t init_ble(void)
     gap_params_init();
     NRF_LOG_INFO("GAP init\r\n");
 
-    NRF_LOG_INFO("Bluetooth Dev Studio Start Advertising \r\n");
-    ble_advertising_start(BLE_GAP_ADV_TYPE_ADV_IND);
+    //TODO: Move to BLE Core    
+    advertising_init();
+    NRF_LOG_INFO("Advertising init\r\n");
 
     services_init();
     NRF_LOG_INFO("Services init\r\n");
-
-    init_register_events();
 
     // Initialize timer module for connection parameters TODO: remove / refactor
     APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, true);
 
     conn_params_init();
     NRF_LOG_INFO("Conn params init\r\n");
+    
+    //Start advertising    
+    ble_advertising_start(BLE_ADV_MODE_FAST);
+    NRF_LOG_INFO("Bluetooth Dev Studio Start Advertising \r\n");
    
     return (NRF_SUCCESS == err_code) ? 0 : 1;
 }

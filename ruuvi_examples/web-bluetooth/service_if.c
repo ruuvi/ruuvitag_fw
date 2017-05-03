@@ -18,7 +18,7 @@
 #include "application.h"
 
 //Globally visible so application can access values - statics TODO
-static ble_ess_t    m_ess; 
+ble_ess_t           m_ess; 
 static ble_dis_t    m_dis; 
 static ble_bas_t    m_bas; 
 static ble_tps_t    m_tps; 
@@ -60,6 +60,18 @@ static void on_ess_evt(ble_ess_t * p_ess, ble_ess_evt_t * p_evt)
             break;
         case BLE_ESS_TEMPERATURE_EVT_CCCD_WRITE:
             NRF_LOG_INFO("ESS_TEMPERATURE evt CCCD_WRITE. \r\n");
+            break; 
+        case BLE_ESS_HUMIDITY_EVT_NOTIFICATION_ENABLED:
+            NRF_LOG_INFO("ESS_HUMIDITY evt NOTIFICATION_ENABLED. \r\n");
+            break;
+        case BLE_ESS_HUMIDITY_EVT_NOTIFICATION_DISABLED:
+            NRF_LOG_INFO("ESS_HUMIDITY evt NOTIFICATION_DISABLED. \r\n");
+            break;
+        case BLE_ESS_HUMIDITY_EVT_CCCD_WRITE:
+            NRF_LOG_INFO("ESS_HUMIDITY evt CCCD_WRITE. \r\n");
+            break; 
+        case BLE_ESS_HUMIDITY_EVT_WRITE:
+            NRF_LOG_INFO("ESS_HUMIDITY evt WRITE. \r\n");
             break; 
         default:
             // No implementation needed.

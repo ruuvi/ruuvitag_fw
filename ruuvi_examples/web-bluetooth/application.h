@@ -18,4 +18,9 @@
  */
 void accelerometer_callback(void);
 
+/**
+ *  This function is called when new environmental sample is ready.
+ */
+void environmental_callback(void);
+
 #endif

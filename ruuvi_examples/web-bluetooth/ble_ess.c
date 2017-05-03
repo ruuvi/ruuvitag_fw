@@ -13,6 +13,7 @@
 /* TODO Consider changing the max values if encoded data for characteristic/descriptor is fixed length */ 
 #define MAX_PRESSURE_LEN (BLE_L2CAP_MTU_DEF - OPCODE_LENGTH - HANDLE_LENGTH) /**< Maximum size of a transmitted Pressure. */ 
 #define MAX_TEMPERATURE_LEN (BLE_L2CAP_MTU_DEF - OPCODE_LENGTH - HANDLE_LENGTH) /**< Maximum size of a transmitted Temperature. */ 
+#define MAX_HUMIDITY_LEN (BLE_L2CAP_MTU_DEF - OPCODE_LENGTH - HANDLE_LENGTH) /**< Maximum size of a transmitted Humidity. */ 
 #define MAX_BAROMETRIC_PRESSURE_TREND_LEN (BLE_L2CAP_MTU_DEF - OPCODE_LENGTH - HANDLE_LENGTH) /**< Maximum size of a transmitted Barometric Pressure Trend. */ 
 
 /**@brief Function for encoding Pressure.
@@ -43,6 +44,35 @@ static uint8_t temperature_encode(ble_ess_temperature_t * p_temperature, uint8_t
     return len;
 }
 
+/**@brief Function for encoding Humidity.
+ *
+ * @param[in]   p_humidity              Humidity characteristic structure to be encoded.
+ * @param[out]  p_encoded_buffer   Buffer where the encoded data will be written.
+ *
+ * @return      Size of encoded data.
+ */
+static uint8_t humidity_encode(ble_ess_humidity_t * p_humidity, uint8_t * encoded_buffer)
+{
+    uint8_t len = 0; 
+    len += bds_uint16_encode(&p_humidity->humidity, &encoded_buffer[len]); 
+    return len;
+}
+
+/**@brief Function for decoding Humidity.
+ *
+ * @param[in]   data_len              Length of the field to be decoded.
+ * @param[in]   p_data                Buffer where the encoded data is stored.
+ * @param[out]  p_write_val           Decoded data.
+ *
+ * @return      Length of the decoded field.
+ */
+static uint8_t humidity_decode(uint8_t data_len, uint8_t * p_data, ble_ess_humidity_t * p_write_val)
+{
+    uint8_t pos = 0;
+    pos += bds_uint16_decode((data_len-pos), &p_data[pos], &p_write_val->humidity); 
+
+    return pos;
+} 
 /**@brief Function for encoding Barometric Pressure Trend.
  *
  * @param[in]   p_barometric_pressure_trend              Barometric Pressure Trend structure to be encoded.
@@ -122,6 +152,26 @@ static void on_write(ble_ess_t * p_ess, ble_gatts_evt_write_t * p_ble_evt)
             p_ess->evt_handler(p_ess, &evt);
         }
     } 
+    if(p_ble_evt->handle == p_ess->humidity_handles.cccd_handle)
+    {
+        if(p_ess->evt_handler != NULL)
+        {
+            ble_ess_evt_t evt;
+            evt.evt_type = BLE_ESS_HUMIDITY_EVT_CCCD_WRITE;
+            bds_uint16_decode(p_ble_evt->len, p_ble_evt->data, &evt.params.cccd_value);
+            p_ess->evt_handler(p_ess, &evt);
+        }
+    } 
+    if(p_ble_evt->handle == p_ess->humidity_handles.value_handle)
+    {
+        if(p_ess->evt_handler != NULL)
+        {
+            ble_ess_evt_t evt;
+            evt.evt_type = BLE_ESS_HUMIDITY_EVT_WRITE;
+            humidity_decode(p_ble_evt->len, p_ble_evt->data, &evt.params.humidity);
+            p_ess->evt_handler(p_ess, &evt);
+        }
+    }
 }
 
 /**@brief Authorize WRITE request event handler.
@@ -146,6 +196,10 @@ static void on_rw_authorize_request(ble_ess_t * p_ess, ble_gatts_evt_t * p_gatts
            )
         {
         
+            if (p_auth_req->request.write.handle == p_ess->humidity_handles.value_handle)
+            {
+                on_write(p_ess, &p_auth_req->request.write);
+            }
         }
     }
 }
@@ -250,6 +304,32 @@ uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
     add_temperature_params.is_var_len          = 1; 
 
     err_code = characteristic_add(p_ess->service_handle, &add_temperature_params, &(p_ess->temperature_handles));
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    } 
+
+    // Add Humidity characteristic
+    ble_ess_humidity_t humidity_initial_value = p_ess_init->ble_ess_humidity_initial_value; 
+
+    uint8_t humidity_encoded_value[MAX_HUMIDITY_LEN];
+    ble_add_char_params_t add_humidity_params;
+    memset(&add_humidity_params, 0, sizeof(add_humidity_params));
+    
+    add_humidity_params.uuid                = 0x2A6F; 
+    add_humidity_params.max_len             = MAX_HUMIDITY_LEN;
+    add_humidity_params.init_len            = humidity_encode(&humidity_initial_value, humidity_encoded_value);
+    add_humidity_params.p_init_value        = humidity_encoded_value; 
+    add_humidity_params.char_props.notify   = 1; 
+    add_humidity_params.char_props.read     = 1; 
+    add_humidity_params.read_access         = SEC_OPEN; 
+    add_humidity_params.char_props.write    = 1; 
+    add_humidity_params.write_access        = SEC_OPEN; 
+    add_humidity_params.cccd_write_access   = SEC_OPEN;
+    // 1 for variable length and 0 for fixed length.
+    add_humidity_params.is_var_len          = 1; 
+
+    err_code = characteristic_add(p_ess->service_handle, &add_humidity_params, &(p_ess->humidity_handles));
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -374,6 +454,53 @@ uint32_t ble_ess_temperature_send(ble_ess_t * p_ess, ble_ess_temperature_t * p_t
     return err_code;
 }
 
+/**@brief Function for setting the Humidity. */
+uint32_t ble_ess_humidity_set(ble_ess_t * p_ess, ble_ess_humidity_t * p_humidity)
+{
+    ble_gatts_value_t gatts_value;
+    uint8_t encoded_value[MAX_HUMIDITY_LEN];
+
+    // Initialize value struct.
+    memset(&gatts_value, 0, sizeof(gatts_value));
+
+    gatts_value.len     = humidity_encode(p_humidity, encoded_value);
+    gatts_value.offset  = 0;
+    gatts_value.p_value = encoded_value;
+
+    return sd_ble_gatts_value_set(p_ess->conn_handle, p_ess->humidity_handles.value_handle, &gatts_value);
+}
+
+/**@brief Function for sending the Humidity. */
+uint32_t ble_ess_humidity_send(ble_ess_t * p_ess, ble_ess_humidity_t * p_humidity)
+{
+    uint32_t err_code = NRF_SUCCESS;
+
+    if (p_ess->conn_handle != BLE_CONN_HANDLE_INVALID)
+    {
+        ble_gatts_hvx_params_t hvx_params;
+        uint8_t encoded_value[MAX_HUMIDITY_LEN];
+        uint16_t hvx_len;
+
+        // Initialize value struct.
+        memset(&hvx_params, 0, sizeof(hvx_params));
+
+        hvx_len           = humidity_encode(p_humidity, encoded_value);
+        hvx_params.handle = p_ess->humidity_handles.value_handle;
+        hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
+        hvx_params.p_len  = &hvx_len;
+        hvx_params.offset = 0;
+        hvx_params.p_data = encoded_value;
+
+        err_code = sd_ble_gatts_hvx(p_ess->conn_handle, &hvx_params);
+    }
+    else
+    {
+        err_code = NRF_ERROR_INVALID_STATE;
+    }
+
+    return err_code;
+}
+
 /**@brief Function for setting the Barometric Pressure Trend. */
 uint32_t ble_ess_barometric_pressure_trend_set(ble_ess_t * p_ess, ble_ess_barometric_pressure_trend_t * p_barometric_pressure_trend)
 {
@@ -389,4 +516,5 @@ uint32_t ble_ess_barometric_pressure_trend_set(ble_ess_t * p_ess, ble_ess_barome
 
     return sd_ble_gatts_value_set(p_ess->conn_handle, p_ess->barometric_pressure_trend_handles.value_handle, &gatts_value);
 }
+
 
