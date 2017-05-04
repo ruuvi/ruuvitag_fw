@@ -147,9 +147,15 @@ enum BME280_INTERVAL {
 	BME280_STANDBY_1000_MS = 0xA0
 };
 
+<<<<<<< HEAD
 /**
  *  Initialises BME280 in sleep mode, all sensors enabled
  */
+=======
+/** Data Ready Event Callback Type */
+typedef void (*BME280_drdy_event_t)(void);
+
+>>>>>>> Add callback to bme280 driver
 BME280_Ret bme280_init();
 
 /**
@@ -190,6 +196,7 @@ BME280_Ret bme280_read_measurements();
 BME280_Ret bme280_set_oversampling_hum(uint8_t os);
 BME280_Ret bme280_set_oversampling_temp(uint8_t os);
 BME280_Ret bme280_set_oversampling_press(uint8_t os);
+<<<<<<< HEAD
 
 /**
  *  Set IIR filter to low pass measurements. off, 2, 4, 8, 16
@@ -197,6 +204,9 @@ BME280_Ret bme280_set_oversampling_press(uint8_t os);
  */
 BME280_Ret bme280_set_iir(uint8_t iir);
 
+=======
+BME280_Ret bme280_set_callback(BME280_drdy_event_t cb);
+>>>>>>> Add callback to bme280 driver
 /**
  * Returns temperature in DegC, resolution is 0.01 DegC.
  * Output value of “2134” equals 21.34 DegC.

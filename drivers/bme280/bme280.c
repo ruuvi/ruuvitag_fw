@@ -57,6 +57,9 @@ APP_TIMER_DEF(bme280_timer_id);                                             /** 
 /* Prototypes */
 void timer_bme280_event_handler(void* p_context);
 
+/* Function pointer for timer */
+static BME280_drdy_event_t g_fp_drdyCb = NULL;        /**< Data Ready Callback */
+
 BME280_Ret bme280_init()
 {
 
@@ -184,6 +187,12 @@ BME280_Ret bme280_set_interval(enum BME280_INTERVAL interval)
   status = bme280_write_reg(BME280REG_CONFIG, conf);
 
   return status;
+}
+
+BME280_Ret bme280_set_callback(BME280_drdy_event_t cb)
+{
+  g_fp_drdyCb = cb;
+  return BME280_RET_OK;
 }
 
 
@@ -387,6 +396,14 @@ BME280_Ret bme280_write_reg(uint8_t reg, uint8_t value)
  */
 void timer_bme280_event_handler(void* p_context)
 {
+    NRF_LOG_DEBUG("Timer ");
     bme280_read_measurements(); //read previous data
-    //TODO: Add callback
+    
+    //Call callback if assigned
+    if(NULL != g_fp_drdyCb)
+    {
+      NRF_LOG_DEBUG("CB ");
+      g_fp_drdyCb();
+    }
+    NRF_LOG_DEBUG("OK\r\n");
 }
