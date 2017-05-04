@@ -16,7 +16,6 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../libraries/base91/base91.c \
   $(PROJ_DIR)/../../libraries/bluetooth/bluetooth_core.c \
-  $(PROJ_DIR)/ruuvitag_b3/init.c \
   $(PROJ_DIR)/main.c \
   $(PROJ_DIR)/application.c \
   $(PROJ_DIR)/ble_acceleration_service.c \

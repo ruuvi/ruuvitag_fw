@@ -75,9 +75,40 @@ void environmental_callback(void)
     //bme280_read_measurements();
     //TODO: Check BLE sig standards on how values should be presented.
     uint32_t err_code;
+    
+    // Unit is in percent with a resolution of 0.01 percent
+    // https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.humidity.xml&u=org.bluetooth.characteristic.humidity.xml&_ga=2.230244693.836809453.1493828806-422840083.1493828806
+    /**
+    * Returns humidity in %RH as unsigned 32 bit integer in Q22.10 format
+    * (22 integer and 10 fractional bits).
+    * Output value of “50532” represents 50532/1024 = 49.356 %RH
+    */
     uint32_t humidity = bme280_get_humidity();
+    //Scale by 100x
+    humidity *= 100;
+    //Divide into 0.01 accuracy
+    humidity /= 1024;
+    
+    // Unit is in pascals with a resolution of 0.1 Pa 
+    // https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.pressure.xml&u=org.bluetooth.characteristic.pressure.xml&_ga=2.24077043.836809453.1493828806-422840083.1493828806
+    /**
+    * Returns pressure in Pa as unsigned 32 bit integer in Q24.8 format
+    * (24 integer bits and 8 fractional bits).
+    * Output value of “24674867” represents 24674867/256 = 96386.2 Pa = 963.862 hPa
+    */
     uint32_t pressure = bme280_get_pressure();
-    int32_t  temperature  = bme280_get_temperature();
+    //Scale by 10x
+    pressure *= 10;
+    //Divide into 0.1 Pa
+    pressure /= 256;
+    
+    // Unit is in degrees Celsius with a resolution of 0.01 degrees 
+    // https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.temperature.xml&u=org.bluetooth.characteristic.temperature.xml&_ga=2.24077043.836809453.1493828806-422840083.1493828806
+    /**
+    * Returns temperature in DegC, resolution is 0.01 DegC.
+    * Output value of “2134” equals 21.34 DegC.
+    */
+    int32_t  temperature = bme280_get_temperature();
     
     p_humidity->humidity = humidity;
     p_temperature->temperature = temperature;
@@ -97,5 +128,5 @@ void environmental_callback(void)
     err_code |= ble_ess_humidity_send(p_ess, p_humidity);
     
     err_code |= ble_ess_barometric_pressure_trend_set (p_ess, p_trend); 
-    APP_ERROR_CHECK(err_code);
+    //APP_ERROR_CHECK(err_code); Fails if notifications are not registered
 }

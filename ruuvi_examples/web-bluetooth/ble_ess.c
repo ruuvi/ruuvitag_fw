@@ -242,7 +242,7 @@ uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
     p_ess->conn_handle = BLE_CONN_HANDLE_INVALID;
     
     // Add a custom base UUID.
-    ble_uuid128_t bds_base_uuid = {{0xC7, 0xE9, 0x01, 0x22, 0x16, 0x0C, 0xB8, 0x9B, 0xE5, 0x45, 0x7D, 0x1D, 0x00, 0x00, 0x67, 0xAE}};
+    /*ble_uuid128_t bds_base_uuid = {{0xC7, 0xE9, 0x01, 0x22, 0x16, 0x0C, 0xB8, 0x9B, 0xE5, 0x45, 0x7D, 0x1D, 0x00, 0x00, 0x67, 0xAE}};
     uint8_t       uuid_type;
     err_code = sd_ble_uuid_vs_add(&bds_base_uuid, &uuid_type);
     if (err_code != NRF_SUCCESS)
@@ -250,7 +250,10 @@ uint32_t ble_ess_init(ble_ess_t * p_ess, const ble_ess_init_t * p_ess_init)
         return err_code;
     }
     ble_uuid.type = uuid_type;
-    ble_uuid.uuid = 0x79C9;
+    ble_uuid.uuid = 0x79C9;*/
+    
+    // Use standard ESS 16-bit UUID
+    BLE_UUID_BLE_ASSIGN(ble_uuid, 0x181A);
         
     // Add service
     err_code = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY, &ble_uuid, &p_ess->service_handle);

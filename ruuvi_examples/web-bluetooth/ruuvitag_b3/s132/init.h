@@ -18,26 +18,14 @@
 #include "app_timer_appsh.h"
 #include "nrf_drv_clock.h"
 #include "nrf_gpio.h"
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
 #include "nrf_delay.h"
 
-//BSP
-#include "bsp.h"
-
-//Drivers
-#include "LIS2DH12.h"
-#include "bme280.h"
-
-//Libraries
-#include "bluetooth_core.h"
-
 //Timers
-#define APP_TIMER_PRESCALER             RUUVITAG_APP_TIMER_PRESCALER      /**< Value of the RTC1 PRESCALER register. */
-#define APP_TIMER_OP_QUEUE_SIZE         RUUVITAG_APP_TIMER_OP_QUEUE_SIZE  /**< Size of timer operation queues. */
+#define APP_TIMER_PRESCALER              0                                          /**< Value of the RTC1 PRESCALER register. */
+#define APP_TIMER_OP_QUEUE_SIZE          4                                          /**< Size of timer operation queues. */
 // Scheduler settings                                         
 #define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, sizeof(nrf_drv_gpiote_pin_t))
-#define SCHED_QUEUE_SIZE                10
+#define SCHED_QUEUE_SIZE                25
 
 #define ERROR_BLINK_INTERVAL 250u   //toggle interval of error led
 #define INIT_OK_DELAY        3000u  //delay after successful init
@@ -50,7 +38,7 @@
  * 
  * 
  * 
- * @return 0          Operation successful
+ * @retval 0          Operation successful
  * @retval 1          Something went wrong
  *
  */
@@ -64,11 +52,45 @@ uint8_t init_log(void);
  * and clocks even if the do not use BLE functionality
  *  
  * 
- * @return 0          Operation successful
+ * @retval 0          Operation successful
  * @retval 1          Something went wrong
  *
  */
 uint8_t init_ble(void);
+
+/**@brief Function for the GAP initialization.
+ *
+ * @details This function sets up all the necessary GAP (Generic Access Profile) parameters of the
+ *          device including the device name, appearance, and the preferred connection parameters.
+ */
+void gap_params_init(void);
+
+/**@brief Function for initializing services that will be used by the application.
+ */
+void services_init(void);
+
+/**@brief Function for the Peer Manager initialization.
+ *
+ * @param[in] erase_bonds  Indicates whether bonding information should be cleared from
+ *                         persistent storage during initialization of the Peer Manager.
+ */
+void peer_manager_init(bool erase_bonds);
+
+/**@brief Function for initializing the Advertising functionality.
+ */
+//void advertising_init(void);
+
+/**@brief Function for initializing the Connection Parameters module.
+ */
+void conn_params_init(void);
+
+/**
+ * Register event handlers
+ *
+ * This function registers all event handlers used in application
+ *
+ */
+void init_register_events(void);
 
 /**
  * Initialize timers
@@ -80,7 +102,7 @@ uint8_t init_ble(void);
  * @param main_interval Interval at which the main loop should be run in ms
  * @param timer_handler function to be called at main interval
  * 
- * @return 0          Operation successful
+ * @retval 0          Operation successful
  * @retval 1          Something went wrong
  *
  */
@@ -91,7 +113,7 @@ uint8_t init_timer(app_timer_id_t main_timer_id, uint32_t main_interval, void (*
  *
  * This function initializes GPIO for leds
  * 
- * @return 0          Operation successful
+ * @retval 0          Operation successful
  * @retval 1          Something went wrong
  *
  */
@@ -103,7 +125,7 @@ uint8_t init_leds(void);
  * This function initializes GPIO for buttons
  * TODO: event / interrupt driven button reading 
  *
- * @return 0          Operation successful
+ * @retval 0          Operation successful
  * @retval 1          Something went wrong
  *
  */
@@ -116,7 +138,7 @@ uint8_t init_buttons(void);
  * It should be called even if sensors are not used, 
  * since initialization will put sensors in low-power mode
  *
- * @return 0          Operation successful
+ * @retval 0          Operation successful
  * @retval 1          Something went wrong
  *
  */

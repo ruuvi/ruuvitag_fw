@@ -53,8 +53,15 @@
 #include "nrf_log_ctrl.h"
 #include "nrf_ble_qwr.h"
 
+
 #include "init.h"
+
+//Libraries
 #include "bluetooth_core.h"
+
+//Drivers
+#include "LIS2DH12.h"
+#include "bme280.h"
 
 #define DEAD_BEEF                        0xDEADBEEF                       /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. **/
 
@@ -127,15 +134,18 @@ int main(void)
   
     //Visually display init status. Hangs if there was an error, waits 3 seconds on success
     init_blink_status(init_status);
-  
-    //100 Hz sample rate 
-    LIS2DH12_setPowerMode(LIS2DH12_POWER_NORMAL);
 
     nrf_gpio_pin_set(LED_RED);//Turn RED led off.
 
     NRF_LOG_INFO("Execute schedule after init \r\n");
     //Clear schedule to avoid bad data at boot
     app_sched_execute();
+    
+    //Start sensors
+    //25 Hz sample rate, read at 1 Hz
+    LIS2DH12_setPowerMode(LIS2DH12_POWER_BURST);
+    bme280_set_mode(BME280_MODE_NORMAL);
+    NRF_LOG_INFO("Sensors started \r\n");
 
 
     for (;;)
