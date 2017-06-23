@@ -1,0 +1,48 @@
+--------------------------------------------------------------------------------
+/home/ruuvi-user/Downloads/nrfjprog/nrfjprog --family nrf52 --program _build/weather_station.hex --sectoranduicrerase --log
+nrfjprog verion 9.0.0
+--------------------------------------------------------------------------------
+FUNCTION: open_dll.
+FUNCTION: open_dll.
+FUNCTION: enum_emu_snr.
+FUNCTION: enum_emu_snr.
+FUNCTION: enum_emu_snr.
+FUNCTION: enum_emu_snr.
+FUNCTION: connect_to_emu_without_snr.
+FUNCTION: connect_to_emu_without_snr.
+FUNCTION: enum_emu_snr.
+JLinkARM.dll OpenEx returned error 'Can not connect to J-Link via USB.'.
+FUNCTION: close_dll.
+FUNCTION: close_dll.
+--------------------------------------------------------------------------------
+/home/ruuvi-user/Downloads/nrfjprog/nrfjprog --log --family nrf52 --program _build/weather_station.hex --sectoranduicrerase --log
+nrfjprog verion 9.0.0
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+/home/ruuvi-user/Downloads/nrfjprog/nrfjprog --log --family nrf52 --program _build/weather_station.hex --sectoranduicrerase
+nrfjprog verion 9.0.0
+--------------------------------------------------------------------------------
+FUNCTION: open_dll.
+FUNCTION: open_dll.
+FUNCTION: enum_emu_snr.
+FUNCTION: enum_emu_snr.
+FUNCTION: enum_emu_snr.
+FUNCTION: enum_emu_snr.
+FUNCTION: connect_to_emu_without_snr.
+FUNCTION: connect_to_emu_without_snr.
+FUNCTION: enum_emu_snr.
+JLinkARM.dll OpenEx returned error 'Can not connect to J-Link via USB.'.
+FUNCTION: close_dll.
+FUNCTION: close_dll.
+--------------------------------------------------------------------------------
+/home/ruuvi-user/Downloads/nrfjprog/nrfjprog --log
+nrfjprog verion 9.0.0
+--------------------------------------------------------------------------------
+FUNCTION: open_dll.
+FUNCTION: open_dll.
+FUNCTION: enum_emu_snr.
+FUNCTION: enum_emu_snr.
+FUNCTION: enum_emu_snr.
+FUNCTION: enum_emu_snr.
+FUNCTION: close_dll.
+FUNCTION: close_dll.

@@ -34,6 +34,7 @@
 #include "app_timer_appsh.h"
 #include "nrf_drv_clock.h"
 #include "nrf_gpio.h"
+#include "nrf_delay.h"
 
 #define NRF_LOG_MODULE_NAME "MAIN"
 #include "nrf_log.h"
@@ -236,12 +237,6 @@ int main(void)
     init_status += init_leds(); //INIT leds first and turn RED on
     nrf_gpio_pin_clear(LED_RED);//If INIT fails at later stage, RED will stay lit.
     
-    // Initialize buttons
-    //init_status += init_buttons();
-
-
-
-
     //Initialize BLE Stack. Required in all applications for timer operation
     init_status += init_ble();
     ble_tx_power_set(BLE_TX_POWER);
@@ -251,6 +246,7 @@ int main(void)
     
     uint32_t err_code;
 
+    // Initialize buttons
     err_code = bsp_init(BSP_INIT_BUTTONS,
                         APP_TIMER_TICKS(100, RUUVITAG_APP_TIMER_PRESCALER),
                         bsp_evt_handler);
@@ -292,6 +288,8 @@ int main(void)
     //Turn green led on to signal application start
     //LED will be turned off in power_manage
     nrf_gpio_pin_clear(LED_GREEN); 
+    //Keep green led on for 3 secs if model plus
+    if(model_plus) nrf_delay_ms(3000);
 
     // Enter main loop.
     for (;; )
