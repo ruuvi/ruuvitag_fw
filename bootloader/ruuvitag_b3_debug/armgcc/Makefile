@@ -2,7 +2,7 @@ PROJECT_NAME     := bootloader_dfu_ble_s132_ruuvitag_b3_debug
 TARGETS          := ruuvitag_b3_bootloader
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := $(abspath ../../../nRF5_SDK_12.2.0_f012efa)
+SDK_ROOT := $(abspath ../../../nRF5_SDK_12.3.0_d7731ad)
 PROJ_DIR := $(abspath ../..)
 
 $(OUTPUT_DIRECTORY)/ruuvitag_b3_bootloader.out: \
@@ -11,6 +11,7 @@ $(OUTPUT_DIRECTORY)/ruuvitag_b3_bootloader.out: \
 SRC_FILES += \
   $(PROJ_DIR)/dfu_public_key.c \
   $(PROJ_DIR)/main.c \
+  $(PROJ_DIR)/nrf_ble_dfu.c \
   $(SDK_ROOT)/examples/dfu/bootloader_secure/dfu-cc.pb.c \
   $(SDK_ROOT)/examples/dfu/bootloader_secure/dfu_req_handling.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
@@ -34,7 +35,6 @@ SRC_FILES += \
   $(SDK_ROOT)/external/nano-pb/pb_decode.c \
   $(SDK_ROOT)/components/drivers_nrf/common/nrf_drv_common.c \
   $(SDK_ROOT)/components/drivers_nrf/hal/nrf_nvmc.c \
-  $(SDK_ROOT)/components/libraries/bootloader/ble_dfu/nrf_ble_dfu.c \
   $(SDK_ROOT)/external/segger_rtt/RTT_Syscalls_GCC.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
