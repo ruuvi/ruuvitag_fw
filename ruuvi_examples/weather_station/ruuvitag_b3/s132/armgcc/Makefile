@@ -2,7 +2,7 @@ PROJECT_NAME     := weather_station_ruuvitag-b3_s132
 TARGETS          := weather_station
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := ../../../../../nRF5_SDK_12.2.0_f012efa
+SDK_ROOT := ../../../../../nRF5_SDK_12.3.0_d7731ad
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/weather_station.out: \

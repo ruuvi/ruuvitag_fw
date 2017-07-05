@@ -83,6 +83,7 @@ static sensor_buffer_t g_sensorData;                    /**< Union to covert raw
 static LIS2DH12_PowerMode g_powerMode = LIS2DH12_POWER_DOWN; /**< Current power mode */
 static LIS2DH12_Scale g_scale = LIS2DH12_SCALE2G;       /**< Selected scale */
 static uint8_t g_mgpb = 1;                              /**< milli-g per bit */
+static uint8_t g_resolution = 10;                        /**< milli-g nb of bits */
 static bool g_drdy = false;                             /**< Data Ready flag */
 
 /* EXTERNAL FUNCTIONS *****************************************************************************/
@@ -146,24 +147,28 @@ extern LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode)
     {
     case LIS2DH12_POWER_NORMAL:
         ctrl1RegVal |= LIS2DH_ODR_MASK_100HZ;
-        g_mgpb = 4 << g_scale; // 4 bits per mg at normal power/2g, adjust by scaling
+        g_mgpb = 4 << g_scale; // 4mg per bits at normal power/2g, adjust by scaling
+        g_resolution = 10;
         time_ms = 10U;
         break;
     case LIS2DH12_POWER_LOW:
         ctrl1RegVal |= (LIS2DH_ODR_MASK_1HZ); //Power consumption is same for low-power and normal mode at 1 Hz
         g_mgpb = 4 << g_scale; // 4 bits per mg at normal power/2g, adjust by scaling
+        g_resolution = 10;
         time_ms = 1000U;
 
         break;
     case LIS2DH12_POWER_FAST:
         ctrl1RegVal |= (LIS2DH_ODR_MASK_1620HZ | LIS2DH_LPEN_MASK);
-        g_mgpb = 16 << g_scale; // 16 bits per mg at low power/2g, adjust by scaling
+        g_mgpb = 16 << g_scale; // 16 mg per bit at low power/2g, adjust by scaling
+        g_resolution = 8;
         time_ms = 1;
         break;
     case LIS2DH12_POWER_HIGHRES:
         ctrl1RegVal |= LIS2DH_ODR_MASK_HIGH_RES;
         ctrl4RegVal |= LIS2DH_HR_MASK;
-        g_mgpb = 1 << g_scale; // 1 bits per mg at high power/2g, adjust by scaling
+        g_mgpb = 1 << g_scale; // 1 mg bits per mg at high power/2g, adjust by scaling
+        g_resolution = 12;
         time_ms = 1;
         break;
     case LIS2DH12_POWER_DOWN:
@@ -208,10 +213,10 @@ extern LIS2DH12_Ret LIS2DH12_getXmG(int32_t* const accX)
     }
     else
     {
-        //Scale value, note: values from accelerometer are 16-bit left-justified in all cases. "Extra" LSBs will be noise 
-        //Do not bit shift mg as bit shifting negative values is implementation specific operation.
-        //Scale 1/1024 to 1 / 1000.
-        *accX = g_sensorData.sensor.x / (16 << (g_scale)) * 1000 / 1024;
+        //Scale value, note: values from accelerometer are 16-bit 2's complement left-justified in all cases. "Extra" LSBs will be noise 
+        //Add 32768 (1<<(16-1) to get positive, shift, substract (1<<(resolution-1), scale voila!
+        *accX = (((32768+g_sensorData.sensor.x)>>(16-g_resolution))-(1<<(g_resolution-1)))*g_mgpb ;
+        //*accX = g_sensorData.sensor.x / (16 << (g_scale)) * 1000 / 1024;
     }
 
     return retVal;
@@ -227,10 +232,10 @@ extern LIS2DH12_Ret LIS2DH12_getYmG(int32_t* const accY)
     }
     else
     {
-        //Scale value, note: values from accelerometer are 16-bit left-justified in all cases. "Extra" LSBs will be noise 
-        //Do not bit shift mg as bit shifting negative values is implementation specific operation.
-        //Scale 1/1024 to 1 / 1000.
-        *accY = g_sensorData.sensor.y / (16 << (g_scale)) * 1000 / 1024;
+        //Scale value, note: values from accelerometer are 16-bit 2's complement left-justified in all cases. "Extra" LSBs will be noise 
+        //Add 32768 (1<<(16-1) to get positive, shift, substract (1<<(resolution-1), scale voila!
+        *accY = (((32768+g_sensorData.sensor.y)>>(16-g_resolution))-(1<<(g_resolution-1)))*g_mgpb ;
+        //*accY = g_sensorData.sensor.y / (16 << (g_scale)) * 1000 / 1024;
     }
 
     return retVal;
@@ -239,17 +244,17 @@ extern LIS2DH12_Ret LIS2DH12_getYmG(int32_t* const accY)
 extern LIS2DH12_Ret LIS2DH12_getZmG(int32_t* const accZ)
 {
     LIS2DH12_Ret retVal = LIS2DH12_RET_OK;
-
+    
     if (NULL == accZ)
     {
         retVal = LIS2DH12_RET_NULL;
     }
     else
     {
-        //Scale value, note: values from accelerometer are 16-bit left-justified in all cases. "Extra" LSBs will be noise 
-        //Do not bit shift mg as bit shifting negative values is implementation specific operation.
-        //Scale 1/1024 to 1 / 1000.
-        *accZ = g_sensorData.sensor.z / (16 << (g_scale)) * 1000 / 1024;
+        //Scale value, note: values from accelerometer are 16-bit 2's complement left-justified in all cases. "Extra" LSBs will be noise 
+        //Add 32768 (1<<(16-1) to get positive, shift, substract (1<<(resolution-1), scale voila!
+        *accZ = (((32768+g_sensorData.sensor.z)>>(16-g_resolution))-(1<<(g_resolution-1)))*g_mgpb ;
+        //*accZ = g_sensorData.sensor.z / (16 << (g_scale)) * 1000 / 1024;
     }
 
     return retVal;

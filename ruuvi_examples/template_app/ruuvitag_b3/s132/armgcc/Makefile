@@ -2,7 +2,7 @@ PROJECT_NAME     := template-application_ruuvitag-b3_s132
 TARGETS          := template_application
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := ../../../../../nRF5_SDK_12.2.0_f012efa
+SDK_ROOT := ../../../../../nRF5_SDK_12.3.0_d7731ad
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/template_application.out: \
@@ -140,7 +140,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/twi \
   $(SDK_ROOT)/components/libraries/uart \
   $(SDK_ROOT)/components/libraries/util \
-  $(SDK_ROOT)/components/libraries/experimental_eddystone \
+  $(SDK_ROOT)/components/libraries/eddystone \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler \
   $(SDK_ROOT)/components/softdevice/s132/headers \
   $(SDK_ROOT)/components/softdevice/s132/headers/nrf52 \
