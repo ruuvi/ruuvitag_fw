@@ -6,9 +6,10 @@ ifeq ($(OS),Windows_NT)
 	TOP := %cd%
 else
 	TOP := `pwd`
+	#FILEID = `gdrive list --query "name contains 'myapp-name.zip'"|sed '2!d' |sed 's/ weather.*//'`
 endif
 
-SDK_VERSION := 12.2.0_f012efa
+SDK_VERSION := 12.3.0_d7731ad
 SDK_URL     := https://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v12.x.x
 SDK_FILE    := nRF5_SDK_$(SDK_VERSION).zip
 
@@ -68,3 +69,10 @@ clean:
 	$(MAKE) -C ruuvi_examples/template_app/ruuvitag_b3/s132/armgcc clean
 	$(MAKE) -C bootloader/ruuvitag_b3_debug/armgcc clean
 	$(MAKE) -C bootloader/ruuvitag_b3_production/armgcc clean
+
+distro:
+	@echo Prepare distribution…
+	rm -rf builds/distribution_packages/sdk12/weather_station.zip
+	nrfutil pkg generate --debug-mode --application ruuvi_examples/weather_station/ruuvitag_b3/s132/armgcc/_build/weather_station.hex --key-file keys/ruuvi_open_private.pem builds/distribution_packages/sdk12/weather_station.zip
+# 	@echo Uploading $(FILEID) …
+# 	gdrive update $(FILEID) builds/distribution_packages/sdk12/weather_station-fw1.zip

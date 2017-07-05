@@ -2,7 +2,7 @@ PROJECT_NAME     := eddystone_ruuvitag-b3_s132
 TARGETS          := eddystone
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := ../../../../../nRF5_SDK_12.2.0_f012efa
+SDK_ROOT := ../../../../../nRF5_SDK_12.3.0_d7731ad
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/eddystone.out: \
@@ -36,24 +36,28 @@ SRC_FILES += \
   $(SDK_ROOT)/external/cifra_AES128-EAX/cmac.c \
   $(SDK_ROOT)/components/libraries/crc16/crc16.c \
   $(SDK_ROOT)/external/cifra_AES128-EAX/eax.c \
-  $(SDK_ROOT)/components/libraries/experimental_eddystone/es_adv.c \
-  $(SDK_ROOT)/components/libraries/experimental_eddystone/es_adv_frame.c \
-  $(SDK_ROOT)/components/libraries/experimental_eddystone/es_adv_timing.c \
-  $(SDK_ROOT)/components/libraries/experimental_eddystone/es_adv_timing_resolver.c \
-  $(SDK_ROOT)/components/libraries/experimental_eddystone/es_flash.c \
-  $(SDK_ROOT)/components/libraries/experimental_eddystone/es_gatts.c \
-  $(SDK_ROOT)/components/libraries/experimental_eddystone/es_security.c \
-  $(SDK_ROOT)/components/libraries/experimental_eddystone/es_security_timing.c \
-  $(SDK_ROOT)/components/libraries/experimental_eddystone/es_slot.c \
-  $(SDK_ROOT)/components/libraries/experimental_eddystone/es_slot_reg.c \
-  $(SDK_ROOT)/components/libraries/experimental_eddystone/es_tlm.c \
+  $(SDK_ROOT)/components/libraries/eddystone/es_adv.c \
+  $(SDK_ROOT)/components/libraries/eddystone/es_adv_frame.c \
+  $(SDK_ROOT)/components/libraries/eddystone/es_adv_timing.c \
+  $(SDK_ROOT)/components/libraries/eddystone/es_adv_timing_resolver.c \
+  $(SDK_ROOT)/components/libraries/eddystone/es_battery_voltage_saadc.c \
+  $(SDK_ROOT)/components/libraries/eddystone/es_flash.c \
+  $(SDK_ROOT)/components/libraries/eddystone/es_gatts.c \
+  $(SDK_ROOT)/components/libraries/eddystone/es_gatts_read.c \
+  $(SDK_ROOT)/components/libraries/eddystone/es_gatts_write.c \
+  $(SDK_ROOT)/components/libraries/eddystone/es_security.c \
+  $(SDK_ROOT)/components/libraries/eddystone/es_security_timing.c \
+  $(SDK_ROOT)/components/libraries/eddystone/es_slot.c \
+  $(SDK_ROOT)/components/libraries/eddystone/es_slot_reg.c \
+  $(SDK_ROOT)/components/libraries/eddystone/es_stopwatch.c \
+  $(SDK_ROOT)/components/libraries/eddystone/es_tlm.c \
   $(SDK_ROOT)/components/libraries/fds/fds.c \
   $(SDK_ROOT)/components/libraries/fstorage/fstorage.c \
   $(SDK_ROOT)/external/cifra_AES128-EAX/gf128.c \
   $(SDK_ROOT)/components/libraries/hardfault/hardfault_implementation.c \
   $(SDK_ROOT)/external/cifra_AES128-EAX/modes.c \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \
-  $(SDK_ROOT)/components/libraries/experimental_eddystone/nrf_ble_es.c \
+  $(SDK_ROOT)/components/libraries/eddystone/nrf_ble_es.c \
   $(SDK_ROOT)/components/libraries/util/sdk_errors.c \
   $(SDK_ROOT)/components/libraries/sensorsim/sensorsim.c \
   $(SDK_ROOT)/external/segger_rtt/RTT_Syscalls_GCC.c \
@@ -100,7 +104,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/usbd/class/hid/generic \
   $(SDK_ROOT)/components/libraries/usbd/class/msc \
   $(SDK_ROOT)/components/libraries/usbd/class/hid \
-  $(SDK_ROOT)/components/libraries/experimental_eddystone \
+  $(SDK_ROOT)/components/libraries/eddystone \
   $(SDK_ROOT)/components/libraries/log \
   $(SDK_ROOT)/components/ble/ble_services/ble_gls \
   $(SDK_ROOT)/components/libraries/fstorage \
