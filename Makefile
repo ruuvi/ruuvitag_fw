@@ -6,7 +6,7 @@ ifeq ($(OS),Windows_NT)
 	TOP := %cd%
 else
 	TOP := `pwd`
-	#FILEID = `gdrive list --query "name contains 'myapp-name.zip'"|sed '2!d' |sed 's/ weather.*//'`
+	FILEID = `gdrive list --query "name contains 'weather_station-test.zip'"|sed '2!d' |sed 's/ weather.*//'`
 endif
 
 SDK_VERSION := 12.3.0_d7731ad
@@ -21,7 +21,8 @@ ifeq ($(OS),Windows_NT)
 	UNZIP_CMD ?= powershell Expand-Archive -DestinationPath 
 else
 	DOWNLOAD_CMD ?= curl -o
-	UNZIP_CMD ?= unzip -q -d
+	UNZIP_CMD ?= unzip -q
+	#UNZIP_CMD ?= unzip -q -d
 endif
 
 export $(SDK_HOME)
@@ -34,7 +35,8 @@ bootstrap: $(SDK_FILE) $(SDK_DIR) $(SDK_DIR)/external/micro-ecc/micro-ecc
 	@echo SDK_HOME = ${SDK_HOME}
 
 $(SDK_DIR):
-	$(UNZIP_CMD) $(SDK_DIR) $(SDK_FILE)
+	#$(UNZIP_CMD) $(SDK_DIR) $(SDK_FILE)
+	$(UNZIP_CMD) $(SDK_FILE)
 	$(call patch_sdk_$(SDK_VERSION))
 
 $(SDK_FILE):
@@ -72,7 +74,7 @@ clean:
 
 distro:
 	@echo Prepare distribution…
-	rm -rf builds/distribution_packages/sdk12/weather_station.zip
-	nrfutil pkg generate --debug-mode --application ruuvi_examples/weather_station/ruuvitag_b3/s132/armgcc/_build/weather_station.hex --key-file keys/ruuvi_open_private.pem builds/distribution_packages/sdk12/weather_station.zip
-# 	@echo Uploading $(FILEID) …
-# 	gdrive update $(FILEID) builds/distribution_packages/sdk12/weather_station-fw1.zip
+	rm -rf builds/distribution_packages/sdk12/weather_station-test.zip
+	nrfutil pkg generate --debug-mode --application ruuvi_examples/weather_station/ruuvitag_b3/s132/armgcc/_build/weather_station.hex --key-file keys/ruuvi_open_private.pem builds/distribution_packages/sdk12/weather_station-test.zip
+	@echo Uploading $(FILEID) …
+	gdrive update $(FILEID) builds/distribution_packages/sdk12/weather_station-test.zip
