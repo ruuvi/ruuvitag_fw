@@ -44,4 +44,16 @@ uint32_t ble_tx_power_set(int8_t power);
  */
 uint32_t bluetooth_advertise_data(uint8_t *data, uint8_t length);
 
+/**@brief Function adjusting advertising interval. 
+ *
+ * @details Sets the advertising interval in program.
+ *          Does not have any effect until the next call to
+ *          bluetooth_advertise_data (TODO). Default interval is used if
+ *          this has not been called before 
+ *
+ * @param interval advertisement interval in milliseconds, 100 - 10 000 
+ *
+ * @return 0 if value was updated, 1 if value was outside acceptable range
+ */
+uint32_t set_advertising_interval(uint16_t interval);
 #endif
