@@ -70,7 +70,7 @@ uint32_t ble_stack_init(void)
 }
 
 /**
- * @brief Function to setsBLE transmission power
+ * @brief Function to set BLE transmission power
  *  
  * @details set the BLE transmission power in dBm
  * @param int8_t power power in dBm, must be one of -40, -30, -20, -16, -12, -8, -4, 0, 4
@@ -83,10 +83,44 @@ uint32_t ble_tx_power_set(int8_t power)
     return err_code;
 }
 
+/**@brief Initialize advertising parameters. Parameters can be adjusted by calling this function again. 
+ *
+ * @details Initializes the BLE advertisement 
+ *
+ * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
+ */
+static uint16_t advertising_interval = APP_CFG_NON_CONN_ADV_INTERVAL_MS;
+uint32_t bluetooth_advertising_init()
+{
+    static bool init = false;
+    uint32_t err_code = NRF_SUCCESS;
+    //Stop advertising before making adjustments
+    if(init)
+    {
+      sd_ble_gap_adv_stop();
+    }
+    static ble_gap_adv_params_t m_adv_params;
+    memset(&m_adv_params, 0, sizeof(m_adv_params));
+
+    m_adv_params.type        = BLE_GAP_ADV_TYPE_ADV_NONCONN_IND;
+    m_adv_params.p_peer_addr = NULL;                             // Undirected advertisement.
+    m_adv_params.fp          = BLE_GAP_ADV_FP_ANY;
+    m_adv_params.interval    = advertising_interval;
+    m_adv_params.timeout     = APP_CFG_NON_CONN_ADV_TIMEOUT;
+
+    err_code = sd_ble_gap_adv_start(&m_adv_params);
+    if(NRF_SUCCESS != err_code)
+    {
+        NRF_LOG_INFO("Advertisement fail: %d \r\n",err_code);
+    }
+    init = true;
+    return err_code;
+}
+
 /**@brief Function for advertising data. 
  *
  * @details Initializes the BLE advertisement with given data as manufacturer specific data.
- * Company ID is included by default and doesn't need to be included.  
+ * Company ID is included by default and doesn't need to be included in parameter data.  
  *
  * @param data pointer to data to advertise, maximum length 24 bytes
  * @param length length of data to advertise
@@ -95,8 +129,10 @@ uint32_t ble_tx_power_set(int8_t power)
  */
 uint32_t bluetooth_advertise_data(uint8_t *data, uint8_t length)
 {
-    static bool init = false;
     uint32_t      err_code;
+    
+    err_code = bluetooth_advertising_init();
+    
     ble_advdata_t advdata;
     uint8_t       flags = BLE_GAP_ADV_FLAG_BR_EDR_NOT_SUPPORTED;
 
@@ -108,8 +144,6 @@ uint32_t bluetooth_advertise_data(uint8_t *data, uint8_t length)
     advdata.name_type             = BLE_ADVDATA_NO_NAME;
     advdata.flags                 = flags;
     advdata.p_manuf_specific_data = &manuf_specific_data;
-
-
 
     // Initialize advertising parameters (used when starting advertising).
     uint8_t *m_beacon_info = malloc(length);                   /**< Information advertised by the Beacon. */
@@ -127,30 +161,25 @@ uint32_t bluetooth_advertise_data(uint8_t *data, uint8_t length)
     err_code = ble_advdata_set(&advdata, NULL);
     APP_ERROR_CHECK(err_code);
 
-    if(!init)
-    {
-    static ble_gap_adv_params_t m_adv_params;
-    memset(&m_adv_params, 0, sizeof(m_adv_params));
-
-    m_adv_params.type        = BLE_GAP_ADV_TYPE_ADV_NONCONN_IND;
-    m_adv_params.p_peer_addr = NULL;                             // Undirected advertisement.
-    m_adv_params.fp          = BLE_GAP_ADV_FP_ANY;
-    m_adv_params.interval    = APP_CFG_NON_CONN_ADV_INTERVAL_MS;
-    m_adv_params.timeout     = APP_CFG_NON_CONN_ADV_TIMEOUT;
-
-    err_code = sd_ble_gap_adv_start(&m_adv_params);
-    if(NRF_SUCCESS != err_code)
-    {
-        NRF_LOG_INFO("Advertisement fail: %d \r\n",err_code);
-    }
-    APP_ERROR_CHECK(err_code);
-    init = true;
-    }
-
     free(m_beacon_info);
 
     return err_code;
     
 }
 
+/**@brief Function adjusting advertising interval. 
+ *
+ * @details Sets the advertising interval in program.
+ *         
+ * @param interval advertisement interval in milliseconds, 100 - 10 000 
+ *
+ * @return 0 if value was updated, 1 if value was outside acceptable range, err_code from stack if stack returned error
+ */
+ uint32_t set_advertising_interval(uint16_t interval)
+ {
+   if(interval > 10000) return 1;
+   if(interval < 100) return 1;
+   advertising_interval = MSEC_TO_UNITS(interval, UNIT_0_625_MS);
+   return bluetooth_advertising_init();
+ }
 

@@ -33,19 +33,15 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
-
-
-static ble_gap_adv_params_t m_adv_params;                                 /**< Parameters to be passed to the stack when starting advertising. */
-
-
-/**@brief Function for initializing the advertising functionality.
+/**@brief Helper for advertising Eddystone URLs. BLE advertising must be started separately using
+ * bluetooth_core / bluetooth_advertise_data().
  *
  * @details Encodes the required advertising data and passes it to the stack.
  *          Also builds a structure to be passed to the stack when starting advertising.
  */
-static void eddystone_advertising_init(char* url, uint8_t length)
+void eddystone_advertise_url(char* url, uint8_t length)
 {
-    uint32_t      err_code;
+     uint32_t      err_code;
     ble_advdata_t advdata;
     uint8_t       flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
     ble_uuid_t    adv_uuids[] = {{APP_ES_UUID, BLE_UUID_TYPE_BLE}};
@@ -80,20 +76,4 @@ static void eddystone_advertising_init(char* url, uint8_t length)
     advdata.service_data_count      = 1;
 
     err_code = ble_advdata_set(&advdata, NULL);
-    APP_ERROR_CHECK(err_code);
-
-    // Initialize advertising parameters (used when starting advertising).
-    memset(&m_adv_params, 0, sizeof(m_adv_params));
-
-    m_adv_params.type        = BLE_GAP_ADV_TYPE_ADV_NONCONN_IND;
-    m_adv_params.p_peer_addr = NULL;                                // Undirected advertisement.
-    m_adv_params.fp          = BLE_GAP_ADV_FP_ANY;
-    m_adv_params.interval    = APP_CFG_NON_CONN_ADV_INTERVAL_MS;
-    m_adv_params.timeout     = APP_CFG_NON_CONN_ADV_TIMEOUT;
-}
-
-void eddystone_advertise_url(char* url, uint8_t length)
-{
-    // Update advertisement parameters, this is ok even if advertisement has started.
-    eddystone_advertising_init(url, length);
-}
+    APP_ERROR_CHECK(err_code);}

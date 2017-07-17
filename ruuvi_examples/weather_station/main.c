@@ -76,7 +76,8 @@ APP_TIMER_DEF(main_timer_id);                                             /** Cr
 
 //milliseconds until main loop timer function is called. Other timers can bring
 //application out of sleep at higher (or lower) interval
-#define MAIN_LOOP_INTERVAL 5000u 
+#define MAIN_LOOP_INTERVAL_URL 5000u 
+#define MAIN_LOOP_INTERVAL_RAW 1000u
 
 //Payload requires 8 characters
 #define URL_BASE_LENGTH 8
@@ -88,54 +89,53 @@ bool debounce   = true;
 
 static ruuvi_sensor_t data;
 
+void main_timer_handler(void * p_context);
+
 
 /**@brief Function for handling bsp events.
- * Not actually used, BSP event brings device out of 
- * power manager
+ * Detects and handles button press
  */
 void bsp_evt_handler(bsp_event_t evt)
 {
-/*    switch (evt)
+  //Change mode on button press
+  if(debounce)
+  {
+    highres = !highres;
+    debounce = false;
+    if(model_plus)
     {
-        case BSP_EVENT_KEY_1:
-            NRF_LOG_INFO("PRESS\r\n");
-            
-        default:
-            return; // no implementation needed
+      if(highres)
+      {
+        LIS2DH12_setPowerMode(LIS2DH12_POWER_LOW);
+        app_timer_stop(main_timer_id);
+        app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 1000 ms
+        set_advertising_interval(MAIN_LOOP_INTERVAL_RAW); //Broadcast only updated data, assuming there is an active receiver nearby.
+      }
+      else
+      {
+        LIS2DH12_setPowerMode(LIS2DH12_POWER_DOWN);
+        app_timer_stop(main_timer_id);
+        app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_URL, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 5000 ms
+        set_advertising_interval(MAIN_LOOP_INTERVAL_URL / 10); //Broadcast often to "hit" occasional background scans.
+      }
     }
-*/
+  }
+  void *ptr = NULL;
+  main_timer_handler(ptr); //Call timer handler to update URL
 }
 
 /**@brief Function for doing power management.
  */
 static void power_manage(void)
 {
-    if(1 == nrf_gpio_pin_read(BUTTON_1)) //leave led on button press
+    if(1 == nrf_gpio_pin_read(BUTTON_1)) //leave leds on button press
     {
         nrf_gpio_pin_set(LED_GREEN); 
         nrf_gpio_pin_set(LED_RED);       //Clear both leds before sleep 
         debounce = true;
         
     }
-    else //Change mode on button press
-    {
-      if(debounce){
-        highres = !highres;
-        debounce = false;
-        if(model_plus)
-        {
-          if(highres)
-          {
-            LIS2DH12_setPowerMode(LIS2DH12_POWER_LOW);
-          }
-          else
-          {
-            LIS2DH12_setPowerMode(LIS2DH12_POWER_DOWN);
-          }
-        }
-      }
       
-    }
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
 
@@ -242,7 +242,7 @@ int main(void)
     ble_tx_power_set(BLE_TX_POWER);
     
     // Initialize the application timer module.
-    init_status += init_timer(main_timer_id, MAIN_LOOP_INTERVAL, main_timer_handler);
+    init_status += init_timer(main_timer_id, MAIN_LOOP_INTERVAL_URL, main_timer_handler);
     
     uint32_t err_code;
 
