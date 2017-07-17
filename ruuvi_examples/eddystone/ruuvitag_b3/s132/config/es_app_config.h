@@ -31,6 +31,18 @@
 #error MISSING CALIBRATED DATA
 #endif 
 
+#define APP_CONFIG_TLM_TEMP_VBATT_UPDATE_INTERVAL_SECONDS   10                          //!< How often should the data in the TLM frame be updated.
+
+#define APP_CONFIG_ADV_FRAME_SPACING_MS_MIN                 500                         //!< Minimum time between advertisement frames. Imposes limit on minumum accepted advertisement interval.
+#if defined(NRF52)
+#define APP_CONFIG_ADV_FRAME_ETLM_SPACING_MS                300                         //!< The time that is reqired for preparing an eTLM slot. Imposes limit on minimum accepted advertisement interval.
+#elif defined(NRF51)
+#define APP_CONFIG_ADV_FRAME_ETLM_SPACING_MS                600                         //!< The time that is reqired for preparing an eTLM slot. Imposes limit on minimum accepted advertisement interval.
+#else
+#error MISSING ETLM DELAY TIMING
+#endif
+#define ES_STOPWATCH_MAX_USERS                              4                           //!< Maximum amount of users that can be registered with the es_stopwatch module.
+
 #define DEBUG_TIMING_INIT_VALUE             65280                                       //!< Initial time (as recommended by Google) to test the TK rollover behavior.
 #define APP_CONFIG_TIMING_INIT_VALUE        DEBUG_TIMING_INIT_VALUE                     //!< Initializing value for the timing value of security slots.
 
