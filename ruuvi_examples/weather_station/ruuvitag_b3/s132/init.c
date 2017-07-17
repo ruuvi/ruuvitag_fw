@@ -79,7 +79,7 @@ uint8_t init_timer(app_timer_id_t main_timer_id, uint32_t main_interval, void (*
                                 timer_handler);
     APP_ERROR_CHECK(err_code);
     //Start timer
-    err_code = app_timer_start(main_timer_id, APP_TIMER_TICKS(main_interval, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 5000 ms
+    err_code = app_timer_start(main_timer_id, APP_TIMER_TICKS(main_interval, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / MAIN_TIMER_INTERVAL
     APP_ERROR_CHECK(err_code);
     NRF_LOG_INFO("Timers init\r\n");
     return (NRF_SUCCESS == err_code) ? 0 : 1;
