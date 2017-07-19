@@ -45,10 +45,18 @@
   #define BSP_LED_2 LED_1
 #endif
 
+#define RX_PIN_NUMBER  8
+#define TX_PIN_NUMBER  6
+#define CTS_PIN_NUMBER 7
+#define RTS_PIN_NUMBER 5
+#define HWFC           true
+/*
 #define RX_PIN_NUMBER  4
 #define TX_PIN_NUMBER  5
 #define HWFC           false
-
+#define CTS_PIN_NUMBER 0
+#define RTS_PIN_NUMBER 0
+*/
 #define SPIM0_SCK_PIN     29  // SPI clock
 #define SPIM0_MOSI_PIN    25  // SPI Master Out Slave In
 #define SPIM0_MISO_PIN    28  // SPI Master In Slave Out
