@@ -90,7 +90,7 @@ uint32_t ble_tx_power_set(int8_t power)
  * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
  */
 static uint16_t advertising_interval = APP_CFG_NON_CONN_ADV_INTERVAL_MS;
-uint32_t bluetooth_advertising_init()
+uint32_t bluetooth_advertising_init(void)
 {
     static bool init = false;
     uint32_t err_code = NRF_SUCCESS;

@@ -32,6 +32,14 @@ uint32_t ble_stack_init(void);
  */
 uint32_t ble_tx_power_set(int8_t power);
 
+/**@brief Initialize advertising parameters. Parameters can be adjusted by calling this function again. 
+ *
+ * @details Initializes the BLE advertisement 
+ *
+ * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
+ */
+uint32_t bluetooth_advertising_init(void);
+
 /**@brief Function for advertising data. 
  *
  * @details Initializes the BLE advertisement with given data as manufacturer specific data.

@@ -33,6 +33,8 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
+#include "bluetooth_core.h"
+
 /**@brief Helper for advertising Eddystone URLs. BLE advertising must be started separately using
  * bluetooth_core / bluetooth_advertise_data().
  *
@@ -41,7 +43,7 @@
  */
 void eddystone_advertise_url(char* url, uint8_t length)
 {
-     uint32_t      err_code;
+    uint32_t      err_code;
     ble_advdata_t advdata;
     uint8_t       flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
     ble_uuid_t    adv_uuids[] = {{APP_ES_UUID, BLE_UUID_TYPE_BLE}};
@@ -75,5 +77,6 @@ void eddystone_advertise_url(char* url, uint8_t length)
     advdata.p_service_data_array    = &service_data;                // Pointer to Service Data structure.
     advdata.service_data_count      = 1;
 
+    bluetooth_advertising_init(); //Initialise advertising, does nothing if adv is already init.
     err_code = ble_advdata_set(&advdata, NULL);
     APP_ERROR_CHECK(err_code);}
