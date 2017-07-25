@@ -187,10 +187,10 @@ void init_blink_status(uint8_t init_status)
         for(uint8_t ii = 0; ii < init_status * 2; ii++)
         { 
             nrf_gpio_pin_toggle(LED_RED);
-            nrf_delay_ms(250u);//Delay prevents power saving, use with care
+            nrf_delay_ms(150u);//Delay prevents power saving, use with care
         }//infinite loop if there is error
 
-        nrf_delay_ms(3000u); // Gives user time to count the blinks
+        nrf_delay_ms(1000u); // Gives user time to count the blinks
     }while(init_status);
     nrf_gpio_pin_set(LED_RED);
 }

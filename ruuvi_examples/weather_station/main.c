@@ -254,7 +254,7 @@ int main(void)
     
 
     //Initialize BME 280 and lis2dh12. Requires timer running.
-    if(!init_sensors()){
+    if(NRF_SUCCESS == init_sensors()){
       model_plus = true;
       //init accelerometer if present
       LIS2DH12_init(LIS2DH12_POWER_DOWN, LIS2DH12_SCALE2G, NULL);
@@ -275,21 +275,24 @@ int main(void)
     battery_voltage_init();
       
     //app_sched_execute();
-    bluetooth_advertise_data(data_buffer, sizeof(data_buffer));
-    NRF_LOG_INFO("Advertising init\r\n");  
+    //bluetooth_advertise_data(data_buffer, sizeof(data_buffer));
+    //NRF_LOG_INFO("Advertising init\r\n");  
     
-        
+    //Take another measurement to let BME 280 filters settle
+    if(model_plus){bme280_set_mode(BME280_MODE_FORCED);}        
 
     //Visually display init status. Hangs if there was an error, waits 3 seconds on success
     init_blink_status(init_status);
 
     nrf_gpio_pin_set(LED_RED);//Turn RED led off.
-	
-    //Turn green led on to signal application start
+    //Turn green led on to signal model +
     //LED will be turned off in power_manage
     nrf_gpio_pin_clear(LED_GREEN); 
-    //Keep green led on for 3 secs if model plus
-    if(model_plus) nrf_delay_ms(3000);
+    
+    if(model_plus){bme280_set_mode(BME280_MODE_FORCED);}
+    //delay for model plus, basic will not show green.
+    if(model_plus) nrf_delay_ms(1000);
+
 
     // Enter main loop.
     for (;; )
