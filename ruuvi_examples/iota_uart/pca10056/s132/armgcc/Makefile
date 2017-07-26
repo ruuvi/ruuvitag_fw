@@ -1,12 +1,12 @@
-PROJECT_NAME     := ble_app_uart_pca10040_s132
-TARGETS          := nrf52832_xxaa
+PROJECT_NAME     := ble_app_uart_pca10056_s132
+TARGETS          := nrf52840_xxaa
 OUTPUT_DIRECTORY := _build
 
 SDK_ROOT := ../../../../../nRF5_SDK_12.3.0_d7731ad
 IOTA_ROOT := ../../../../../iota.lib.c
 PROJ_DIR := ../../..
 
-$(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
+$(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
   LINKER_SCRIPT  := ble_app_uart_gcc_nrf52.ld
 
 # Source files common to all targets
@@ -25,6 +25,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \
   $(SDK_ROOT)/components/libraries/uart/retarget.c \
   $(SDK_ROOT)/components/libraries/util/sdk_errors.c \
+  $(SDK_ROOT)/components/boards/boards.c \
   $(SDK_ROOT)/components/drivers_nrf/clock/nrf_drv_clock.c \
   $(SDK_ROOT)/components/drivers_nrf/common/nrf_drv_common.c \
   $(SDK_ROOT)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c \
@@ -32,6 +33,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/bsp/bsp.c \
   $(SDK_ROOT)/components/libraries/bsp/bsp_btn_ble.c \
   $(SDK_ROOT)/components/libraries/bsp/bsp_nfc.c \
+  $(PROJ_DIR)/main.c \
   $(SDK_ROOT)/external/segger_rtt/RTT_Syscalls_GCC.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
@@ -39,21 +41,17 @@ SRC_FILES += \
   $(SDK_ROOT)/components/ble/ble_advertising/ble_advertising.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_params.c \
   $(SDK_ROOT)/components/ble/common/ble_srv_common.c \
-  $(SDK_ROOT)/components/toolchain/gcc/gcc_startup_nrf52.S \
-  $(SDK_ROOT)/components/toolchain/system_nrf52.c \
+  $(SDK_ROOT)/components/toolchain/gcc/gcc_startup_nrf52840.S \
+  $(SDK_ROOT)/components/toolchain/system_nrf52840.c \
   $(SDK_ROOT)/components/ble/ble_services/ble_nus/ble_nus.c \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
   $(PROJ_DIR)/../../libraries/allocator_stub/allocator_stub.c \
-  $(PROJ_DIR)/../../bsp/bsp.c \
-  $(PROJ_DIR)/../../bsp/bsp_btn_ble.c \
-  $(PROJ_DIR)/../../bsp/bsp_nfc.c \
-  $(PROJ_DIR)/../../bsp/boards.c \
   $(PROJ_DIR)/main.c \
   $(IOTA_ROOT)/src/generate.c \
   $(IOTA_ROOT)/src/internal.c \
   $(IOTA_ROOT)/src/sign.c \
   $(IOTA_ROOT)/src/validate.c \
-  $(IOTA_ROOT)/external/ccurl/src/lib/curl.c
+  $(IOTA_ROOT)/external/ccurl/src/lib/curl.c  
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -160,7 +158,6 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/ble/ble_services/ble_hrs \
   $(SDK_ROOT)/components/libraries/log/src \
   $(PROJ_DIR)/../../libraries/allocator_stub \
-  $(PROJ_DIR)/../../bsp \
   $(IOTA_ROOT)/include \
   $(IOTA_ROOT)/external/ccurl/src/lib/  
 
@@ -170,29 +167,19 @@ LIB_FILES += \
   ../../../libiota_mam_bindings.a
 
 # C flags common to all targets
-CFLAGS += -DNRF52
-CFLAGS += -DNRF52_PAN_64
-CFLAGS += -DSOFTDEVICE_PRESENT
-CFLAGS += -DBOARD_CUSTOM
-CFLAGS += -DBOARD_RUUVITAG_B3
-CFLAGS += -DNRF52832
-CFLAGS += -DNRF52_PAN_12
-CFLAGS += -DNRF52_PAN_58
-CFLAGS += -DNRF52_PAN_54
-CFLAGS += -DNRF52_PAN_31
-CFLAGS += -DNRF52_PAN_51
-CFLAGS += -DNRF52_PAN_36
-CFLAGS += -DCONFIG_GPIO_AS_PINRESET
-CFLAGS += -DBLE_STACK_SUPPORT_REQD
-CFLAGS += -DNRF52_PAN_15
-CFLAGS += -DNRF_SD_BLE_API_VERSION=3
+CFLAGS += -DNRF52840_XXAA
 CFLAGS += -DSWI_DISABLE0
-CFLAGS += -DNRF52_PAN_20
-CFLAGS += -DNRF52_PAN_55
+CFLAGS += -DSOFTDEVICE_PRESENT
+CFLAGS += -DBLE_STACK_SUPPORT_REQD
+CFLAGS += -DCONFIG_GPIO_AS_PINRESET
 CFLAGS += -DS132
+CFLAGS += -DBOARD_PCA10056
+ASMFLAGS += -D__STACK_SIZE=128000
+ASMFLAGS += -D__HEAP_SIZE=65536 
+CFLAGS += -DNRF_SD_BLE_API_VERSION=3
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
-CFLAGS +=  -Wall  -O3 -g3
+CFLAGS +=  -Wall -O3 -g3
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
@@ -203,26 +190,16 @@ CXXFLAGS += \
 
 # Assembler flags common to all targets
 ASMFLAGS += -x assembler-with-cpp
-ASMFLAGS += -DNRF52
-ASMFLAGS += -DNRF52_PAN_64
-ASMFLAGS += -DSOFTDEVICE_PRESENT
-ASMFLAGS += -DBOARD_CUSTOM
-ASMFLAGS += -DBOARD_RUUVITAG_B3
-ASMFLAGS += -DNRF52832
-ASMFLAGS += -DNRF52_PAN_12
-ASMFLAGS += -DNRF52_PAN_58
-ASMFLAGS += -DNRF52_PAN_54
-ASMFLAGS += -DNRF52_PAN_31
-ASMFLAGS += -DNRF52_PAN_51
-ASMFLAGS += -DNRF52_PAN_36
-ASMFLAGS += -DCONFIG_GPIO_AS_PINRESET
-ASMFLAGS += -DBLE_STACK_SUPPORT_REQD
-ASMFLAGS += -DNRF52_PAN_15
-ASMFLAGS += -DNRF_SD_BLE_API_VERSION=3
+ASMFLAGS += -DNRF52840_XXAA
 ASMFLAGS += -DSWI_DISABLE0
-ASMFLAGS += -DNRF52_PAN_20
-ASMFLAGS += -DNRF52_PAN_55
+ASMFLAGS += -DSOFTDEVICE_PRESENT
+ASMFLAGS += -DBLE_STACK_SUPPORT_REQD
+ASMFLAGS += -DCONFIG_GPIO_AS_PINRESET
 ASMFLAGS += -DS132
+ASMFLAGS += -DBOARD_PCA10056
+ASMFLAGS += -D__STACK_SIZE=128000
+ASMFLAGS += -D__HEAP_SIZE=65536 
+ASMFLAGS += -DNRF_SD_BLE_API_VERSION=3
 
 # Linker flags
 LDFLAGS += -mthumb -mabi=aapcs -L $(TEMPLATE_PATH) -T$(LINKER_SCRIPT)
@@ -237,12 +214,12 @@ LDFLAGS += --specs=nano.specs -lc -lnosys
 .PHONY: $(TARGETS) default all clean help flash flash_softdevice
 
 # Default target - first one defined
-default: nrf52832_xxaa
+default: nrf52840_xxaa
 
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo 	nrf52832_xxaa
+	@echo 	nrf52840_xxaa
 
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
 
@@ -251,7 +228,7 @@ include $(TEMPLATE_PATH)/Makefile.common
 $(foreach target, $(TARGETS), $(call define_target, $(target)))
 
 # Flash the program
-flash: $(OUTPUT_DIRECTORY)/nrf52832_xxaa.hex
+flash: $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex
 	@echo Flashing: $<
 	nrfjprog --program $< -f nrf52 --sectorerase
 	nrfjprog --reset -f nrf52
