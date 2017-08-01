@@ -17,7 +17,7 @@ To compile program you need:
    - Added as a submodule
    - run git submodule update --init --recursive at top level
  * MAM
-   - Compiled library added, four sources please see (github)[https://github.com/iotaledger/MAM].
+   - Compiled library added, for sources please see (github)[https://github.com/iotaledger/MAM].
 
 Set up the toolchain as instructed in top level readme of this repository
 Run "make" in pca10056/s132/armgcc
@@ -32,7 +32,7 @@ nRF52 code is generally split in 3 parts: softdevice (radio), bootloader and app
 
 # Licensing
   * nRF5 SDK is under Nordic License, in effect the code of SDK can be used only on Nordic chips
-  * All Ruuvi contribtions are BSD-3
+  * All Ruuvi contributions are BSD-3
   * iota.lib.c is under MIT license
   * Please contact IOTA and repository owners for licenses of MAM
   
