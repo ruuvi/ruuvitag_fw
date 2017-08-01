@@ -53,6 +53,8 @@
 #include <string.h>
 #include "nordic_common.h"
 #include "nrf.h"
+#include "nrf_drv_rtc.h"
+#include "nrf_drv_clock.h"
 #include "ble_hci.h"
 #include "ble_advdata.h"
 #include "ble_advertising.h"
@@ -65,6 +67,7 @@
 #include "app_util_platform.h"
 #include "bsp.h"
 #include "bsp_btn_ble.h"
+#include "mem_manager.h"
 
 #include "iota/iota.h"
 #include "iota/constants.h"
@@ -99,15 +102,25 @@
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000, APP_TIMER_PRESCALER) /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT    3                                           /**< Number of attempts before giving up the connection parameter negotiation. */
 
+#define COMPARE_COUNTERTIME  (3UL)                                        /**< Get Compare event COMPARE_TIME seconds after the counter starts from 0. */
+
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
-#define UART_TX_BUF_SIZE                4096                                        /**< UART TX buffer size. */
-#define UART_RX_BUF_SIZE                4096                                        /**< UART RX buffer size. */
+#define UART_TX_BUF_SIZE                1024                                        /**< UART TX buffer size. */
+#define UART_RX_BUF_SIZE                1024                                        /**< UART RX buffer size. */
+
+//Be sure to have even divisions for accuracy
+#define RTC_PRESCALER (256)
+#define TICKS_PER_SECOND (32768/RTC_PRESCALER)
 
 static ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
 static uint16_t                         m_conn_handle = BLE_CONN_HANDLE_INVALID;    /**< Handle of the current connection. */
 
 static ble_uuid_t                       m_adv_uuids[] = {{BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}};  /**< Universally unique service identifier. */
+
+/**< Declaring an instance of nrf_drv_rtc for RTC2. */
+/** softdevice uses RTC0 */
+const nrf_drv_rtc_t rtc = NRF_DRV_RTC_INSTANCE(2); 
 
 
 /**@brief Function for assert macro callback.
@@ -623,25 +636,61 @@ static void power_manage(void)
     APP_ERROR_CHECK(err_code);
 }
 
+/** @brief: Function for handling the RTC0 interrupts.
+ * Triggered on TICK and COMPARE0 match.
+ */
+static uint32_t ticks = 0;
+static void rtc_handler(nrf_drv_rtc_int_type_t int_type)
+{
+    if (int_type == NRF_DRV_RTC_INT_COMPARE0)
+    {
+        printf("Tick\r\n");
+    }
+    else if (int_type == NRF_DRV_RTC_INT_TICK)
+    {
+       ticks ++;
+    }
+}
 
+static uint32_t time()
+{
+  return ticks*1000/TICKS_PER_SECOND;
+}
 
+/** @brief Function initialization and configuration of RTC driver instance.
+ */
+static void rtc_config(void)
+{
+    uint32_t err_code;
+
+    //Initialize RTC instance
+    nrf_drv_rtc_config_t config = NRF_DRV_RTC_DEFAULT_CONFIG;
+    config.prescaler = RTC_PRESCALER;
+    err_code = nrf_drv_rtc_init(&rtc, &config, rtc_handler);
+    APP_ERROR_CHECK(err_code);
+
+    //Enable tick event & interrupt
+    nrf_drv_rtc_tick_enable(&rtc,true);
+
+    //Set compare channel to trigger interrupt after COMPARE_COUNTERTIME seconds
+    err_code = nrf_drv_rtc_cc_set(&rtc,0,COMPARE_COUNTERTIME * 8,true);
+    APP_ERROR_CHECK(err_code);
+
+    //Power on RTC instance
+    nrf_drv_rtc_enable(&rtc);
+}
 
 /**@brief Application main function.
  */
 int main(void)
 {
-
-
     uint32_t err_code;
     bool erase_bonds;
 
     // Initialize.
     APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
     uart_init();
-
-    //uint32_t * ptrt = NULL;
-    //printf("%d \n", (int)((uint32_t)&ptrt) - 0x20002128);
-
+    printf("\r\nUART Start\r\n");
     buttons_leds_init(&erase_bonds);
     ble_stack_init();
     gap_params_init();
@@ -649,38 +698,53 @@ int main(void)
     advertising_init();
     conn_params_init();
 
-    printf("\r\nUART Start!\r\n");
+    //Ble stack configs LFCLK used by rtc.     
+    rtc_config();
+    printf("RTC Start\r\n");
+    
     err_code = ble_advertising_start(BLE_ADV_MODE_FAST);
     APP_ERROR_CHECK(err_code);
-    
-    const char* seed = iota_generateSeed();
+ 
+    //Bug in lib.iota.c, TODO   
+    //const char* seed = iota_generateSeed();
+    const char seed[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9";
     printf("Seed:\r\n");
     printf("%s\r\n",seed);
-    /*
-    char* ptr = (char*)unexec_malloc(10);
-    printf("malloc:\r\n");
-    ptr = (char*)unexec_realloc(ptr, 20);
-    printf("YYYYYGE realloc\r\n");
-    ptr = (char*)unexec_realloc(ptr, 5);
-    printf("saaaad realloc\r\n");
-    unexec_free(ptr);
-    printf("Memory is free!\r\n");*/
-    char message[] = "IAMSOMEMESSAGE9HEARMEROARMYMESSAGETOTHEWORLDYOUHEATHEN";
-    size_t security = 1;
-    size_t start = 1;
-    size_t count = 3;
-    size_t next_start = start + count;
-    size_t next_count = 2;
-    uint8_t index = 1;
-    
-    //uint32_t * ptr2t = NULL;
-    //printf("%d \n", (int)((uint32_t)&ptr2t) - 0x20002128);
-    
-    const uint8_t* output = mam_create(seed, message, security, start, count, next_start, next_count, index);
-    
-    printf("Message:\r\n");
-    printf("%s\r\n", output);
 
+    char message[] = "IAMSOMEMESSAGE9HEARMEROARMYMESSAGETOTHEWORLDYOUHEATHEN";
+    size_t start = 1;
+    size_t count = 9;
+    size_t index = 3;
+    size_t next_start = start + count;
+    size_t next_count = 4;
+    size_t security = 1;
+    
+    uint32_t tstart = time();
+    
+    const char* result = mam_create(seed, message, start, count, index, next_start, next_count, security);
+    //char* result = merkle_keys(seed, next_start, next_count, security);
+    uint32_t tend = time();
+    printf("time end: %ld\r\n", tend);
+    printf("time delta: %ld\r\n", tend - tstart);
+
+    printf("mam done?\r\n");
+    printf("Got MAM RESULT:\r\n");
+
+    printf("splitting: \r\n");
+    char* masked_payload = strtok((char * restrict)result, "\n");
+    char* root = strtok(NULL, "\n");
+
+    printf("\r\npayload: %s\r\n", masked_payload);
+    printf("\r\nroot: %s\r\n", root);
+
+    tstart = time();
+    printf("time start: %ld\r\n", tstart);
+    const char* parsed = mam_parse(masked_payload, root, index);
+    tend = time();
+    printf("time end: %ld\r\n", tstart);
+    printf("time delta: %ld\r\n", tend - tstart);
+    printf("Got MAM PARSE RESULT:\n%s\n", parsed);
+    
 
     for (;;)
     {

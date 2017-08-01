@@ -19,7 +19,7 @@
  *
  *  @return ? (what allocates/deallocates?)
  */
-const uint8_t* mam_create(const char* c_seed,
+const char* mam_create(const char* c_seed,
                           const char* c_message,
                           size_t start,
                           size_t size,
@@ -28,4 +28,10 @@ const uint8_t* mam_create(const char* c_seed,
                           size_t next_count,
                           uint8_t security
 );
+
+/**
+ *  ?
+ */
+const char* mam_parse(const char* masked_payload, const char* root, size_t index);
+
 #endif

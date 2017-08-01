@@ -25,14 +25,16 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \
   $(SDK_ROOT)/components/libraries/uart/retarget.c \
   $(SDK_ROOT)/components/libraries/util/sdk_errors.c \
+  $(SDK_ROOT)/components/libraries/util/sdk_errors.c \
   $(SDK_ROOT)/components/boards/boards.c \
   $(SDK_ROOT)/components/drivers_nrf/clock/nrf_drv_clock.c \
   $(SDK_ROOT)/components/drivers_nrf/common/nrf_drv_common.c \
   $(SDK_ROOT)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c \
+  $(SDK_ROOT)/components/drivers_nrf/rtc/nrf_drv_rtc.c \
   $(SDK_ROOT)/components/drivers_nrf/uart/nrf_drv_uart.c \
   $(SDK_ROOT)/components/libraries/bsp/bsp.c \
   $(SDK_ROOT)/components/libraries/bsp/bsp_btn_ble.c \
-  $(SDK_ROOT)/components/libraries/bsp/bsp_nfc.c \
+  $(SDK_ROOT)/components/libraries/mem_manager/mem_manager.c \
   $(PROJ_DIR)/main.c \
   $(SDK_ROOT)/external/segger_rtt/RTT_Syscalls_GCC.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
@@ -112,6 +114,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/drivers_nrf/timer \
   $(SDK_ROOT)/components/libraries/util \
   $(SDK_ROOT)/components/drivers_nrf/pwm \
+  $(SDK_ROOT)/components/libraries/mem_manager/ \
   ../config \
   $(SDK_ROOT)/components/libraries/usbd/class/cdc \
   $(SDK_ROOT)/components/libraries/csense \
@@ -174,8 +177,8 @@ CFLAGS += -DBLE_STACK_SUPPORT_REQD
 CFLAGS += -DCONFIG_GPIO_AS_PINRESET
 CFLAGS += -DS132
 CFLAGS += -DBOARD_PCA10056
-ASMFLAGS += -D__STACK_SIZE=128000
-ASMFLAGS += -D__HEAP_SIZE=65536 
+ASMFLAGS += -D__STACK_SIZE=16000
+ASMFLAGS += -D__HEAP_SIZE=16000 
 CFLAGS += -DNRF_SD_BLE_API_VERSION=3
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
@@ -197,8 +200,8 @@ ASMFLAGS += -DBLE_STACK_SUPPORT_REQD
 ASMFLAGS += -DCONFIG_GPIO_AS_PINRESET
 ASMFLAGS += -DS132
 ASMFLAGS += -DBOARD_PCA10056
-ASMFLAGS += -D__STACK_SIZE=128000
-ASMFLAGS += -D__HEAP_SIZE=65536 
+ASMFLAGS += -D__STACK_SIZE=16000
+ASMFLAGS += -D__HEAP_SIZE=16000 
 ASMFLAGS += -DNRF_SD_BLE_API_VERSION=3
 
 # Linker flags
