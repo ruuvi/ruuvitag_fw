@@ -1,6 +1,11 @@
 #ifndef RUST_ALLOCATOR_H
 #define RUST_ALLOCATOR_H
 
+/**
+ *  Memory allocator interface for rust library.
+ *
+ */
+
 #include <stdlib.h>
 
 void* unexec_malloc(size_t usize);
