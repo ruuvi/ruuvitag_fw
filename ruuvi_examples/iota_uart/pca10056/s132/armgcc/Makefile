@@ -166,7 +166,6 @@ INC_FOLDERS += \
 
 # Libraries common to all targets
 LIB_FILES += \
-  $(IOTA_ROOT)/build/libIOTAstatic.a \
   ../../../libiota_mam_bindings.a
 
 # C flags common to all targets
