@@ -1,0 +1,3 @@
+[submodule "iota.lib.c"]
+	path = iota.lib.c
+	url = https://github.com/th0br0/iota.lib.c
