@@ -59,28 +59,29 @@ void timer_bme280_event_handler(void* p_context);
 
 BME280_Ret bme280_init()
 {
-
-        /* Initialize SPI */
-        if (!spi_isInitialized())
-        {
-            spi_init();
-        }
-        ret_code_t err_code = 0;
+  /* Initialize SPI */
+  if (!spi_isInitialized())
+  {
+    spi_init();
+  }
+  
+  ret_code_t err_code = 0;
 	uint8_t reg = bme280_read_reg(BME280REG_ID);
-        bme280.sensor_available = false;
+  bme280.sensor_available = false;
 
-	if (reg == 0x60)
-        {
-		bme280.sensor_available = true;
-        }
+	if (BME280_ID_VALUE == reg)
+  {
+	  bme280.sensor_available = true;
+  }
 	else
-        {
-		return BME280_RET_ERROR_SELFTEST;
-        }
-        err_code = app_timer_create(&bme280_timer_id,
-                                APP_TIMER_MODE_REPEATED,
-                                timer_bme280_event_handler);
-        APP_ERROR_CHECK(err_code);
+  {
+    //Assume that 0x00 means no response. Other values are self-test errors (invalid who-am-i).
+		return (0x00 == reg) ? BME280_RET_ERROR : BME280_RET_ERROR_SELFTEST;
+  }
+  err_code = app_timer_create(&bme280_timer_id,
+                              APP_TIMER_MODE_REPEATED,
+                              timer_bme280_event_handler);
+  APP_ERROR_CHECK(err_code);
 
 	// load calibration data...
 	bme280.cp.dig_T1  = bme280_read_reg(BME280REG_CALIB_00);
@@ -122,18 +123,23 @@ BME280_Ret bme280_init()
 
 	bme280.cp.dig_H6  = bme280_read_reg(0xE7);
  
-        return BME280_RET_OK;
-
+  return BME280_RET_OK;
 }
 
 
 /*
  *  TODO: Adjust timer frequency by BME280 sampling speed.
+ *  TODO: return APP_ERROR_CHECK values?
  */
 BME280_Ret bme280_set_mode(enum BME280_MODE mode)
 {
+  if(!bme280.sensor_available)
+  {
+    return BME280_RET_ERROR;
+  }
 	uint8_t conf, reg;
   uint32_t err_code = 0;
+  
   BME280_Ret status = BME280_RET_ERROR;
   reg = bme280_read_reg(BME280REG_CTRL_HUM);
   conf = bme280_read_reg(BME280REG_CTRL_MEAS);
@@ -385,10 +391,10 @@ BME280_Ret bme280_write_reg(uint8_t reg, uint8_t value)
 /**
  * Event Handler that is called by the timer to read the sensor values.
  *
- * @param [in] pContext Timer Context
+ * @param [in] p_context Timer Context
  */
 void timer_bme280_event_handler(void* p_context)
 {
-    //NRF_LOG_INFO("BME\r\n");
+    NRF_LOG_DEBUG("BME280 event \r\n");
     bme280_read_measurements(); //read previous data
 }

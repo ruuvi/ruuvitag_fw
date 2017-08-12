@@ -118,6 +118,13 @@ init_err_code_t init_buttons(void);
 init_err_code_t init_sensors(void);
 
 /**
+ * Initialise BME280. Sensor will be put to sleep mode, with all sensors 
+ * in oversampling x1 mode
+ *
+ */
+init_err_code_t init_bme280(void);
+
+/**
  * Display init status
  *
  * This function checks the init status from previous

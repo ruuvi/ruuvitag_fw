@@ -40,7 +40,10 @@ init_err_code_t init_ble(void)
 
     //Enable BLE STACK
     err_code =  ble_stack_init();
-    APP_ERROR_CHECK(err_code);
+    
+    //Enable scheduler
+    APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
+    APP_TIMER_APPSH_INIT(RUUVITAG_APP_TIMER_PRESCALER, RUUVITAG_APP_TIMER_OP_QUEUE_SIZE, true);
 
     NRF_LOG_DEBUG("BLE Stack init\r\n");
     return (NRF_SUCCESS == err_code) ? INIT_SUCCESS : INIT_ERR_UNKNOWN;
@@ -59,14 +62,14 @@ init_err_code_t init_ble(void)
  */
 init_err_code_t init_timer(app_timer_id_t main_timer_id, uint32_t main_interval, void (*timer_handler)(void *))
 {
-      // Requires low-frequency clock initialized above
-    APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
-    APP_TIMER_APPSH_INIT(RUUVITAG_APP_TIMER_PRESCALER, RUUVITAG_APP_TIMER_OP_QUEUE_SIZE, true);
+    //TODO Check lfclk config
+    // Requires low-frequency clock initialized.
     // Create timer
     uint32_t err_code = app_timer_create(&main_timer_id,
                                 APP_TIMER_MODE_REPEATED,
                                 timer_handler);
     APP_ERROR_CHECK(err_code);
+    
     //Start timer
     err_code = app_timer_start(main_timer_id, APP_TIMER_TICKS(main_interval, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / MAIN_TIMER_INTERVAL
     APP_ERROR_CHECK(err_code);
@@ -88,7 +91,7 @@ init_err_code_t init_leds(void)
     nrf_gpio_cfg_output	(LED_GREEN);
     nrf_gpio_pin_set(LED_GREEN);
     NRF_LOG_DEBUG("LEDs init\r\n");
-    return 0; // Cannot fail under any reasonable circumstance
+    return INIT_SUCCESS; // Cannot fail under any reasonable circumstance
 }
 
 /**
@@ -114,8 +117,6 @@ init_err_code_t init_buttons(void)
  * It should be called even if sensors are not used, 
  * since initialization will put sensors in low-power mode
  *
- * @return 0          Operation successful
- * @retval 1          Something went wrong
  *
  */
 init_err_code_t init_sensors(void)
@@ -139,7 +140,7 @@ init_err_code_t init_sensors(void)
     // Read calibration
     BME280_Ret BME280RetVal;
     BME280RetVal = bme280_init();
-    bme280_set_mode(BME280_MODE_SLEEP); //Set sleep mode to allow configuration, sensor might have old config
+    bme280_set_mode(BME280_MODE_SLEEP); //Set sleep mode to allow configuration, sensor might have old config in internal RAM
     BME280RetVal |= bme280_set_interval(BME280_STANDBY_1000_MS);
 
     if (BME280_RET_OK == BME280RetVal)
@@ -154,6 +155,36 @@ init_err_code_t init_sensors(void)
 
     return retval;
 }
+
+init_err_code_t init_bme280(void)
+{
+    // Read calibration
+    BME280_Ret BME280RetVal;
+    BME280RetVal = bme280_init();
+    if (BME280_RET_OK != BME280RetVal)
+    {
+      return (BME280_RET_ERROR_SELFTEST == BME280RetVal) ? INIT_ERR_SELFTEST : INIT_ERR_NO_RESPONSE;
+    }
+    //TODO: reset
+    bme280_set_mode(BME280_MODE_SLEEP); //Set sleep mode to allow configuration, sensor might have old config in internal RAM
+    BME280RetVal |= bme280_set_interval(BME280_STANDBY_1000_MS);
+    BME280RetVal |= bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
+    BME280RetVal |= bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
+    BME280RetVal |= bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
+
+    if (BME280_RET_OK == BME280RetVal)
+    {
+        NRF_LOG_DEBUG("BME280 init Done\r\n");
+    }
+    else
+    {
+        BME280RetVal = INIT_ERR_UNKNOWN;
+        NRF_LOG_ERROR("BME280 init Failed: Error Code: %d\r\n", (uint32_t)BME280RetVal); 
+    }
+
+    return BME280RetVal;
+}
+
 
 /**
  * Display init status
