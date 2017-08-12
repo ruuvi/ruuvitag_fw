@@ -10,17 +10,10 @@
  *
  */
 
-#ifndef ES_BATTERY_VOLTAGE_H__
-#define ES_BATTERY_VOLTAGE_H__
+#ifndef BATTERY_VOLTAGE_H__
+#define BATTERY_VOLTAGE_H__
 
 #include <stdint.h>
-
-/**
- * @file
- *
- * @addtogroup eddystone_tlm
- * @{
- */
 
 /**@brief Function for initializing the battery voltage module.
  */
@@ -29,12 +22,11 @@ void battery_voltage_init(void);
 
 /**@brief Function for reading the battery voltage.
  *
-
+ * If battery ADC is not already initialised, this function
+ * initialises battery reading automatically. 
+ *
+ * @returns battery voltage in millivolts.
  */
 uint16_t getBattery(void);
 
-/**
- * @}
- */
-
-#endif // ES_BATTERY_VOLTAGE_H__
+#endif

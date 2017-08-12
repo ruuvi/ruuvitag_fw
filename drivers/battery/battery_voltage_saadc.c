@@ -22,6 +22,7 @@
 
 static nrf_saadc_value_t adc_buf[2];        //!< Buffer used for storing ADC values.
 static uint16_t m_batt_lvl_in_milli_volts;  //!< Current battery level.
+static uint8_t battery_is_init = 0;
 
 /**@brief Function handling events from 'nrf_drv_saadc.c'.
  *
@@ -58,12 +59,17 @@ void battery_voltage_init(void)
 
     err_code = nrf_drv_saadc_sample();
     APP_ERROR_CHECK(err_code);
+    battery_is_init = 1;
 }
 
 
 uint16_t getBattery(void)
 {
     ret_code_t err_code;
+    if(!battery_is_init)
+    {
+      battery_voltage_init();
+    }
 
     if (!nrf_drv_saadc_is_busy())
     {
@@ -73,5 +79,5 @@ uint16_t getBattery(void)
         uint32_t err_code = nrf_drv_saadc_sample();
         APP_ERROR_CHECK(err_code);
     }
-        return m_batt_lvl_in_milli_volts;
+    return m_batt_lvl_in_milli_volts;
 }
