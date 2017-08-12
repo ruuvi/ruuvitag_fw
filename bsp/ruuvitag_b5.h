@@ -45,8 +45,10 @@
   #define BSP_LED_2 LED_1
 #endif
 
-#define RX_PIN_NUMBER  4
-#define TX_PIN_NUMBER  5
+#define RX_PIN_NUMBER   4
+#define TX_PIN_NUMBER   5
+#define RTS_PIN_NUMBER  NRF_GPIO_UNUSED
+#define CTS_PIN_NUMBER  NRF_GPIO_UNUSED
 #define HWFC           false
 
 #define SPIM0_SCK_PIN     29  // SPI clock
@@ -56,6 +58,8 @@
 #define SPIM0_SS_HUMI_PIN  3  // SPI Slave Select (BME280)
 #define INT_ACC1_PIN       2  // Accelerometer interrupt 1
 #define INT_ACC2_PIN       6  // Accelerometer interrupt 2
+
+#define REVERSE_PROT_VOLT_DROP_MILLIVOLTS 1    //!< Typical forward voltage drop of the mosfet
 
 // Low frequency clock source to be used by the SoftDevice
 #define NRF_CLOCK_LFCLKSRC      {.source        = NRF_CLOCK_LF_SRC_XTAL,            \

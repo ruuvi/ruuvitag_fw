@@ -11,10 +11,10 @@
  */
 
 #include "nrf_drv_saadc.h"
-#include "battery_voltage.h"
+#include "battery.h"
+#include "boards.h" //For reverse voltage protection define
 
 #define ADC_REF_VOLTAGE_IN_MILLIVOLTS  600  //!< Reference voltage (in milli volts) used by ADC while doing conversion.
-#define DIODE_FWD_VOLT_DROP_MILLIVOLTS 1    //!< Typical forward voltage drop of the mosfet
 #define ADC_RES_10BIT                  1024 //!< Maximum digital value for 10-bit ADC conversion.
 #define ADC_PRE_SCALING_COMPENSATION   6    //!< The ADC is configured to use VDD with 1/3 prescaling as input. And hence the result of conversion is to be multiplied by 3 to get the actual value of the battery voltage.
 #define ADC_RESULT_IN_MILLI_VOLTS(ADC_VALUE) \
@@ -39,7 +39,7 @@ static void saadc_event_handler(nrf_drv_saadc_evt_t const * p_evt)
         adc_result = p_evt->data.done.p_buffer[0];
 
         m_batt_lvl_in_milli_volts = ADC_RESULT_IN_MILLI_VOLTS(adc_result) +
-                                    DIODE_FWD_VOLT_DROP_MILLIVOLTS;
+                                    REVERSE_PROT_VOLT_DROP_MILLIVOLTS;
     }
 }
 

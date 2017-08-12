@@ -12,6 +12,9 @@
 #ifndef BOARDS_H
 #define BOARDS_H
 
+#include <stdbool.h>
+#include <stdint.h>
+#include "sdk_errors.h"
 #include "nrf_gpio.h"
 
 #if defined(BOARD_NRF6310)

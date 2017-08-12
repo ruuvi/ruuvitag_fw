@@ -21,8 +21,8 @@ SRC_FILES += \
   $(PROJ_DIR)/../../libraries/bluetooth/bluetooth_core.c \
   $(PROJ_DIR)/../../libraries/bluetooth/eddystone.c \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/sensortag.c \
+  $(PROJ_DIR)/../../sdk_overrides/app_button.c \
   $(PROJ_DIR)/main.c \
-  $(PROJ_DIR)/sdk_overrides/app_button.c \
   $(SDK_ROOT)/components/ble/common/ble_advdata.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_params.c \
   $(SDK_ROOT)/components/ble/common/ble_srv_common.c \
