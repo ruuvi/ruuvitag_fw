@@ -13,6 +13,9 @@
 #include "nrf_drv_saadc.h"
 #include "battery.h"
 #include "boards.h" //For reverse voltage protection define
+#define NRF_LOG_MODULE_NAME "ADC"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
 
 #define ADC_REF_VOLTAGE_IN_MILLIVOLTS  600  //!< Reference voltage (in milli volts) used by ADC while doing conversion.
 #define ADC_RES_10BIT                  1024 //!< Maximum digital value for 10-bit ADC conversion.
@@ -20,8 +23,7 @@
 #define ADC_RESULT_IN_MILLI_VOLTS(ADC_VALUE) \
     ((((ADC_VALUE) *ADC_REF_VOLTAGE_IN_MILLIVOLTS) / ADC_RES_10BIT) * ADC_PRE_SCALING_COMPENSATION)
 
-static nrf_saadc_value_t adc_buf[2];        //!< Buffer used for storing ADC values.
-static uint16_t m_batt_lvl_in_milli_volts;  //!< Current battery level.
+static nrf_saadc_value_t adc_buf;           //!< Buffer used for storing ADC values.
 static uint8_t battery_is_init = 0;
 
 /**@brief Function handling events from 'nrf_drv_saadc.c'.
@@ -30,16 +32,10 @@ static uint8_t battery_is_init = 0;
  */
 static void saadc_event_handler(nrf_drv_saadc_evt_t const * p_evt)
 {
-    //uint32_t err_code;
-    
+
     if (p_evt->type == NRF_DRV_SAADC_EVT_DONE)
     {
-        nrf_saadc_value_t adc_result;
-
-        adc_result = p_evt->data.done.p_buffer[0];
-
-        m_batt_lvl_in_milli_volts = ADC_RESULT_IN_MILLI_VOLTS(adc_result) +
-                                    REVERSE_PROT_VOLT_DROP_MILLIVOLTS;
+      NRF_LOG_DEBUG("ADC done \r\n");
     }
 }
 
@@ -54,11 +50,6 @@ void battery_voltage_init(void)
     err_code = nrf_drv_saadc_channel_init(0, &config);
     APP_ERROR_CHECK(err_code);
 
-    err_code = nrf_drv_saadc_buffer_convert(&adc_buf[0], 1);
-    APP_ERROR_CHECK(err_code);
-
-    err_code = nrf_drv_saadc_sample();
-    APP_ERROR_CHECK(err_code);
     battery_is_init = 1;
 }
 
@@ -73,11 +64,9 @@ uint16_t getBattery(void)
 
     if (!nrf_drv_saadc_is_busy())
     {
-        err_code = nrf_drv_saadc_buffer_convert(&adc_buf[0], 1);
+        err_code = nrf_drv_saadc_sample_convert(NRF_SAADC_INPUT_VDD, &adc_buf);
         APP_ERROR_CHECK(err_code);
 
-        uint32_t err_code = nrf_drv_saadc_sample();
-        APP_ERROR_CHECK(err_code);
     }
-    return m_batt_lvl_in_milli_volts;
+    return ADC_RESULT_IN_MILLI_VOLTS(adc_buf) + REVERSE_PROT_VOLT_DROP_MILLIVOLTS;
 }

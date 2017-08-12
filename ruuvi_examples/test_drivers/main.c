@@ -93,12 +93,7 @@ int main(void)
   
   //Check battery reading
   uint16_t voltage = getBattery();
-  NRF_LOG_INFO("Checking battery state... %d mV", (uint32_t)voltage);
-  NRF_LOG_FLUSH();
-  nrf_delay_ms(100);
-  //Check battery reading
-  voltage = getBattery();
-  NRF_LOG_INFO("Checking battery state... %d mV", (uint32_t)voltage);
+  NRF_LOG_INFO("Checking battery state... %d mV\r\n", (uint32_t)voltage);
   NRF_LOG_FLUSH();
   nrf_delay_ms(100);
   
