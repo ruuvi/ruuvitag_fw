@@ -30,6 +30,9 @@
 #include "app_error.h"
 #include "init.h"
 #include "bluetooth_core.h"
+#include "rtc.h"
+
+#define NRF_LOG_MODULE_NAME "MAIN"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
@@ -78,6 +81,16 @@ int main(void)
   NRF_LOG_INFO("BLE init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   NRF_LOG_FLUSH();
   nrf_delay_ms(100);
+
+  //Init RTC next to init timers and clocks
+  err_code |= init_rtc();
+  NRF_LOG_INFO("RTC init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
+  uint32_t start = millis();
+  for(int ii = 0; ii < 15; ii++)
+  {
+    NRF_LOG_INFO("Clock is %d\r\n", millis());
+    nrf_delay_ms(500);
+  }
   
   //Init LEDs 
   err_code |= init_leds();
@@ -200,7 +213,8 @@ int main(void)
     NRF_LOG_FLUSH();
     nrf_delay_ms(1100);
   }
-
+  uint32_t end = millis();
+  NRF_LOG_INFO("Test completed in %d milliseconds\r\n", end-start);
   while(1)
   {
     power_manage();
