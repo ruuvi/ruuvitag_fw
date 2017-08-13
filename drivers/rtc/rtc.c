@@ -1,5 +1,7 @@
-
 #include "rtc.h"
+
+#include <stdint.h>
+
 #include "nrf_drv_rtc.h"
 #include "nrf_drv_clock.h"
 
