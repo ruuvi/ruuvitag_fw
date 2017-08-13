@@ -3489,7 +3489,7 @@
  
 
 #ifndef NRF_QUEUE_ENABLED
-#define NRF_QUEUE_ENABLED 0
+#define NRF_QUEUE_ENABLED 1
 #endif
 
 // <q> SLIP_ENABLED  - slip - SLIP encoding decoding

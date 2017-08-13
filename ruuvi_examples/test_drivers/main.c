@@ -31,6 +31,7 @@
 #include "init.h"
 #include "bluetooth_core.h"
 #include "rtc.h"
+#include "rng.h"
 
 #define NRF_LOG_MODULE_NAME "MAIN"
 #include "nrf_log.h"
@@ -82,7 +83,7 @@ int main(void)
   NRF_LOG_FLUSH();
   nrf_delay_ms(100);
 
-  //Init RTC next to init timers and clocks
+  //Init RTC
   err_code |= init_rtc();
   NRF_LOG_INFO("RTC init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   uint32_t start = millis();
@@ -90,6 +91,20 @@ int main(void)
   {
     NRF_LOG_INFO("Clock is %d\r\n", millis());
     nrf_delay_ms(500);
+  }
+  
+  //Init RNG
+  err_code |= init_rng();
+  NRF_LOG_INFO("RNG init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
+  NRF_LOG_FLUSH();
+  nrf_delay_ms(100);
+  
+  NRF_LOG_INFO("Making few coordinates, check correlation\r\n");
+  for(int ii = 0; ii < 100; ii++)
+  {
+    app_sched_execute();
+    NRF_LOG_INFO(";%d;%d;\r\n", random(), random());
+    NRF_LOG_FLUSH();
   }
   
   //Init LEDs 
@@ -213,6 +228,8 @@ int main(void)
     NRF_LOG_FLUSH();
     nrf_delay_ms(1100);
   }
+  
+  
   uint32_t end = millis();
   NRF_LOG_INFO("Test completed in %d milliseconds\r\n", end-start);
   while(1)
