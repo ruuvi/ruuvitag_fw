@@ -9,13 +9,13 @@ $(OUTPUT_DIRECTORY)/web_bluetooth.out: \
   LINKER_SCRIPT  := web_bluetooth.ld
 # Source files common to all targets
 SRC_FILES += \
-  ../init.c \
   $(PROJ_DIR)/../../bsp/bsp.c \
+  $(PROJ_DIR)/../../drivers/battery/battery.c \
+  $(PROJ_DIR)/../../drivers/bluetooth/bluetooth_core.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
+  $(PROJ_DIR)/../../drivers/init/init.c \
   $(PROJ_DIR)/../../drivers/LIS2DH12/LIS2DH12.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
-  $(PROJ_DIR)/../../libraries/base91/base91.c \
-  $(PROJ_DIR)/../../libraries/bluetooth/bluetooth_core.c \
   $(PROJ_DIR)/main.c \
   $(PROJ_DIR)/application.c \
   $(PROJ_DIR)/ble_acceleration_service.c \
@@ -82,13 +82,14 @@ INC_FOLDERS += \
    ../ \
    ../config \
   $(PROJ_DIR)/../../bsp \
+  $(PROJ_DIR)/../../drivers/battery/ \
+  $(PROJ_DIR)/../../drivers/bluetooth \
   $(PROJ_DIR)/../../drivers/bme280 \
+  $(PROJ_DIR)/../../drivers/init \
   $(PROJ_DIR)/../../drivers/LIS2DH12 \
   $(PROJ_DIR)/../../drivers/spi/ \
-  $(PROJ_DIR)/../../libraries/base91 \
-  $(PROJ_DIR)/../../libraries/bluetooth \
-  $(PROJ_DIR)/ruuvitag_b3/ \
-  $(PROJ_DIR)/ruuvitag_b3/s132/config \
+  $(PROJ_DIR)/ruuvitag_b5/ \
+  $(PROJ_DIR)/ruuvitag_b5/s132/config \
   $(PROJ_DIR)/ \
   $(SDK_ROOT)/components \
   $(SDK_ROOT)/components/ble/ble_advertising \
@@ -188,7 +189,7 @@ LIB_FILES += \
 # C flags common to all targets
 CFLAGS += -DNRF52
 CFLAGS += -DBOARD_CUSTOM
-CFLAGS += -DBOARD_RUUVITAG_B3
+CFLAGS += -DBOARD_RUUVITAG_B5
 CFLAGS += -DNRF52832
 CFLAGS += -DNRF52_PAN_64
 CFLAGS += -DNRF52_PAN_12
@@ -227,7 +228,7 @@ CXXFLAGS += \
 ASMFLAGS += -x assembler-with-cpp
 ASMFLAGS += -DNRF52
 ASMFLAGS += -DBOARD_CUSTOM
-ASMFLAGS += -DBOARD_RUUVITAG_B3
+ASMFLAGS += -DBOARD_RUUVITAG_B5
 ASMFLAGS += -DNRF52832
 ASMFLAGS += -DNRF52_PAN_64
 ASMFLAGS += -DNRF52_PAN_12

@@ -16,10 +16,6 @@
  * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
  */
 
-#include "ble_advdata.h"
-#include "ble_advertising.h"
-#include "nrf_assert.h"
-
 #include "bluetooth_core.h"
 #include "ble_advdata.h"
 #include "ble_advertising.h"
@@ -62,21 +58,7 @@ uint32_t ble_stack_init(void)
                                                     PERIPHERAL_LINK_COUNT,
                                                     &ble_enable_params);
     APP_ERROR_CHECK(err_code);
-    
-    #define BLE_ATTRIBUTE_TABLE_SIZE 0x1000
-    #ifdef BLE_ATTRIBUTE_TABLE_SIZE
-    //Adjust attribute table size, linkerscript has to be adjusted if this value is changed
-    NRF_LOG_INFO("Attribute table size: %d\r\n", ble_enable_params.gatts_enable_params.attr_tab_size);
-    ble_enable_params.gatts_enable_params.attr_tab_size   = BLE_ATTRIBUTE_TABLE_SIZE;
-    NRF_LOG_INFO("Attribute table size: %d\r\n", ble_enable_params.gatts_enable_params.attr_tab_size);
-    #endif
-    
-    //Adjust UUID count
-    #define BLE_UUID_COUNT 10
-    #ifdef BLE_UUID_COUNT
-    ble_enable_params.common_enable_params.vs_uuid_count = BLE_UUID_COUNT;
-    #endif 
-    
+
     //Check the ram settings against the used number of links
     CHECK_RAM_START_ADDR(CENTRAL_LINK_COUNT,PERIPHERAL_LINK_COUNT);
 
@@ -107,14 +89,6 @@ uint32_t ble_tx_power_set(int8_t power)
  *
  * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
  */
- /**@brief Function for starting advertising.
- *
- * @param connectable
- * BLE_GAP_ADV_TYPE_ADV_IND         //Connectable, undirected, not implemented
- * BLE_GAP_ADV_TYPE_ADV_DIRECT_IND  //Connectable, directed, not implemented
- * BLE_GAP_ADV_TYPE_ADV_SCAN_IND    //Scannable, undirected, not implemented
- * BLE_GAP_ADV_TYPE_ADV_NONCONN_IND //Non-connectable, undirected, implemented
- */
 static uint16_t advertising_interval = APP_CFG_NON_CONN_ADV_INTERVAL_MS;
 uint32_t bluetooth_advertising_init(void)
 {
@@ -128,7 +102,7 @@ uint32_t bluetooth_advertising_init(void)
     static ble_gap_adv_params_t m_adv_params;
     memset(&m_adv_params, 0, sizeof(m_adv_params));
 
-    m_adv_params.type        = BLE_GAP_ADV_TYPE_ADV_NONCONN_IND; //TODO configure connectable
+    m_adv_params.type        = BLE_GAP_ADV_TYPE_ADV_NONCONN_IND;
     m_adv_params.p_peer_addr = NULL;                             // Undirected advertisement.
     m_adv_params.fp          = BLE_GAP_ADV_FP_ANY;
     m_adv_params.interval    = advertising_interval;
@@ -162,36 +136,32 @@ uint32_t bluetooth_advertise_data(uint8_t *data, uint8_t length)
     ble_advdata_t advdata;
     uint8_t       flags = BLE_GAP_ADV_FLAG_BR_EDR_NOT_SUPPORTED;
 
-    // Build and set advertising data.
     ble_advdata_manuf_data_t manuf_specific_data;
+
+    // Build and set advertising data.
     memset(&advdata, 0, sizeof(advdata));
-    advdata.name_type             = BLE_ADVDATA_NO_NAME; //TODO configure name
+
+    advdata.name_type             = BLE_ADVDATA_NO_NAME;
     advdata.flags                 = flags;
     advdata.p_manuf_specific_data = &manuf_specific_data;
 
     // Initialize advertising parameters (used when starting advertising).
     uint8_t *m_beacon_info = malloc(length);                   /**< Information advertised by the Beacon. */
 
-    memcpy(m_beacon_info, data, length);      // copydata to broadcast
+    //m_beacon_info[0] =      0x02,                // Manufacturer specific information. Specifies the device type in this
+                                                 // implementation.
+    //m_beacon_info[1] =      length,              // Manufacturer specific information. Specifies the length of the
+                                                 // manufacturer specific data in this implementation.
+    memcpy(m_beacon_info, data, length);      // copy rest of data to broadcast
 
     manuf_specific_data.company_identifier = BLE_COMPANY_IDENTIFIER;
-    manuf_specific_data.data.p_data        = m_beacon_info;
-    manuf_specific_data.data.size          =  length;
+    manuf_specific_data.data.p_data = m_beacon_info;
+    manuf_specific_data.data.size   =  length;
 
     err_code = ble_advdata_set(&advdata, NULL);
     APP_ERROR_CHECK(err_code);
 
-
-
-
-    err_code = sd_ble_gap_adv_start(&m_adv_params);
-    if(NRF_SUCCESS != err_code)
-    {
-        NRF_LOG_INFO("Advertisement fail: %d \r\n",err_code);
-    }
-
     free(m_beacon_info);
-
 
     return err_code;
     
@@ -212,3 +182,4 @@ uint32_t bluetooth_advertise_data(uint8_t *data, uint8_t length)
    advertising_interval = MSEC_TO_UNITS(interval, UNIT_0_625_MS);
    return bluetooth_advertising_init();
  }
+

@@ -17,6 +17,7 @@
 
 #include "service_if.h"
 
+#define NRF_BLE_MAX_MTU_SIZE GATT_MTU_SIZE_DEFAULT 
 
 /**@brief Function for handling the Application's BLE Stack events.
  *

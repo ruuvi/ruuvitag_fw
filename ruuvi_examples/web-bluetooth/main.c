@@ -129,8 +129,8 @@ int main(void)
 
     init_timer(main_timer_id, MAIN_LOOP_INTERVAL, main_timer_handler);
 
-    //Initialize BME 280 and lis2dh12
-    init_status += init_sensors();
+    //Initialize BME 280
+    init_status += init_bme280();
   
     //Visually display init status. Hangs if there was an error, waits 3 seconds on success
     init_blink_status(init_status);
@@ -143,7 +143,7 @@ int main(void)
     
     //Start sensors
     //25 Hz sample rate, read at 1 Hz
-    LIS2DH12_setPowerMode(LIS2DH12_POWER_BURST);
+    //LIS2DH12_setPowerMode(LIS2DH12_POWER_BURST);
     bme280_set_mode(BME280_MODE_NORMAL);
     NRF_LOG_INFO("Sensors started \r\n");
 

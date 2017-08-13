@@ -11,13 +11,15 @@
 /**
  *  This function is called when new accelerometer sample is ready.
  */
-extern ble_acceleration_service_t    m_acceleration_service; 
+/*extern ble_acceleration_service_t    m_acceleration_service; 
 static ble_acceleration_service_t*   p_acceleration_service = &m_acceleration_service;
 static ble_acceleration_service_imu_data_t  m_imu_data;
 static ble_acceleration_service_imu_data_t* p_imu_data = &m_imu_data;
 static uint8_t imu_buffer[IMU_DATA_SIZE];
+*/
 void accelerometer_callback(void)
 {
+  /*
   static uint32_t counter = 0;
   int32_t x,y,z;
   
@@ -54,6 +56,7 @@ void accelerometer_callback(void)
     }
     counter++;
   }
+  */
 }
 
 /**

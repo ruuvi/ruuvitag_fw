@@ -153,12 +153,24 @@ init_err_code_t init_sensors(void)
         NRF_LOG_ERROR("BME280 init Failed: Error Code: %d\r\n", (int32_t)BME280RetVal); 
     }
 
-    return retval;
+    return INIT_SUCCESS;
 }
 
 init_err_code_t init_lis2dh12(void)
 {
+    LIS2DH12_Ret Lis2dh12RetVal;
+    Lis2dh12RetVal = LIS2DH12_init(LIS2DH12_POWER_DOWN, LIS2DH12_SCALE2G, NULL);
 
+    if (LIS2DH12_RET_OK == Lis2dh12RetVal)
+    {
+        NRF_LOG_INFO("LIS2DH12 init Done\r\n");
+    }
+    else
+    {
+        NRF_LOG_ERROR("LIS2DH12 init Failed: Error Code: %d\r\n", (int32_t)Lis2dh12RetVal);
+        return INIT_ERR_UNKNOWN;
+    }
+  return INIT_SUCCESS;
 }
 
 init_err_code_t init_bme280(void)
@@ -183,11 +195,11 @@ init_err_code_t init_bme280(void)
     }
     else
     {
-        BME280RetVal = INIT_ERR_UNKNOWN;
         NRF_LOG_ERROR("BME280 init Failed: Error Code: %d\r\n", (uint32_t)BME280RetVal); 
+        return INIT_ERR_UNKNOWN;
     }
 
-    return BME280RetVal;
+    return INIT_SUCCESS;
 }
 
 
