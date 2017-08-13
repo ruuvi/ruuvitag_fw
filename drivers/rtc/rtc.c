@@ -33,7 +33,7 @@ uint32_t init_rtc(void)
 
   //Initialize RTC instance
   nrf_drv_rtc_config_t config = NRF_DRV_RTC_DEFAULT_CONFIG;
-  config.prescaler = 4095;
+  config.prescaler = 32;
   err_code = nrf_drv_rtc_init(&rtc, &config, rtc_handler);
   APP_ERROR_CHECK(err_code);
 
@@ -52,5 +52,9 @@ uint32_t init_rtc(void)
 
 uint32_t millis(void)
 {
-  return nrf_drv_rtc_counter_get(&rtc)*125;
+  uint64_t ms = nrf_drv_rtc_counter_get(&rtc);
+  //Compensate tick roundoff
+  ms*=32000;
+  ms/=32768;
+  return (uint32_t)ms;
 }
