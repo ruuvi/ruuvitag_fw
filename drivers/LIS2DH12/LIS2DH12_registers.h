@@ -133,8 +133,11 @@
 
 // FIFO_CTRL_REG masks
 #define LIS2DH_FM_MASK 			0xC0
+#define LIS2DH_FM_FIFO      ((0x01)<<6)
+#define LIS2DH_FM_STREAM    ((0x01)<<7)
 #define LIS2DH_TR_MASK 			0x20
 #define LIS2DH_FTH_MASK 		0x1F
+
 
 // FIFO_SRC_REG masks
 #define LIS2DH_WTM_MASK 		0x80

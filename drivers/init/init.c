@@ -156,6 +156,11 @@ init_err_code_t init_sensors(void)
     return retval;
 }
 
+init_err_code_t init_lis2dh12(void)
+{
+
+}
+
 init_err_code_t init_bme280(void)
 {
     // Read calibration

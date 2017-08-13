@@ -29,6 +29,8 @@
 #include "app_timer.h"
 #include "app_error.h"
 #include "init.h"
+#include "bme280.h"
+#include "LIS2DH12.h"
 #include "bluetooth_core.h"
 #include "rtc.h"
 #include "rng.h"
@@ -228,6 +230,9 @@ int main(void)
     NRF_LOG_FLUSH();
     nrf_delay_ms(1100);
   }
+  
+  
+  NRF_LOG_INFO("Ok, Removing IIR, status %s. Please breathe on bme280. Values should adjust quickly.\r\n", (uint32_t)ERR_TO_STR(err_code));
   
   
   uint32_t end = millis();
