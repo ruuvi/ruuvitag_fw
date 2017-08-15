@@ -18,14 +18,15 @@ For a detailed description see the detailed description in @ref LIS2DH12.h
 
 #include "spi.h"
 #include "nrf_drv_gpiote.h"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
 #include "nrf.h"
 #include "app_timer.h"
 #include "bsp.h"
 #include "boards.h"
 
 
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
+
 
 /* CONSTANTS **************************************************************************************/
 /** Maximum Size of SPI Addresses */
@@ -446,13 +447,7 @@ static LIS2DH12_Ret writeRegister(uint8_t address, uint8_t dataToWrite)
  *
  * @param [in] pContext Timer Context
  */
-/**
- * Event Handler that is called by the timer to read the sensor values.
- *
- * This is a workaround because data ready interrupt from LIS2DH12 is not working
- *
- * @param [in] pContext Timer Context
- */
+
 void timer_lis2dh12_event_handler(void* p_context)
 {
     NRF_LOG_DEBUG("LIS2DH12 Timer event\r\n");
