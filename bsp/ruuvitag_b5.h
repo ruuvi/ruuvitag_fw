@@ -74,6 +74,7 @@
 //#define RUUVITAG_BME280_TIMER 2
 //#define RUUVITAG_USER_TIMER 3
 
+//TODO: refactor these to init / other
 #define RUUVITAG_APP_TIMER_PRESCALER 0 //App timer increments at 32.768 kHz
 #define RUUVITAG_APP_TIMER_OP_QUEUE_SIZE 16 //16 ops in time queue max
 
