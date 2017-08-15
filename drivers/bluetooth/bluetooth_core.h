@@ -60,7 +60,7 @@ uint32_t bluetooth_advertising_init(void);
  *
  * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
  */
-uint32_t bluetooth_advertise_data(uint8_t *data, uint8_t length);
+uint32_t bluetooth_advertise_data();
 
 /**@brief Function adjusting advertising interval. 
  *

@@ -76,7 +76,7 @@ static ble_gap_adv_params_t m_adv_params = {
   .timeout     = APP_CFG_NON_CONN_ADV_TIMEOUT
 };
 
-
+//https://infocenter.nordicsemi.com/topic/com.nordic.infocenter.sdk5.v12.3.0/group__ble__sdk__lib__advdata.html?cp=4_0_3_6_2_8
 ble_advdata_t advdata =
 {
 // BLE_ADVDATA_NO_NAME
@@ -106,7 +106,7 @@ ble_advdata_t scanresp =
  .name_type = BLE_ADVDATA_FULL_NAME, //scan response
  .short_name_len = 5,                //Name get truncated to "Ruuvi" if full name does not fit
  .include_appearance = true,         // scan response
- .flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE, // Low energy, discoverable
+ .flags = 0, // Flags shall not be included in the scan response data.
  .p_tx_power_level        = &tx_power,
  .uuids_more_available    = {.uuid_cnt = 0, .p_uuids = NULL},    // Add some services?
  .uuids_complete          = {.uuid_cnt = 0, .p_uuids = NULL},
@@ -274,6 +274,7 @@ uint32_t ble_stack_init(void)
     NRF_LOG_FLUSH();
     nrf_delay_ms(20);
     application_services_init();
+    bluetooth_advertise_data();
     bluetooth_advertising_start();
     conn_params_init();
 
@@ -349,31 +350,15 @@ uint32_t bluetooth_advertising_stop(void)
  *
  * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
  */
-uint32_t bluetooth_advertise_data(uint8_t *data, uint8_t length)
+uint32_t bluetooth_advertise_data()
 {
     uint32_t err_code = NRF_SUCCESS;
-    
-    ble_advdata_manuf_data_t manuf_specific_data;
-    advdata.p_manuf_specific_data = &manuf_specific_data;
-
-    // Initialize advertising parameters (used when starting advertising).
-    uint8_t *m_beacon_info = malloc(length); /**< Information advertised by the Beacon. */
-
-    //m_beacon_info[0] =      0x02,          // Manufacturer specific information. Specifies the device type in this
-                                             // implementation.
-    //m_beacon_info[1] =      length,        // Manufacturer specific information. Specifies the length of the
-                                             // manufacturer specific data in this implementation.
-    memcpy(m_beacon_info, data, length);     // copy rest of data to broadcast
-
-    manuf_specific_data.company_identifier = BLE_COMPANY_IDENTIFIER;
-    manuf_specific_data.data.p_data = m_beacon_info;
-    manuf_specific_data.data.size   =  length;
 
     err_code |= ble_advdata_set(&advdata, &scanresp);
+    NRF_LOG_INFO("ADV data status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
+    NRF_LOG_FLUSH();
+    nrf_delay_ms(10);
     APP_ERROR_CHECK(err_code);
-
-    free(m_beacon_info);
-
     return err_code;
     
 }
