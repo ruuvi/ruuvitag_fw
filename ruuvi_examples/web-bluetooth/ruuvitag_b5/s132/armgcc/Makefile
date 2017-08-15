@@ -11,6 +11,7 @@ $(OUTPUT_DIRECTORY)/web_bluetooth.out: \
 SRC_FILES += \
   $(PROJ_DIR)/../../bsp/bsp.c \
   $(PROJ_DIR)/../../drivers/battery/battery.c \
+  $(PROJ_DIR)/../../drivers/bluetooth/ble_event_handlers.c \
   $(PROJ_DIR)/../../drivers/bluetooth/bluetooth_core.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
   $(PROJ_DIR)/../../drivers/init/init.c \
@@ -25,7 +26,6 @@ SRC_FILES += \
   $(PROJ_DIR)/ble_nordic_uart_service.c \
   $(PROJ_DIR)/ble_tps.c \
   $(PROJ_DIR)/service_if.c \
-  $(PROJ_DIR)/event_handlers.c \
   $(SDK_ROOT)/components/ble/common/ble_advdata.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_params.c \
   $(SDK_ROOT)/components/ble/common/ble_srv_common.c \
@@ -69,6 +69,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/util/app_error.c \
   $(SDK_ROOT)/components/libraries/util/app_util_platform.c \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \
+  $(SDK_ROOT)/components/libraries/util/sdk_errors.c \
   $(SDK_ROOT)/components/libraries/util/sdk_mapped_flags.c \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
   $(SDK_ROOT)/components/toolchain/gcc/gcc_startup_nrf52.S \
@@ -259,12 +260,6 @@ LDFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs -lc -lnosys
-
-
-
-
-
-
 
 .PHONY: $(TARGETS) default all clean help flash  flash_softdevice
 # Default target - first one defined

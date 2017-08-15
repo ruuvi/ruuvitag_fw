@@ -50,6 +50,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../bsp/bsp_nfc.c \
   $(PROJ_DIR)/../../bsp/boards.c \
   $(PROJ_DIR)/../../drivers/battery/battery.c \
+  $(PROJ_DIR)/../../drivers/bluetooth/ble_event_handlers.c \
   $(PROJ_DIR)/../../drivers/bluetooth/bluetooth_core.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
   $(PROJ_DIR)/../../drivers/init/init.c \
@@ -59,6 +60,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../libraries/acceleration/acceleration.c \
   $(PROJ_DIR)/../../sdk_overrides/app_button.c \
+  $(PROJ_DIR)/ble_services/application_ble_event_handlers.c \
   $(PROJ_DIR)/main.c \
 
 # Include folders common to all targets
@@ -154,6 +156,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/toolchain/cmsis/include \
   $(SDK_ROOT)/components/toolchain/gcc \
   $(SDK_ROOT)/external/segger_rtt \
+  $(PROJ_DIR)/ble_services/ \
   $(PROJ_DIR)/../../bsp \
   $(PROJ_DIR)/../../drivers/bluetooth \
   $(PROJ_DIR)/../../drivers/battery/ \

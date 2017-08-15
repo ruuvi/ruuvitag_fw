@@ -177,7 +177,7 @@ uint32_t ble_apply_configuration()
  * @details This function will set up all the necessary GAP (Generic Access Profile) parameters of
  *          the device. It also sets the permissions and appearance.
  */
-static void gap_params_init(void)
+/*static void gap_params_init(void)
 {
     uint32_t                err_code;
     ble_gap_conn_params_t   gap_conn_params;
@@ -199,11 +199,11 @@ static void gap_params_init(void)
 
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
     APP_ERROR_CHECK(err_code);
-}
+}*/
 
 
 /**@brief Function for initializing the Connection Parameters module.
- */
+ *//*
 static void conn_params_init(void)
 {
     uint32_t               err_code;
@@ -222,7 +222,7 @@ static void conn_params_init(void)
 
     err_code = ble_conn_params_init(&cp_init);
     APP_ERROR_CHECK(err_code);
-}
+}*/
 
 uint32_t ble_stack_init(void)
 {
@@ -253,8 +253,8 @@ uint32_t ble_stack_init(void)
     NRF_LOG_INFO("Softdevice enabled, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));
     APP_ERROR_CHECK(err_code);
     
-    gap_params_init();
-    conn_params_init();
+    //gap_params_init();
+    //conn_params_init();
 
     return err_code;
 }

@@ -116,17 +116,22 @@ int main(void)
     uint8_t init_status = 0; // counter, gets incremented by each failed init. It Is 0 in the end if init was ok.
     // Initialize log
     init_status += init_log();
-
+    NRF_LOG_INFO("Log init \r\n");
     //setup leds. LEDs are active low, so setting high them turns leds off.
     init_status += init_leds(); //INIT leds first and turn RED on
     nrf_gpio_pin_clear(LED_RED);//If INIT fails at later stage, RED will stay lit.
 
     // Initialize buttons
     init_status += init_buttons();
-
+    NRF_LOG_INFO("Buttons, leds init \r\n");
     //Initialize BLE Stack. Required in all applications for timer operation
     init_status += init_ble();
-
+    NRF_LOG_INFO("Ble stack init \r\n");
+    NRF_LOG_FLUSH();
+    nrf_delay_ms(10);
+    //Initialises services. TODO:rename init_ble_srvices
+    bluetooth_init();
+    NRF_LOG_INFO("Ble services init \r\n");
     init_timer(main_timer_id, MAIN_LOOP_INTERVAL, main_timer_handler);
 
     //Initialize BME 280
@@ -146,6 +151,9 @@ int main(void)
     //LIS2DH12_setPowerMode(LIS2DH12_POWER_BURST);
     bme280_set_mode(BME280_MODE_NORMAL);
     NRF_LOG_INFO("Sensors started \r\n");
+    
+    bluetooth_advertising_start();
+    NRF_LOG_INFO("Advertising started\r\n");
 
 
     for (;;)

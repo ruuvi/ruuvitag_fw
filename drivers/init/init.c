@@ -37,7 +37,7 @@ init_err_code_t init_ble(void)
 
     //Enable DC/DC for BLE
     NRF_POWER->DCDCEN = 1;
-
+    NRF_LOG_INFO("BLE Stack init start\r\n");
     //Enable BLE STACK
     err_code =  ble_stack_init();
     
@@ -45,7 +45,7 @@ init_err_code_t init_ble(void)
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
     APP_TIMER_APPSH_INIT(RUUVITAG_APP_TIMER_PRESCALER, RUUVITAG_APP_TIMER_OP_QUEUE_SIZE, true);
 
-    NRF_LOG_DEBUG("BLE Stack init\r\n");
+    NRF_LOG_INFO("BLE Stack init done\r\n");
     return (NRF_SUCCESS == err_code) ? INIT_SUCCESS : INIT_ERR_UNKNOWN;
 }
 
