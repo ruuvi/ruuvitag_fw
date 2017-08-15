@@ -19,6 +19,7 @@
 #include "bluetooth_core.h"
 #include "ble_advdata.h"
 #include "ble_advertising.h"
+#include "ble_nus.h"
 #include "sdk_errors.h"
 #include "nrf_delay.h"
 
@@ -50,15 +51,18 @@
     #error "APP_CFG_NON_CONN_ADV_TIMEOUT in bluetooth_config.h"
 #endif
 
+#define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
+static ble_uuid_t                       m_adv_uuids[] = {{BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}};  /**< Universally unique service identifier. */
+
 //TODO: Move defaults to application configuration.
 static int8_t tx_power = 0;
 //https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s132.api.v3.0.0%2Fstructble__gap__adv__params__t.html
 static ble_gap_adv_params_t m_adv_params = {
-   // BLE_GAP_ADV_TYPE_ADV_DIRECT_IND  
-   // BLE_GAP_ADV_TYPE_ADV_IND   , 
-   // BLE_GAP_ADV_TYPE_ADV_NONCONN_IND, 
-   // BLE_GAP_ADV_TYPE_ADV_SCAN_IND, 
-  .type = BLE_GAP_ADV_TYPE_ADV_SCAN_IND, 
+   // BLE_GAP_ADV_TYPE_ADV_DIRECT_IND,  // Connectable, directed to specific device
+   // BLE_GAP_ADV_TYPE_ADV_IND,         // Connecttable, scannable
+   // BLE_GAP_ADV_TYPE_ADV_NONCONN_IND, // Non-connectable, non-scannable
+   // BLE_GAP_ADV_TYPE_ADV_SCAN_IND,    // Non-connectable, scannable
+  .type = BLE_GAP_ADV_TYPE_ADV_IND, 
   
   // NULL on undirected advertisement, peer address on directed
   .p_peer_addr = NULL,
@@ -82,7 +86,7 @@ ble_advdata_t advdata =
 // BLE_ADVDATA_NO_NAME
 // BLE_ADVDATA_SHORT_NAME
 // BLE_ADVDATA_FULL_NAME
- .name_type = BLE_ADVDATA_NO_NAME, //scan response has full name
+ .name_type = BLE_ADVDATA_FULL_NAME, //scan response has full name
  .short_name_len = 5, //Name get truncated to "Ruuvi" if full name does not fit
  .include_appearance = false, // scan response has appearance
  .flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE, // Low energy, discoverable
@@ -94,7 +98,7 @@ ble_advdata_t advdata =
  .p_manuf_specific_data   = NULL,
  .p_service_data_array    = NULL,
  .service_data_count      = 0,
- .include_ble_device_addr = true,
+ .include_ble_device_addr = false, // Is included in protocol anyway. iOS users might benefit?
  .le_role                 = BLE_ADVDATA_ROLE_NOT_PRESENT, //always when on BLE
  .p_tk_value              = NULL, //always when on BLE
  .p_sec_mgr_oob_flags     = NULL, //always when on BLE
@@ -103,12 +107,12 @@ ble_advdata_t advdata =
 
 ble_advdata_t scanresp =
 {
- .name_type = BLE_ADVDATA_FULL_NAME, //scan response
+ .name_type = BLE_ADVDATA_NO_NAME, //scan response
  .short_name_len = 5,                //Name gets truncated to "Ruuvi" if full name does not fit
  .include_appearance = true,         // scan response
  .flags = 0, // Flags shall not be included in the scan response data.
- .p_tx_power_level        = &tx_power,
- .uuids_more_available    = {.uuid_cnt = 0, .p_uuids = NULL},    // Add some services?
+ .p_tx_power_level        = NULL,
+ .uuids_more_available    = {.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]), .p_uuids = m_adv_uuids},    // Add some services?
  .uuids_complete          = {.uuid_cnt = 0, .p_uuids = NULL},
  .uuids_solicited         = {.uuid_cnt = 0, .p_uuids = NULL},
  .p_slave_conn_int        = NULL,
@@ -230,6 +234,17 @@ static void conn_params_init(void)
     APP_ERROR_CHECK(err_code);
 }
 
+static void advertising_init(void)
+{
+    uint32_t err_code = NRF_SUCCESS;
+    ble_adv_modes_config_t options = {0};
+    options.ble_adv_fast_enabled  = true;
+    options.ble_adv_fast_interval = APP_ADV_INTERVAL;
+    options.ble_adv_fast_timeout  = APP_ADV_TIMEOUT_IN_SECONDS;
+    err_code = ble_advertising_init(&advdata, &scanresp, &options, on_adv_evt, NULL);
+    APP_ERROR_CHECK(err_code);
+}
+
 uint32_t ble_stack_init(void)
 {
     uint32_t err_code;
@@ -249,7 +264,8 @@ uint32_t ble_stack_init(void)
                                                     PERIPHERAL_LINK_COUNT,
                                                     &ble_enable_params);
     NRF_LOG_INFO("Softdevice configuration ready, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));       
-    NRF_LOG_FLUSH();                                             
+    NRF_LOG_FLUSH();  
+    nrf_delay_ms(10);                                           
     APP_ERROR_CHECK(err_code);
 
     //Check the ram settings against the used number of links
@@ -267,6 +283,8 @@ uint32_t ble_stack_init(void)
     // Enable BLE stack.
     err_code = softdevice_enable(&ble_enable_params);
     NRF_LOG_INFO("Softdevice enabled, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));
+    NRF_LOG_FLUSH();
+    nrf_delay_ms(20);
     APP_ERROR_CHECK(err_code);
     
     gap_params_init();
@@ -274,9 +292,10 @@ uint32_t ble_stack_init(void)
     NRF_LOG_FLUSH();
     nrf_delay_ms(20);
     application_services_init();
-    bluetooth_advertise_data();
-    bluetooth_advertising_start();
+    advertising_init();
     conn_params_init();
+
+    bluetooth_advertising_start();
 
     return err_code;
 }

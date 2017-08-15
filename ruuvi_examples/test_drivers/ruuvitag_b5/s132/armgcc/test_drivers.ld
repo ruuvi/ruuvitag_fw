@@ -6,7 +6,7 @@ GROUP(-lgcc -lc -lnosys)
 MEMORY
 {
   FLASH (rx) : ORIGIN = 0x1f000, LENGTH = 0x61000
-  RAM (rwx) :  ORIGIN = 0x20001930, LENGTH = 0xe6d0 /* <- Configure according to central/peripheral link count */
+  RAM (rwx) :  ORIGIN = 0x20002128, LENGTH = 0xded8  /* <- Configure according to central/peripheral link count an service count */
 }
 
 SECTIONS

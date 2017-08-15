@@ -83,34 +83,35 @@ int main(void)
   err_code |= init_ble();
   NRF_LOG_INFO("BLE init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   NRF_LOG_FLUSH();
-  nrf_delay_ms(100);
+  nrf_delay_ms(10);
 
   //Init RTC
   err_code |= init_rtc();
   NRF_LOG_INFO("RTC init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
+  nrf_delay_ms(10);  
   uint32_t start = millis();
-  for(int ii = 0; ii < 15; ii++)
+  /*for(int ii = 0; ii < 15; ii++)
   {
     NRF_LOG_INFO("Clock is %d\r\n", millis());
     nrf_delay_ms(500);
-  }
+  }*/
   
   //Init RNG
   err_code |= init_rng();
   NRF_LOG_INFO("RNG init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   NRF_LOG_FLUSH();
-  nrf_delay_ms(100);
-  
+  nrf_delay_ms(10);
+  /*
   NRF_LOG_INFO("Making few coordinates, check correlation\r\n");
   for(int ii = 0; ii < 100; ii++)
   {
     app_sched_execute();
     NRF_LOG_INFO(";%d;%d;\r\n", random(), random());
     NRF_LOG_FLUSH();
-  }
+  }*/
   
   //Init LEDs 
-  err_code |= init_leds();
+  err_code |= init_leds();/*
   NRF_LOG_INFO("Led init status %s, turning LEDs on for a second\r\n", (uint32_t)ERR_TO_STR(err_code));
   NRF_LOG_FLUSH();
   nrf_delay_ms(100);
@@ -119,16 +120,16 @@ int main(void)
   nrf_delay_ms(1000);
   nrf_gpio_pin_set(LED_RED);
   nrf_gpio_pin_set(LED_GREEN);
-  nrf_delay_ms(100);
+  nrf_delay_ms(100);*/
   
   //Check battery reading
   uint16_t voltage = getBattery();
   NRF_LOG_INFO("Checking battery state... %d mV\r\n", (uint32_t)voltage);
   NRF_LOG_FLUSH();
-  nrf_delay_ms(100);
+  nrf_delay_ms(10);
   
   //Start BME280
-  static int32_t raw_t  = 0;
+  /*static int32_t raw_t  = 0;
   static uint32_t raw_p = 0;
   static uint32_t raw_h = 0;
   err_code |= init_bme280();
@@ -229,10 +230,11 @@ int main(void)
     NRF_LOG_INFO("temperature: %d.%d, pressure: %d.%d, humidity: %d.%d\r\n", raw_t/100, raw_t%100, raw_p>>8, ((raw_p*1000)>>8)%1000, raw_h>>10, ((raw_h*1000)>>10)%1000); //Wrong decimals on negative values.  
     NRF_LOG_FLUSH();
     nrf_delay_ms(1100);
-  }
+  }*/
    
   uint32_t end = millis();
   NRF_LOG_INFO("Test completed in %d milliseconds\r\n", end-start);
+  nrf_delay_ms(10);  
   while(1)
   {
     power_manage();
