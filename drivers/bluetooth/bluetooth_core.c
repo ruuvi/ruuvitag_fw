@@ -50,15 +50,15 @@
     #error "APP_CFG_NON_CONN_ADV_TIMEOUT in bluetooth_config.h"
 #endif
 
+//TODO: Move defaults to application configuration.
 static int8_t tx_power = 0;
 //https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s132.api.v3.0.0%2Fstructble__gap__adv__params__t.html
 static ble_gap_adv_params_t m_adv_params = {
-   // BLE_ADV_MODE_IDLE, 
-   // BLE_ADV_MODE_DIRECTED, 
-   // BLE_ADV_MODE_DIRECTED_SLOW, 
-   // BLE_ADV_MODE_FAST, 
-   // BLE_ADV_MODE_SLOW 
-  .type = BLE_GAP_ADV_TYPE_ADV_NONCONN_IND, 
+   // BLE_GAP_ADV_TYPE_ADV_DIRECT_IND  
+   // BLE_GAP_ADV_TYPE_ADV_IND   , 
+   // BLE_GAP_ADV_TYPE_ADV_NONCONN_IND, 
+   // BLE_GAP_ADV_TYPE_ADV_SCAN_IND, 
+  .type = BLE_GAP_ADV_TYPE_ADV_SCAN_IND, 
   
   // NULL on undirected advertisement, peer address on directed
   .p_peer_addr = NULL,
@@ -82,9 +82,9 @@ ble_advdata_t advdata =
 // BLE_ADVDATA_NO_NAME
 // BLE_ADVDATA_SHORT_NAME
 // BLE_ADVDATA_FULL_NAME
- .name_type = BLE_ADVDATA_NO_NAME, //scan response
+ .name_type = BLE_ADVDATA_NO_NAME, //scan response has full name
  .short_name_len = 5, //Name get truncated to "Ruuvi" if full name does not fit
- .include_appearance = false, // scan response
+ .include_appearance = false, // scan response has appearance
  .flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE, // Low energy, discoverable
  .p_tx_power_level        = &tx_power,
  .uuids_more_available    = {.uuid_cnt = 0, .p_uuids = NULL},
@@ -104,7 +104,7 @@ ble_advdata_t advdata =
 ble_advdata_t scanresp =
 {
  .name_type = BLE_ADVDATA_FULL_NAME, //scan response
- .short_name_len = 5,                //Name get truncated to "Ruuvi" if full name does not fit
+ .short_name_len = 5,                //Name gets truncated to "Ruuvi" if full name does not fit
  .include_appearance = true,         // scan response
  .flags = 0, // Flags shall not be included in the scan response data.
  .p_tx_power_level        = &tx_power,
@@ -115,7 +115,7 @@ ble_advdata_t scanresp =
  .p_manuf_specific_data   = NULL,
  .p_service_data_array    = NULL,
  .service_data_count      = 0,
- .include_ble_device_addr = true,
+ .include_ble_device_addr = false, //included in advertisement
  .le_role                 = BLE_ADVDATA_ROLE_NOT_PRESENT, //always when on BLE
  .p_tk_value              = NULL, //always when on BLE
  .p_sec_mgr_oob_flags     = NULL, //always when on BLE
@@ -292,6 +292,7 @@ uint32_t ble_tx_power_set(int8_t power)
 {
     uint32_t err_code = sd_ble_gap_tx_power_set(power);
     APP_ERROR_CHECK(err_code);
+    tx_power = power;
     return err_code;
 }
 
