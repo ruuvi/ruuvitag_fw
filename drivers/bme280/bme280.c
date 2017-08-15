@@ -258,7 +258,7 @@ BME280_Ret bme280_set_iir(uint8_t iir)
    uint8_t conf = bme280_read_reg(BME280REG_CONFIG);
    conf &= ~BME280_IIR_MASK;
    conf |= BME280_IIR_MASK & iir;
-   NRF_LOG_INFO("Writing %d to %d\r\n", conf, BME280REG_CONFIG);
+   NRF_LOG_DEBUG("Writing %d to %d\r\n", conf, BME280REG_CONFIG);
    return bme280_write_reg(BME280REG_CONFIG, conf);
 }
 

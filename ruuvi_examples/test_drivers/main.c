@@ -230,11 +230,7 @@ int main(void)
     NRF_LOG_FLUSH();
     nrf_delay_ms(1100);
   }
-  
-  
-  NRF_LOG_INFO("Ok, Removing IIR, status %s. Please breathe on bme280. Values should adjust quickly.\r\n", (uint32_t)ERR_TO_STR(err_code));
-  
-  
+   
   uint32_t end = millis();
   NRF_LOG_INFO("Test completed in %d milliseconds\r\n", end-start);
   while(1)

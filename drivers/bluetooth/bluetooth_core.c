@@ -20,9 +20,12 @@
 #include "ble_advdata.h"
 #include "ble_advertising.h"
 #include "sdk_errors.h"
+#include "nrf_delay.h"
 
 #include "ble_event_handlers.h" 
 #include "bluetooth_config.h"
+
+#include "application_service_if.h"
 
 #define NRF_LOG_MODULE_NAME "BLE_CORE"
 #include "nrf_log.h"
@@ -177,7 +180,7 @@ uint32_t ble_apply_configuration()
  * @details This function will set up all the necessary GAP (Generic Access Profile) parameters of
  *          the device. It also sets the permissions and appearance.
  */
-/*static void gap_params_init(void)
+static void gap_params_init(void)
 {
     uint32_t                err_code;
     ble_gap_conn_params_t   gap_conn_params;
@@ -199,11 +202,11 @@ uint32_t ble_apply_configuration()
 
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
     APP_ERROR_CHECK(err_code);
-}*/
+}
 
 
 /**@brief Function for initializing the Connection Parameters module.
- *//*
+ */
 static void conn_params_init(void)
 {
     uint32_t               err_code;
@@ -221,8 +224,11 @@ static void conn_params_init(void)
     cp_init.error_handler                  = conn_params_error_handler;
 
     err_code = ble_conn_params_init(&cp_init);
+    NRF_LOG_INFO("Conn params init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
+    NRF_LOG_FLUSH();
+    nrf_delay_ms(10);
     APP_ERROR_CHECK(err_code);
-}*/
+}
 
 uint32_t ble_stack_init(void)
 {
@@ -242,19 +248,34 @@ uint32_t ble_stack_init(void)
     err_code = softdevice_enable_get_default_config(CENTRAL_LINK_COUNT,
                                                     PERIPHERAL_LINK_COUNT,
                                                     &ble_enable_params);
-    NRF_LOG_INFO("Softdevice configuration ready, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));                                                    
+    NRF_LOG_INFO("Softdevice configuration ready, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));       
+    NRF_LOG_FLUSH();                                             
     APP_ERROR_CHECK(err_code);
 
     //Check the ram settings against the used number of links
     CHECK_RAM_START_ADDR(CENTRAL_LINK_COUNT,PERIPHERAL_LINK_COUNT);
     NRF_LOG_INFO("RAM checked\r\n");
+    
+    #if (NRF_SD_BLE_API_VERSION == 3)
+      ble_enable_params.gatt_enable_params.att_mtu = NRF_BLE_MAX_MTU_SIZE;
+    #endif
+
+    // Subscribe for BLE events.
+    err_code = softdevice_ble_evt_handler_set(ble_evt_dispatch);
+    APP_ERROR_CHECK(err_code);
+
     // Enable BLE stack.
     err_code = softdevice_enable(&ble_enable_params);
     NRF_LOG_INFO("Softdevice enabled, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));
     APP_ERROR_CHECK(err_code);
     
-    //gap_params_init();
-    //conn_params_init();
+    gap_params_init();
+    NRF_LOG_INFO("GAP params init\r\n");
+    NRF_LOG_FLUSH();
+    nrf_delay_ms(20);
+    application_services_init();
+    bluetooth_advertising_start();
+    conn_params_init();
 
     return err_code;
 }
@@ -331,8 +352,6 @@ uint32_t bluetooth_advertising_stop(void)
 uint32_t bluetooth_advertise_data(uint8_t *data, uint8_t length)
 {
     uint32_t err_code = NRF_SUCCESS;
-    
-    err_code = bluetooth_advertising_init();
     
     ble_advdata_manuf_data_t manuf_specific_data;
     advdata.p_manuf_specific_data = &manuf_specific_data;
