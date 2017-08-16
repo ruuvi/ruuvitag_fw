@@ -19,6 +19,8 @@
 
 #define NRF_BLE_MAX_MTU_SIZE GATT_MTU_SIZE_DEFAULT 
 
+bool is_ble_connected();
+
 /**@brief Function for handling the Application's BLE Stack events.
  *
  * @param[in] p_ble_evt  Bluetooth stack event.

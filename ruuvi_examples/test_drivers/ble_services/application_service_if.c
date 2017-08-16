@@ -24,7 +24,7 @@ static void nus_data_handler(ble_nus_t * p_nus, uint8_t * p_data, uint16_t lengt
 uint32_t application_services_init(void)
 {
 
-        uint32_t       err_code;
+    uint32_t       err_code;
     ble_nus_init_t nus_init;
 
     memset(&nus_init, 0, sizeof(nus_init));
@@ -36,3 +36,8 @@ uint32_t application_services_init(void)
     return NRF_SUCCESS;
 }
 
+/** Return pointer to BLE nus service **/
+ble_nus_t* get_nus(void)
+{
+  return &m_nus;
+}

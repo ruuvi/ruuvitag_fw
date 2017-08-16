@@ -32,6 +32,7 @@
 #include "bme280.h"
 #include "LIS2DH12.h"
 #include "bluetooth_core.h"
+#include "ble_event_handlers.h"
 #include "rtc.h"
 #include "rng.h"
 
@@ -84,6 +85,9 @@ int main(void)
   NRF_LOG_INFO("BLE init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   NRF_LOG_FLUSH();
   nrf_delay_ms(10);
+  bluetooth_advertising_start();
+  NRF_LOG_INFO("Started advertising %s\r\n", (uint32_t)ERR_TO_STR(err_code));
+  NRF_LOG_FLUSH();
 
   //Init RTC
   err_code |= init_rtc();
@@ -231,6 +235,13 @@ int main(void)
     NRF_LOG_FLUSH();
     nrf_delay_ms(1100);
   }
+  
+  NRF_LOG_INFO("Waiting for BLE connection\r\n")
+  while(!is_ble_connected())
+  {
+    app_sched_execute();
+  }
+  NRF_LOG_INFO("BLE connected\r\n")
    
   uint32_t end = millis();
   NRF_LOG_INFO("Test completed in %d milliseconds\r\n", end-start);

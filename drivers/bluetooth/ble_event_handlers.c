@@ -19,7 +19,11 @@
 static uint16_t                          m_conn_handle = BLE_CONN_HANDLE_INVALID;   /**< Handle of the current connection. */
 nrf_ble_qwr_t                            m_qwr;                                     /**< Queued Writes structure.*/
 
-
+/** Return true if connected **/
+bool is_ble_connected()
+{
+  return !BLE_CONN_HANDLE_INVALID == m_conn_handle;
+}
 
 /**@brief Function for handling File Data Storage events.
  *
@@ -30,7 +34,7 @@ void fds_evt_handler(fds_evt_t const * const p_evt)
 {
     if (p_evt->id == FDS_EVT_GC)
     {
-        NRF_LOG_INFO("GC completed\n");
+        NRF_LOG_DEBUG("GC completed\n");
     }
 }
 
@@ -57,12 +61,12 @@ void on_adv_evt(ble_adv_evt_t ble_adv_evt)
     switch (ble_adv_evt)
     {
         case BLE_ADV_EVT_FAST:
-            NRF_LOG_INFO("Fast Advertising\r\n");
+            NRF_LOG_DEBUG("Fast Advertising\r\n");
             err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
             APP_ERROR_CHECK(err_code);
             break;
         case BLE_ADV_EVT_IDLE:
-             NRF_LOG_INFO("Stop Advertising\r\n");
+             NRF_LOG_DEBUG("Stop Advertising\r\n");
             break;
         default:
             break;
@@ -76,20 +80,22 @@ void on_adv_evt(ble_adv_evt_t ble_adv_evt)
 void on_ble_evt(ble_evt_t * p_ble_evt)
 {
     uint32_t err_code;
-    NRF_LOG_INFO("BLE EVENT\r\n");
+    NRF_LOG_DEBUG("BLE EVENT\r\n");
 
     switch (p_ble_evt->header.evt_id)
     {
         case BLE_GAP_EVT_CONNECTED:
-            err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
+            err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);//TODO
             APP_ERROR_CHECK(err_code);
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
+            NRF_LOG_INFO("Connection established\r\n");
             break; // BLE_GAP_EVT_CONNECTED
 
         case BLE_GAP_EVT_DISCONNECTED:
             err_code = bsp_indication_set(BSP_INDICATE_IDLE);
             APP_ERROR_CHECK(err_code);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
+            NRF_LOG_INFO("Disconnected\r\n");
             break; // BLE_GAP_EVT_DISCONNECTED
 
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
@@ -332,7 +338,7 @@ void pm_evt_handler(pm_evt_t const * p_evt)
  */
 void ble_evt_dispatch(ble_evt_t * p_ble_evt)
 {
-    NRF_LOG_INFO("Dispatching BLE Event to modules\r\n");
+    NRF_LOG_DEBUG("Dispatching BLE Event to modules\r\n");
     ble_conn_state_on_ble_evt(p_ble_evt);
     pm_on_ble_evt(p_ble_evt);
     ble_conn_params_on_ble_evt(p_ble_evt);
