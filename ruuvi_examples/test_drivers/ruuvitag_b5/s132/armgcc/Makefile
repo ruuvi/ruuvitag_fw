@@ -3,6 +3,7 @@ TARGETS          := test_drivers
 OUTPUT_DIRECTORY := _build
 
 SDK_ROOT := ../../../../../nRF5_SDK_12.3.0_d7731ad
+IOTA_ROOT := ../../../../../iota.lib.c
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/test_drivers.out: \
@@ -75,6 +76,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/rtc/rtc.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../libraries/acceleration/acceleration.c \
+  $(PROJ_DIR)/../../libraries/rust_allocator/rust_allocator.c \
   $(PROJ_DIR)/../../sdk_overrides/app_button.c \
   $(PROJ_DIR)/ble_services/application_ble_event_handlers.c \
   $(PROJ_DIR)/ble_services/application_service_if.c \
@@ -173,6 +175,8 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/toolchain/cmsis/include \
   $(SDK_ROOT)/components/toolchain/gcc \
   $(SDK_ROOT)/external/segger_rtt \
+  $(IOTA_ROOT)/include \
+  $(IOTA_ROOT)/external/ccurl/src/lib/ \
   $(PROJ_DIR)/ble_services/ \
   $(PROJ_DIR)/../../bsp \
   $(PROJ_DIR)/../../drivers/bluetooth \
@@ -184,6 +188,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../drivers/rtc/ \
   $(PROJ_DIR)/../../drivers/spi/ \
   $(PROJ_DIR)/../../libraries/acceleration \
+  $(PROJ_DIR)/../../libraries/rust_allocator/ \
   ../config \
 
 # Libraries common to all targets
