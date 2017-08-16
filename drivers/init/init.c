@@ -37,7 +37,7 @@ init_err_code_t init_ble(void)
 
     //Enable DC/DC for BLE
     NRF_POWER->DCDCEN = 1;
-    NRF_LOG_INFO("BLE Stack init start\r\n");
+    NRF_LOG_DEBUG("BLE Stack init start\r\n");
     
     //Enable scheduler - required for BLE stack
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
@@ -46,7 +46,7 @@ init_err_code_t init_ble(void)
     //Enable BLE STACK
     err_code =  ble_stack_init();
     
-    NRF_LOG_INFO("BLE Stack init done\r\n");
+    NRF_LOG_DEBUG("BLE Stack init done\r\n");
     return (NRF_SUCCESS == err_code) ? INIT_SUCCESS : INIT_ERR_UNKNOWN;
 }
 
@@ -74,7 +74,7 @@ init_err_code_t init_timer(app_timer_id_t main_timer_id, uint32_t main_interval,
     //Start timer
     err_code = app_timer_start(main_timer_id, APP_TIMER_TICKS(main_interval, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / MAIN_TIMER_INTERVAL
     APP_ERROR_CHECK(err_code);
-    NRF_LOG_INFO("Timers init\r\n");
+    NRF_LOG_DEBUG("Timers init\r\n");
     return (NRF_SUCCESS == err_code) ? INIT_SUCCESS : INIT_ERR_UNKNOWN;
 }
 
@@ -129,7 +129,7 @@ init_err_code_t init_sensors(void)
 
     if (LIS2DH12_RET_OK == Lis2dh12RetVal)
     {
-        NRF_LOG_INFO("LIS2DH12 init Done\r\n");
+        NRF_LOG_DEBUG("LIS2DH12 init Done\r\n");
     }
     else
     {
@@ -146,7 +146,7 @@ init_err_code_t init_sensors(void)
 
     if (BME280_RET_OK == BME280RetVal)
     {
-        NRF_LOG_INFO("BME280 init Done\r\n");
+        NRF_LOG_DEBUG("BME280 init Done\r\n");
     }
     else
     {
@@ -164,7 +164,7 @@ init_err_code_t init_lis2dh12(void)
 
     if (LIS2DH12_RET_OK == Lis2dh12RetVal)
     {
-        NRF_LOG_INFO("LIS2DH12 init Done\r\n");
+        NRF_LOG_DEBUG("LIS2DH12 init Done\r\n");
     }
     else
     {
