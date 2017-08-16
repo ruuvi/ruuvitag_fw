@@ -35,6 +35,7 @@
 #include "ble_event_handlers.h"
 #include "rtc.h"
 #include "rng.h"
+#include "application_service_if.h"
 
 #define NRF_LOG_MODULE_NAME "MAIN"
 #include "nrf_log.h"
@@ -236,16 +237,24 @@ int main(void)
     nrf_delay_ms(1100);
   }
   
+  uint32_t end = millis();
+  NRF_LOG_INFO("Automated test completed in %d milliseconds\r\n", end-start);
+  nrf_delay_ms(10);  
+  
   NRF_LOG_INFO("Waiting for BLE connection\r\n")
   while(!is_ble_connected())
   {
     app_sched_execute();
   }
-  NRF_LOG_INFO("BLE connected\r\n")
+  NRF_LOG_INFO("BLE connected, waiting for UART notifications to be registered\r\n");
+  ble_nus_t* p_nus = get_nus();
+  while(!(p_nus->is_notification_enabled))
+  {
+    app_sched_execute();
+  }
+  NRF_LOG_INFO("NUS connected, switching to BLE-based test.\r\n");
    
-  uint32_t end = millis();
-  NRF_LOG_INFO("Test completed in %d milliseconds\r\n", end-start);
-  nrf_delay_ms(10);  
+
   while(1)
   {
     power_manage();
