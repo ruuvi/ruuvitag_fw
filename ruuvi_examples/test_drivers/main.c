@@ -37,6 +37,11 @@
 #include "rng.h"
 #include "application_service_if.h"
 
+#include "iota/iota.h"
+#include "iota/constants.h"
+#include "libiota.h"
+#include "rust_allocator.h"
+
 #define NRF_LOG_MODULE_NAME "MAIN"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -94,7 +99,7 @@ int main(void)
   err_code |= init_rtc();
   NRF_LOG_INFO("RTC init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   nrf_delay_ms(10);  
-  uint32_t start = millis();
+  uint32_t test_start = millis();
   for(int ii = 0; ii < 15; ii++)
   {
     NRF_LOG_INFO("Clock is %d\r\n", millis());
@@ -237,8 +242,46 @@ int main(void)
     nrf_delay_ms(1100);
   }
   
-  uint32_t end = millis();
-  NRF_LOG_INFO("Automated test completed in %d milliseconds\r\n", end-start);
+  NRF_LOG_INFO("Starting MAM test\r\n");
+  const char seed[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9";
+  NRF_LOG_INFO("Seed:\r\n");
+  NRF_LOG_INFO("%s\r\n",(uint32_t)seed);
+
+  char message[] = "IAMSOMEMESSAGE9HEARMEROARMYMESSAGETOTHEWORLDYOUHEATHEN";
+  size_t start = 1;
+  size_t count = 9;
+  size_t index = 3;
+  size_t next_start = start + count;
+  size_t next_count = 4;
+  size_t security = 1;
+    
+  uint32_t mam_start = millis();
+    
+  const char* result = mam_create(seed, message, start, count, index, next_start, next_count, security);
+  //char* result = merkle_keys(seed, next_start, next_count, security);
+  uint32_t mam_end = millis();
+  NRF_LOG_INFO("time end: %ld\r\n", mam_end);
+  NRF_LOG_INFO("time delta: %ld\r\n", mam_end - mam_start);
+  NRF_LOG_INFO("mam done?\r\n");
+  NRF_LOG_INFO("Got MAM RESULT:\r\n");
+
+  NRF_LOG_INFO("splitting: \r\n");
+  char* masked_payload = strtok((char * restrict)result, "\n");
+  char* root = strtok(NULL, "\n");
+
+  NRF_LOG_INFO("\r\npayload: %s\r\n", (uint32_t)masked_payload);
+  NRF_LOG_INFO("\r\nroot: %s\r\n", (uint32_t)root);
+
+  mam_start = millis();
+  NRF_LOG_INFO("time start: %ld\r\n", mam_start);
+  const char* parsed = mam_parse(masked_payload, root, index);
+  mam_end = millis();
+  NRF_LOG_INFO("time end: %ld\r\n", mam_start);
+  NRF_LOG_INFO("time delta: %ld\r\n", mam_end - mam_start);
+  NRF_LOG_INFO("Got MAM PARSE RESULT:\n%s\n", (uint32_t)parsed);
+  
+  uint32_t test_end = millis();
+  NRF_LOG_INFO("Automated test completed in %d milliseconds\r\n", test_end - test_start);
   nrf_delay_ms(10);  
   
   NRF_LOG_INFO("Waiting for BLE connection\r\n")

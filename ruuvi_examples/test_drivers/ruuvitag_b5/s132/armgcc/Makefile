@@ -193,7 +193,8 @@ INC_FOLDERS += \
 
 # Libraries common to all targets
 LIB_FILES += \
-
+  ../../../libiota_mam_bindings.a
+  
 # C flags common to all targets
 CFLAGS += -DNRF52
 CFLAGS += -DBOARD_CUSTOM
