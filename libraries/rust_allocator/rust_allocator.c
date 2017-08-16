@@ -1,4 +1,4 @@
-#include "allocator_stub.h"
+#include "rust_allocator.h"
 #include <stdint.h>
 void* unexec_malloc(size_t usize)
 {
