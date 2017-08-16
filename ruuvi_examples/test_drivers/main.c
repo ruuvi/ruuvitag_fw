@@ -46,6 +46,9 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
+#define MAM_LENGTH 2656
+#define ROOT_LENGTH 81
+
 #define DEAD_BEEF                       0xDEADBEEF                        /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
 /**@brief Callback function for asserts in the SoftDevice.
@@ -74,6 +77,20 @@ static void power_manage(void)
    APP_ERROR_CHECK(err_code);
 }
 
+/** Blocking BLE TX **/
+uint32_t tx_data(char* chunk, uint8_t length)
+{
+  static uint8_t data_array[BLE_NUS_MAX_DATA_LEN];
+  uint32_t       err_code;
+  memcpy(&data_array, chunk, length);  
+  do
+  {
+    err_code = ble_nus_string_send(get_nus(), data_array, BLE_NUS_MAX_DATA_LEN);
+  }while(NRF_SUCCESS != err_code);
+  
+  return err_code;
+}
+
 /**
  * @brief Function for application main entry.
  */
@@ -91,7 +108,7 @@ int main(void)
   NRF_LOG_INFO("BLE init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   NRF_LOG_FLUSH();
   nrf_delay_ms(10);
-  bluetooth_advertising_start();
+
   NRF_LOG_INFO("Started advertising %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   NRF_LOG_FLUSH();
 
@@ -140,7 +157,7 @@ int main(void)
   nrf_delay_ms(10);
   
   //Start BME280
-  /*
+  
   static int32_t raw_t  = 0;
   static uint32_t raw_p = 0;
   static uint32_t raw_h = 0;
@@ -158,7 +175,7 @@ int main(void)
   raw_h = bme280_get_humidity();
   NRF_LOG_INFO("temperature: %d.%d, pressure: %d, humidity: %d\r\n", raw_t/100, raw_t%100, raw_p>>8, raw_h>>10); //Wrong decimals on negative values.
   
-  err_code |= bme280_set_mode(BME280_MODE_FORCED);
+  /*err_code |= bme280_set_mode(BME280_MODE_FORCED);
   nrf_delay_ms(100);
   raw_t = bme280_get_temperature();
   raw_p = bme280_get_pressure();
@@ -244,53 +261,7 @@ int main(void)
     nrf_delay_ms(1100);
   }
   */
-  
-  NRF_LOG_INFO("Starting MAM test\r\n");
-  const char seed[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9";
-  NRF_LOG_INFO("Seed:\r\n");
-  NRF_LOG_INFO("%s\r\n",(uint32_t)seed);
-
-  char message[] = "IAMSOMEMESSAGE9HEARMEROARMYMESSAGETOTHEWORLDYOUHEATHEN";
-  size_t start = 1;
-  size_t count = 9;
-  size_t index = 3;
-  size_t next_start = start + count;
-  size_t next_count = 4;
-  size_t security = 1;
-    
-  uint32_t mam_start = millis();
-    
-  const char* result = mam_create(seed, message, start, count, index, next_start, next_count, security);
-  //char* result = merkle_keys(seed, next_start, next_count, security);
-  uint32_t mam_end = millis();
-  NRF_LOG_INFO("time end: %ld\r\n", mam_end);
-  NRF_LOG_INFO("time delta: %ld\r\n", mam_end - mam_start);
-  NRF_LOG_INFO("mam done?\r\n");
-  NRF_LOG_FLUSH();
-  nrf_delay_ms(10);
-  NRF_LOG_INFO("Got MAM RESULT:\r\n %s \r\n", (uint32_t)result);
-  NRF_LOG_FLUSH();
-  nrf_delay_ms(10);
-
-  NRF_LOG_INFO("splitting: \r\n");
-  char* masked_payload = strtok((char * restrict)result, "\n");
-  char* root = strtok(NULL, "\n");
-
-  NRF_LOG_INFO("\r\npayload: %s\r\n", (uint32_t)masked_payload);
-  NRF_LOG_FLUSH();
-  nrf_delay_ms(10);
-  NRF_LOG_INFO("\r\nroot: %s\r\n", (uint32_t)root);
-  NRF_LOG_FLUSH();
-  nrf_delay_ms(10);
-
-  mam_start = millis();
-  NRF_LOG_INFO("time start: %ld\r\n", mam_start);
-  const char* parsed = mam_parse(masked_payload, root, index);
-  mam_end = millis();
-  NRF_LOG_INFO("time end: %ld\r\n", mam_start);
-  NRF_LOG_INFO("time delta: %ld\r\n", mam_end - mam_start);
-  NRF_LOG_INFO("Got MAM PARSE RESULT:\n%s\n", (uint32_t)parsed);
-  
+  bluetooth_advertising_start();  
   uint32_t test_end = millis();
   NRF_LOG_INFO("Automated test completed in %d milliseconds\r\n", test_end - test_start);
   nrf_delay_ms(10);  
@@ -308,6 +279,91 @@ int main(void)
   }
   NRF_LOG_INFO("NUS connected, switching to BLE-based test.\r\n");
    
+  tx_data("Preparing MAM...", 16);
+  NRF_LOG_INFO("Starting MAM test\r\n");
+  const char seed[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9";
+  NRF_LOG_INFO("Seed:\r\n");
+  NRF_LOG_INFO("%s\r\n",(uint32_t)seed);
+
+  char message[54] = {0};
+  sprintf(message, "temperature: %ld, pressure: %u, humidity: %u", raw_t/100, (unsigned int)raw_p>>8, (unsigned int)raw_h>>10); //Wrong decimals on negative values.
+  NRF_LOG_INFO("Message: %s\r\n",(uint32_t)message);
+  size_t start = 1;
+  size_t count = 9;
+  size_t index = 3;
+  size_t next_start = start + count;
+  size_t next_count = 4;
+  size_t security = 1;
+    
+  uint32_t mam_start = millis();
+    
+  const char* result = mam_create(seed, message, start, count, index, next_start, next_count, security);
+  //char* result = merkle_keys(seed, next_start, next_count, security);
+  uint32_t mam_end = millis();
+  NRF_LOG_INFO("time end: %ld\r\n", mam_end);
+  NRF_LOG_INFO("time delta: %ld\r\n", mam_end - mam_start);
+  NRF_LOG_INFO("mam done\r\n");
+  NRF_LOG_FLUSH();
+  nrf_delay_ms(10);
+  NRF_LOG_FLUSH();
+  nrf_delay_ms(10);
+
+  NRF_LOG_INFO("splitting: \r\n");
+  char* masked_payload = strtok((char * restrict)result, "\n");
+  char* root = strtok(NULL, "\n");
+
+  char chunk[19] = {0};  
+  int ii = 0;
+  for(ii = 0; (ii+1)*18 < MAM_LENGTH; ii++)
+  {
+    for (int jj = 0; jj < 18; jj++)
+    {
+      chunk[jj] = masked_payload[ii*18+jj];
+    }
+    NRF_LOG_INFO("Chunk %d: %s\r\n", ii, (uint32_t)chunk);
+    NRF_LOG_FLUSH();
+    tx_data(chunk, 18);
+    nrf_delay_ms(10);      
+  }
+  memset(chunk, 0, sizeof(chunk));
+  for (int jj = 0; jj < MAM_LENGTH%18; jj++)
+  {
+    chunk[jj] = masked_payload[ii*18+jj];
+  }
+  NRF_LOG_INFO("Chunk %d: %s\r\n", ii, (uint32_t)chunk);
+  tx_data(chunk, MAM_LENGTH%18);
+  ii = 0; 
+  for(ii = 0; (ii+1)*18 < ROOT_LENGTH; ii++)
+  {
+    for (int jj = 0; jj < 18; jj++)
+    {
+      chunk[jj] = root[ii*18+jj];
+    }
+    NRF_LOG_INFO("Chunk %d: %s\r\n", ii, (uint32_t)chunk);
+    NRF_LOG_FLUSH();
+    tx_data(chunk, 18);    
+    nrf_delay_ms(10);
+  }
+  memset(chunk, 0, sizeof(chunk));
+  for (int jj = 0; jj < ROOT_LENGTH%18; jj++)
+  {
+    chunk[jj] = root[ii*18+jj];
+  }
+  NRF_LOG_INFO("Chunk %d: %s\r\n", ii, (uint32_t)chunk);
+  tx_data(chunk, ROOT_LENGTH%18);  
+  NRF_LOG_FLUSH();
+  nrf_delay_ms(10);
+
+
+  //Crashes, too little memory
+  /*mam_start = millis();
+  NRF_LOG_INFO("time start: %ld\r\n", mam_start);
+  const char* parsed = mam_parse(masked_payload, root, index);
+  mam_end = millis();
+  NRF_LOG_INFO("time end: %ld\r\n", mam_start);
+  NRF_LOG_INFO("time delta: %ld\r\n", mam_end - mam_start);
+  NRF_LOG_INFO("Got MAM PARSE RESULT:\n%s\n", (uint32_t)parsed);
+  */
 
   while(1)
   {
