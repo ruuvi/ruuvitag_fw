@@ -100,18 +100,19 @@ int main(void)
   NRF_LOG_INFO("RTC init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   nrf_delay_ms(10);  
   uint32_t test_start = millis();
+  /*
   for(int ii = 0; ii < 15; ii++)
   {
     NRF_LOG_INFO("Clock is %d\r\n", millis());
     nrf_delay_ms(500);
   }
-  
+  */
   //Init RNG
   err_code |= init_rng();
   NRF_LOG_INFO("RNG init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   NRF_LOG_FLUSH();
   nrf_delay_ms(10);
-  
+  /*
   NRF_LOG_INFO("Making few coordinates, check correlation\r\n");
   for(int ii = 0; ii < 100; ii++)
   {
@@ -119,7 +120,7 @@ int main(void)
     NRF_LOG_INFO(";%d;%d;\r\n", random(), random());
     NRF_LOG_FLUSH();
   }
-  
+  */
   //Init LEDs 
   err_code |= init_leds();
   NRF_LOG_INFO("Led init status %s, turning LEDs on for a second\r\n", (uint32_t)ERR_TO_STR(err_code));
@@ -139,6 +140,7 @@ int main(void)
   nrf_delay_ms(10);
   
   //Start BME280
+  /*
   static int32_t raw_t  = 0;
   static uint32_t raw_p = 0;
   static uint32_t raw_h = 0;
@@ -241,6 +243,7 @@ int main(void)
     NRF_LOG_FLUSH();
     nrf_delay_ms(1100);
   }
+  */
   
   NRF_LOG_INFO("Starting MAM test\r\n");
   const char seed[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9";
@@ -263,14 +266,22 @@ int main(void)
   NRF_LOG_INFO("time end: %ld\r\n", mam_end);
   NRF_LOG_INFO("time delta: %ld\r\n", mam_end - mam_start);
   NRF_LOG_INFO("mam done?\r\n");
-  NRF_LOG_INFO("Got MAM RESULT:\r\n");
+  NRF_LOG_FLUSH();
+  nrf_delay_ms(10);
+  NRF_LOG_INFO("Got MAM RESULT:\r\n %s \r\n", (uint32_t)result);
+  NRF_LOG_FLUSH();
+  nrf_delay_ms(10);
 
   NRF_LOG_INFO("splitting: \r\n");
   char* masked_payload = strtok((char * restrict)result, "\n");
   char* root = strtok(NULL, "\n");
 
   NRF_LOG_INFO("\r\npayload: %s\r\n", (uint32_t)masked_payload);
+  NRF_LOG_FLUSH();
+  nrf_delay_ms(10);
   NRF_LOG_INFO("\r\nroot: %s\r\n", (uint32_t)root);
+  NRF_LOG_FLUSH();
+  nrf_delay_ms(10);
 
   mam_start = millis();
   NRF_LOG_INFO("time start: %ld\r\n", mam_start);
