@@ -78,9 +78,9 @@ static void power_manage(void)
 }
 
 /** Blocking BLE TX **/
-uint32_t tx_data(char* chunk, uint8_t length)
+uint32_t tx_data(uint8_t* chunk, uint8_t length)
 {
-  static uint8_t data_array[BLE_NUS_MAX_DATA_LEN];
+  uint8_t data_array[BLE_NUS_MAX_DATA_LEN] = {0};
   uint32_t       err_code;
   memcpy(&data_array, chunk, length);  
   do
@@ -279,7 +279,12 @@ int main(void)
   }
   NRF_LOG_INFO("NUS connected, switching to BLE-based test.\r\n");
    
-  tx_data("Preparing MAM...", 16);
+  uint8_t hdr[11] = {0};
+  hdr[0] = 0x10;
+  hdr[1] = 0x10;
+  hdr[2] = 0x10;
+  memcpy(&(hdr[3]), "MAM INIT", 8);
+  tx_data(hdr, 11);
   NRF_LOG_INFO("Starting MAM test\r\n");
   const char seed[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9";
   NRF_LOG_INFO("Seed:\r\n");
@@ -322,7 +327,11 @@ int main(void)
     }
     NRF_LOG_INFO("Chunk %d: %s\r\n", ii, (uint32_t)chunk);
     NRF_LOG_FLUSH();
-    tx_data(chunk, 18);
+    uint8_t mam_msg[20] = {0};
+    mam_msg[0] = 0xE0;
+    mam_msg[1] = ii;
+    memcpy(&(mam_msg[2]), chunk, 18);
+    tx_data(mam_msg, 20);
     nrf_delay_ms(10);      
   }
   memset(chunk, 0, sizeof(chunk));
@@ -331,7 +340,12 @@ int main(void)
     chunk[jj] = masked_payload[ii*18+jj];
   }
   NRF_LOG_INFO("Chunk %d: %s\r\n", ii, (uint32_t)chunk);
-  tx_data(chunk, MAM_LENGTH%18);
+  uint8_t mam_msg[(MAM_LENGTH % 18) + 2] = {0};
+  mam_msg[0] = 0xE0;
+  mam_msg[1] = ii;
+  memcpy(&(mam_msg[2]), chunk, MAM_LENGTH % 18);
+  tx_data(mam_msg, MAM_LENGTH%18 + 2);
+
   ii = 0; 
   for(ii = 0; (ii+1)*18 < ROOT_LENGTH; ii++)
   {
@@ -341,16 +355,24 @@ int main(void)
     }
     NRF_LOG_INFO("Chunk %d: %s\r\n", ii, (uint32_t)chunk);
     NRF_LOG_FLUSH();
-    tx_data(chunk, 18);    
+    uint8_t root_msg[20] = {0};
+    root_msg[0] = 0xE0;
+    root_msg[1] = ii+148;   
+    memcpy(&(root_msg[2]), chunk, 18);
+    tx_data(root_msg, 20);    
     nrf_delay_ms(10);
   }
   memset(chunk, 0, sizeof(chunk));
   for (int jj = 0; jj < ROOT_LENGTH%18; jj++)
   {
-    chunk[jj] = root[ii*18+jj];
+    chunk[jj] = root[(ii * 18) + jj];
   }
   NRF_LOG_INFO("Chunk %d: %s\r\n", ii, (uint32_t)chunk);
-  tx_data(chunk, ROOT_LENGTH%18);  
+  uint8_t root_msg[ROOT_LENGTH%18 + 2] = {0};
+  root_msg[0] = 0xE0;
+  root_msg[1] = ii+148;
+  memcpy(&(root_msg[2]), chunk, ROOT_LENGTH % 18);  
+  tx_data(root_msg, (ROOT_LENGTH%18) + 2);  
   NRF_LOG_FLUSH();
   nrf_delay_ms(10);
 
