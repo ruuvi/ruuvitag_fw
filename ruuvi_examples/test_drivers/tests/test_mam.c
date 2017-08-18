@@ -128,7 +128,7 @@ void test_byte_tryte_conversion(void)
   uint32_t err_code = 0;
   err_code |= toTrytes(message, trytes, sizeof(message)-1); //C string initialization automatically appends null, do not encode the null.
   NRF_LOG_INFO("Trytes: %s\r\n", (uint32_t)trytes);
-  err_code |= fromTrytes(trytes, loopback, 2 * sizeof(message)-1); //Terminating NULL is not included in message length
+  err_code |= fromTrytes(trytes, loopback, 2 * (sizeof(message)- 1) ); //Terminating NULL is not included in message length
   NRF_LOG_INFO("Back conversion result %s, status %d\r\n", (uint32_t)loopback, err_code);
   free(trytes);
   free(loopback);
