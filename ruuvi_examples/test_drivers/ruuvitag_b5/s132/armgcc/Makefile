@@ -80,6 +80,10 @@ SRC_FILES += \
   $(PROJ_DIR)/../../sdk_overrides/app_button.c \
   $(PROJ_DIR)/ble_services/application_ble_event_handlers.c \
   $(PROJ_DIR)/ble_services/application_service_if.c \
+  $(PROJ_DIR)/tests/test_environmental.c \
+  $(PROJ_DIR)/tests/test_mam.c \
+  $(PROJ_DIR)/tests/test_rng.c \
+  $(PROJ_DIR)/tests/test_rtc.c \
   $(PROJ_DIR)/main.c \
 
 # Include folders common to all targets
@@ -178,6 +182,8 @@ INC_FOLDERS += \
   $(IOTA_ROOT)/include \
   $(IOTA_ROOT)/external/ccurl/src/lib/ \
   $(PROJ_DIR)/ble_services/ \
+  $(PROJ_DIR)/tests/ \
+  $(PROJ_DIR)/ \
   $(PROJ_DIR)/../../bsp \
   $(PROJ_DIR)/../../drivers/bluetooth \
   $(PROJ_DIR)/../../drivers/battery/ \

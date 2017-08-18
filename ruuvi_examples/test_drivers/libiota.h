@@ -1,6 +1,10 @@
 #ifndef MAM_H
 #define MAM_H
 
+#include <stdbool.h>
+#include <stdint.h>
+#include <stddef.h>
+
 // Header to libiota_mam_bindings
 
 /** @brief Create Masked Authentication Messaging (MAM) message
