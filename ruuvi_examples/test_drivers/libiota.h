@@ -5,7 +5,16 @@
 #include <stdint.h>
 #include <stddef.h>
 
-// Header to libiota_mam_bindings
+// Header to libiota_mam_bindings.a
+
+// Magic numbers given by https://github.com/th0br0/
+#define MAM_START 1
+#define MAM_COUNT 2
+#define MAM_INDEX 1
+#define MAM_NEXT_START (MAM_START + MAM_COUNT)
+#define MAM_NEXT_COUNT 1
+#define MAM_SECURITY 1
+#define MAM_ROOT_LENGTH 81
 
 /** @brief Create Masked Authentication Messaging (MAM) message
  * 

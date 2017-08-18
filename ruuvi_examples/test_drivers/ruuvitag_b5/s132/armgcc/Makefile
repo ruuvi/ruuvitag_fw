@@ -62,6 +62,7 @@ SRC_FILES += \
   $(SDK_ROOT)/external/segger_rtt/RTT_Syscalls_GCC.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
+  $(IOTA_ROOT)/lib/utils/asciiToTrytes.c \
   $(PROJ_DIR)/../../bsp/bsp.c \
   $(PROJ_DIR)/../../bsp/bsp_btn_ble.c \
   $(PROJ_DIR)/../../bsp/bsp_nfc.c \
@@ -179,8 +180,9 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/toolchain/cmsis/include \
   $(SDK_ROOT)/components/toolchain/gcc \
   $(SDK_ROOT)/external/segger_rtt \
-  $(IOTA_ROOT)/include \
   $(IOTA_ROOT)/external/ccurl/src/lib/ \
+  $(IOTA_ROOT)/include \
+  $(IOTA_ROOT)/lib/utils \
   $(PROJ_DIR)/ble_services/ \
   $(PROJ_DIR)/tests/ \
   $(PROJ_DIR)/ \

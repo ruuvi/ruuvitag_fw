@@ -147,10 +147,16 @@ int main(void)
   NRF_LOG_INFO("BME280 init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   
   
-  test_rtc();
-  test_rng();
-  test_environmental();
+  //test_rtc();
+  //test_rng();
+  //test_environmental();
+  NRF_LOG_INFO("Testing mam creation.\r\n");
   test_mam();
+  NRF_LOG_INFO("Ok, Timing mam creation.\r\n");
+  uint32_t mam_start = millis();
+  test_mam_create_time();
+  NRF_LOG_INFO("Mam creation completed in %d ms\r\n", millis()-mam_start);
+  test_byte_tryte_conversion();
   
   bluetooth_advertising_start();  
   
@@ -162,17 +168,18 @@ int main(void)
   while(!is_ble_connected())
   {
     app_sched_execute();
+    power_manage();    
   }
   NRF_LOG_INFO("BLE connected, waiting for UART notifications to be registered\r\n");
   ble_nus_t* p_nus = get_nus();
   while(!(p_nus->is_notification_enabled))
   {
     app_sched_execute();
+    power_manage();    
   }
   NRF_LOG_INFO("NUS connected, switching to BLE-based test.\r\n");
-   
-  NRF_LOG_INFO("Starting MAM test\r\n");
 
+  //TODO: Test endpoint-communication
 
   while(1)
   {
