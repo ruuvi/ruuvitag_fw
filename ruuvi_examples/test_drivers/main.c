@@ -290,14 +290,15 @@ int main(void)
   NRF_LOG_INFO("Seed:\r\n");
   NRF_LOG_INFO("%s\r\n",(uint32_t)seed);
 
-  char message[54] = {0};
-  sprintf(message, "temperature: %ld, pressure: %u, humidity: %u", raw_t/100, (unsigned int)raw_p>>8, (unsigned int)raw_h>>10); //Wrong decimals on negative values.
+  char message[] = "IAMSOMEMESSAGE9HEARMEROARMYMESSAGETOTHEWORLDYOUHEATHEN";
+  //char message[54] = {0};
+  //sprintf(message, "temperature: %ld, pressure: %u, humidity: %u", raw_t/100, (unsigned int)raw_p>>8, (unsigned int)raw_h>>10); //Wrong decimals on negative values.
   NRF_LOG_INFO("Message: %s\r\n",(uint32_t)message);
   size_t start = 1;
-  size_t count = 9;
-  size_t index = 3;
+  size_t count = 2;
+  size_t index = 1;
   size_t next_start = start + count;
-  size_t next_count = 4;
+  size_t next_count = 1;
   size_t security = 1;
     
   uint32_t mam_start = millis();
