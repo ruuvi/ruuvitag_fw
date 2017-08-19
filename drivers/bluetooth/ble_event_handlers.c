@@ -185,7 +185,7 @@ void on_ble_evt(ble_evt_t * p_ble_evt)
 void on_conn_params_evt(ble_conn_params_evt_t * p_evt)
 {
     uint32_t err_code;
-    NRF_LOG_INFO("Connection parameter event\r\n");
+    NRF_LOG_DEBUG("Connection parameter event\r\n");
 
     if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED)
     {

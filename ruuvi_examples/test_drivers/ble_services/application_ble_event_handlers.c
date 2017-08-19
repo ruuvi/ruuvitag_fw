@@ -15,7 +15,7 @@
 extern ble_nus_t m_nus;
 void application_on_ble_evt(ble_evt_t * p_ble_evt)
 { 
-    NRF_LOG_INFO("BLE_EVENT\r\n");
+    NRF_LOG_DEBUG("BLE_EVENT\r\n");
     ble_nus_on_ble_evt(&m_nus, p_ble_evt);
     /*
     ble_ess_on_ble_evt(&m_ess, p_ble_evt); 
