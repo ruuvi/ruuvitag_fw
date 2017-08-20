@@ -37,8 +37,8 @@ uint32_t init_rtc(void)
   err_code = nrf_drv_rtc_init(&rtc, &config, rtc_handler);
   APP_ERROR_CHECK(err_code);
 
-  //Enable tick event & interrupt
-  nrf_drv_rtc_tick_enable(&rtc,true);
+  //Enable tick event & interrupt - consumes horrendous amount of power on quick ticks
+  //nrf_drv_rtc_tick_enable(&rtc,true);
 
   //Set compare channel to trigger interrupt after COMPARE_COUNTERTIME seconds
   //err_code = nrf_drv_rtc_cc_set(&rtc,0, COMPARE_COUNTERTIME * 8,true);
