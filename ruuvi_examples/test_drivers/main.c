@@ -21,26 +21,37 @@
  * the J-Link RTT.
  */
 
+/** STDLIB **/
 #include <stdbool.h>
 #include <stdint.h>
+
+/** nRF SDK **/
 #include "nordic_common.h"
 #include "softdevice_handler.h"
 #include "bsp.h"
 #include "app_timer.h"
 #include "app_error.h"
+
+/** Ruuvi Drivers **/
 #include "init.h"
 #include "bme280.h"
 #include "LIS2DH12.h"
 #include "bluetooth_core.h"
 #include "ble_event_handlers.h"
+#include "ble_bulk_transfer.h"
 #include "rtc.h"
 #include "rng.h"
 #include "application_service_if.h"
 
+/** Ruuvi libs **/
+#include "ruuvi_endpoints.h"
+
+/** IOTA lib **/
 #include "iota/iota.h"
 #include "iota/constants.h"
 #include "libiota.h"
 
+/** Application tests **/
 #include  "test_rng.h"
 #include  "test_rtc.h"
 #include  "test_environmental.h"
@@ -74,23 +85,13 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
  */
 static void power_manage(void)
 {
-   uint32_t err_code = sd_app_evt_wait();
-   APP_ERROR_CHECK(err_code);
+  nrf_gpio_pin_set(LED_RED);
+  uint32_t err_code = sd_app_evt_wait();
+  APP_ERROR_CHECK(err_code);
+  nrf_gpio_pin_clear(LED_RED);
 }
 
-/** Blocking BLE TX **/
-uint32_t tx_data(uint8_t* chunk, uint8_t length)
-{
-  uint8_t data_array[BLE_NUS_MAX_DATA_LEN] = {0};
-  uint32_t       err_code;
-  memcpy(&data_array, chunk, length);  
-  do
-  {
-    err_code = ble_nus_string_send(get_nus(), data_array, BLE_NUS_MAX_DATA_LEN);
-  }while(NRF_SUCCESS != err_code);
-  
-  return err_code;
-}
+
 
 /**
  * @brief Function for application main entry.
@@ -123,7 +124,7 @@ int main(void)
   NRF_LOG_FLUSH();
   nrf_delay_ms(10);
 
-  //Init LEDs 
+  //Init LEDs - TODO: move blink to a test
   err_code |= init_leds();
   NRF_LOG_INFO("Led init status %s, turning LEDs on for a second\r\n", (uint32_t)ERR_TO_STR(err_code));
   NRF_LOG_FLUSH();
@@ -146,18 +147,13 @@ int main(void)
   
   NRF_LOG_INFO("BME280 init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   
-  
-  //test_rtc();
-  //test_rng();
-  //test_environmental();
-  NRF_LOG_INFO("Testing mam creation.\r\n");
+  /*
+  test_rtc();
+  test_rng();
+  test_environmental();
   test_mam();
-  NRF_LOG_INFO("Ok, Timing mam creation.\r\n");
-  uint32_t mam_start = millis();
-  test_mam_create_time();
-  NRF_LOG_INFO("Mam creation completed in %d ms\r\n", millis()-mam_start);
   test_byte_tryte_conversion();
-  
+  */
   bluetooth_advertising_start();  
   
   uint32_t test_end = millis();
@@ -180,11 +176,29 @@ int main(void)
   NRF_LOG_INFO("NUS connected, switching to BLE-based test.\r\n");
 
   //TODO: Test endpoint-communication
+  const char seed[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9";
+  
+  char message[] = "IAMSOMEMESSAGE9HEARMEROARMYMESSAGETOTHEWORLDYOUHEATHEN";
+  size_t start = MAM_START;
+  size_t count = MAM_COUNT;
+  size_t index = MAM_INDEX;
+  size_t next_start = MAM_NEXT_START;
+  size_t next_count = MAM_NEXT_COUNT;
+  size_t security = MAM_SECURITY;
+    
+  NRF_LOG_INFO("Start MAM creation.\r\n");
+  //Returns dynamically allocated pointer. REMEMBER TO FREE
+  char* result = (char*)mam_create(seed, message, start, count, index, next_start, next_count, security);
+  NRF_LOG_INFO("MAM created, start TX of %d bytes.\r\n", strlen(result));
+  err_code = ble_bulk_transfer_asynchronous(MAM, (void*)result, strlen(result));
+  // -> Cannot be freed until data is sent, TX frees once tx is complete free(result);
+  NRF_LOG_INFO("TX queueing status %d.\r\n", err_code);
 
   while(1)
   {
-    power_manage();
+    ble_message_queue_process(); //TODO: move to scheduler
     app_sched_execute();
+    power_manage();
   }
 }
 

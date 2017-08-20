@@ -68,6 +68,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../bsp/bsp_nfc.c \
   $(PROJ_DIR)/../../bsp/boards.c \
   $(PROJ_DIR)/../../drivers/battery/battery.c \
+  $(PROJ_DIR)/../../drivers/bluetooth/ble_bulk_transfer.c \
   $(PROJ_DIR)/../../drivers/bluetooth/ble_event_handlers.c \
   $(PROJ_DIR)/../../drivers/bluetooth/bluetooth_core.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
@@ -197,6 +198,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../drivers/spi/ \
   $(PROJ_DIR)/../../libraries/acceleration \
   $(PROJ_DIR)/../../libraries/rust_allocator/ \
+  $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/ \
   ../config \
 
 # Libraries common to all targets

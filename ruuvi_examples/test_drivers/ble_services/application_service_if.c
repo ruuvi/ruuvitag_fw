@@ -1,9 +1,9 @@
-
-
 #include "application_service_if.h"
 #include <stdint.h>
 
 #include "ble_nus.h"
+
+#include "ble_bulk_transfer.h"
 
 #define NRF_LOG_MODULE_NAME "SERVICE"
 #include "nrf_log.h"
@@ -33,6 +33,10 @@ uint32_t application_services_init(void)
 
     err_code = ble_nus_init(&m_nus, &nus_init);
     APP_ERROR_CHECK(err_code);
+    
+    //Setup BLE bulk data transfer pointer
+    ble_bulk_set_nus(&m_nus);
+  
     return NRF_SUCCESS;
 }
 
