@@ -78,11 +78,13 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/rtc/rtc.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../libraries/acceleration/acceleration.c \
+  $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/ruuvi_endpoints.c \
   $(PROJ_DIR)/../../libraries/rust_allocator/rust_allocator.c \
   $(PROJ_DIR)/../../sdk_overrides/app_button.c \
   $(PROJ_DIR)/ble_services/application_ble_event_handlers.c \
   $(PROJ_DIR)/ble_services/application_service_if.c \
   $(PROJ_DIR)/tests/test_environmental.c \
+  $(PROJ_DIR)/tests/test_led.c \
   $(PROJ_DIR)/tests/test_mam.c \
   $(PROJ_DIR)/tests/test_rng.c \
   $(PROJ_DIR)/tests/test_rtc.c \

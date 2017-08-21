@@ -53,6 +53,7 @@
 #include "asciiToTrytes.h"
 
 /** Application tests **/
+#include  "test_led.h"
 #include  "test_rng.h"
 #include  "test_rtc.h"
 #include  "test_environmental.h"
@@ -113,21 +114,11 @@ int main(void)
   nrf_delay_ms(10);
   
   err_code |= init_leds();
-  NRF_LOG_INFO("Led init status %s, turning LEDs on for a second\r\n", (uint32_t)ERR_TO_STR(err_code));
-  NRF_LOG_FLUSH();
-  nrf_delay_ms(100);
-  nrf_gpio_pin_clear(LED_RED);
-  nrf_gpio_pin_clear(LED_GREEN);
-  nrf_delay_ms(1000);
-  nrf_gpio_pin_set(LED_RED);
-  nrf_gpio_pin_set(LED_GREEN);
-  nrf_delay_ms(100);
+  NRF_LOG_INFO("Led init status %s.\r\n", (uint32_t)ERR_TO_STR(err_code));
 
   //Init RTC
-  
   err_code |= init_rtc();
   NRF_LOG_INFO("RTC init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
-  uint32_t test_start = millis();
   nrf_delay_ms(10);  
   
 
@@ -151,17 +142,20 @@ int main(void)
   
   NRF_LOG_INFO("BME280 init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   
-  /*
+  
+  /*NRF_LOG_INFO("Starting automated test.\r\n");    
+  uint32_t test_start = millis();
   test_rtc();
   test_rng();
+  test_led();
   test_environmental();
   test_mam();
   test_byte_tryte_conversion();
-  */
-  bluetooth_advertising_start();  
-  
   uint32_t test_end = millis();
-  NRF_LOG_INFO("Automated test completed in %d milliseconds\r\n", test_end - test_start);
+  NRF_LOG_INFO("Automated test completed in %d milliseconds\r\n", test_end - test_start);  */
+  
+  
+  bluetooth_advertising_start();  
   nrf_delay_ms(10);  
   
   NRF_LOG_INFO("Waiting for BLE connection\r\n")
@@ -180,6 +174,7 @@ int main(void)
   NRF_LOG_INFO("NUS connected, switching to BLE-based test.\r\n");
 
   //TODO: Test endpoint-communication
+  /*
   const char seed[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9";
   
   static int32_t raw_t  = 0;
@@ -211,32 +206,10 @@ int main(void)
   //Returns dynamically allocated pointer. REMEMBER TO FREE
   char* result = (char*)mam_create(seed, trytes, start, count, index, next_start, next_count, security);
   if(result == NULL) { NRF_LOG_ERROR("MAM ERROR \r\n"); }
+
   
-  size_t mam_length = strlen(result); 
-  char chunk[82] = {0};  
-  int ii = 0;
-  for(ii = 0; (ii+1)*81 < mam_length; ii++)
-  {
-    for (int jj = 0; jj < 81; jj++)
-    {
-      chunk[jj] = result[ii*81+jj];
-    }
-    NRF_LOG_INFO("%s\r\n", (uint32_t)chunk);
-    NRF_LOG_FLUSH();
-    nrf_delay_ms(10);      
-  }
-  
-  char last[82] = {0};    
-  for (int jj = 0; jj < mam_length%81; jj++)
-  {
-    last[jj] = result[ii*81+jj];
-  }
-  NRF_LOG_INFO("%s\r\n", (uint32_t)last);
-  NRF_LOG_FLUSH();
-  nrf_delay_ms(10);  
-  
-  //Zero-pad with tryte on uneven result length for conversion to binary. Overwrites terminating null.
   size_t result_len = strlen(result);
+  //Zero-pad with tryte on uneven result length for conversion to binary. Overwrites terminating null.
   //if(result_len%2) { result[result_len] = '9'; result_len++; } 
   //uint8_t* bytes  = calloc(result_len/2, sizeof(uint8_t));
   //err_code = fromTrytes(result, bytes, result_len);
@@ -246,10 +219,10 @@ int main(void)
   // -> Cannot be freed until data is sent, TX frees once tx is complete free(bytes);
   //free(result);
   NRF_LOG_INFO("TX queueing status %d.\r\n", err_code);
-
+  */
   while(1)
   {
-    ble_message_queue_process(); //TODO: move to scheduler
+    ble_message_queue_process(); //TODO: move to scheduler?
     app_sched_execute();
     power_manage();
   }
