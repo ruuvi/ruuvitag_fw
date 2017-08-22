@@ -53,14 +53,13 @@
 struct bme280_driver bme280; /* global instance */
 // Scheduler settings
 APP_TIMER_DEF(bme280_timer_id);                                             /** Creates timer id for our program **/
-#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, sizeof(nrf_drv_gpiote_pin_t))
-#define SCHED_QUEUE_SIZE                10
 
 /* Prototypes */
 void timer_bme280_event_handler(void* p_context);
 
 /** state variable **/
 static uint8_t current_mode = BME280_MODE_SLEEP;
+static uint8_t current_interval = BME280_STANDBY_1000_MS;
 
 BME280_Ret bme280_init()
 {
@@ -196,8 +195,15 @@ BME280_Ret bme280_set_interval(enum BME280_INTERVAL interval)
 	conf   = conf &~ BME280_INTERVAL_MASK;
 	conf  |= interval;      
   status = bme280_write_reg(BME280REG_CONFIG, conf);
+  
+  if(NRF_SUCCESS == status) { current_interval = interval; }
 
   return status;
+}
+
+enum BME280_INTERVAL bme280_get_interval(void)
+{
+  return current_interval;
 }
 
 

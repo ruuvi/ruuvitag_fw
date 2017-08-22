@@ -167,6 +167,9 @@ BME280_Ret bme280_set_mode(enum BME280_MODE mode);
  */
 BME280_Ret bme280_set_interval(enum BME280_INTERVAL interval);
 
+/** Return current interval **/
+enum BME280_INTERVAL bme280_get_interval(void);
+
 /**
  *  Return true if measurement is in progress
  */
