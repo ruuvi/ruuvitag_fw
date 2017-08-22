@@ -35,6 +35,7 @@ typedef enum{
   POWER_RESPONSE        = 0x12,
   TIMESTAMP             = 0x13,
   UNKNOWN               = 0x14,
+  ERROR                 = 0x15,
   UINT8                 = 0x80,  // Array of uint8
   INT8                  = 0x81,
   UINT16                = 0x82,
@@ -59,6 +60,18 @@ typedef enum {
 }ruuvi_transmissionrate_t;
 
 typedef enum {
+  RESOLUTION_MIN        = 251,
+  RESOLUTION_MAX        = 252,
+  RESOLUTION_NO_CHANGE  = 255
+}ruuvi_resolution_t;
+
+typedef enum {
+  SCALE_MIN        = 251,
+  SCALE_MAX        = 252,
+  SCALE_NO_CHANGE  = 255
+}ruuvi_scale_t;
+
+typedef enum {
   DSP_LAST      = 1,
   DSP_MIN       = 2,
   DSP_MAX       = 3,
@@ -71,14 +84,26 @@ typedef enum {
 }ruuvi_dsp_function_t;
 
 typedef enum {
-  TRANSMISSION_TARGET_STOP      = 0,    // Do not transmit any data anywhere
-  TRANSMISSION_TARGET_DATA      = 1,    // Transmit through data channel (i.e. BLE)
-  TRANSMISSION_TARGET_RAM       = 2,    // Store transmissions to RAM
-  TRANSMISSION_TARGET_FLASH     = 4,    // Store transmission to FLASH
-  TRANSMISSION_TARGET_TIMESTAMP = 64,   // Timestamp logs (uses lot of memory)
-  TRANSMISSION_TARGET_OVERFLOW  = 128,  // Discard newst sample if buffer is full
-  TRANSMISSION_TARGET_NO_CHANGE = 255
+  TRANSMISSION_TARGET_STOP        = 0,    // Do not transmit any data anywhere
+  TRANSMISSION_TARGET_BLE_ADV     = 1,    // Broadcast data as BLE adverisement
+  TRANSMISSION_TARGET_BLE_GATT    = 2,    // Transmit data through BLE GATT
+  TRANSMISSION_TARGET_BLE_MESH    = 4,    // Transmit data through BLE MESH  
+  TRANSMISSION_TARGET_PROPRIETARY = 8,    // Transmit data through proprietary protocol
+  TRANSMISSION_TARGET_NFC         = 16,   // Transmit data through NFC
+  TRANSMISSION_TARGET_RAM         = 32,   // Store transmissions to RAM
+  TRANSMISSION_TARGET_FLASH       = 64,   // Store transmission to FLASH
+  TRANSMISSION_TARGET_TIMESTAMP   = 128,  // Add Timestamp (uses lot of memory / bandwidth)
+  TRANSMISSION_TARGET_NO_CHANGE   = 255
 }ruuvi_transmission_target_t;
+
+typedef enum{
+  ENDPOINT_SUCCESS         = 0, // ok
+  ENDPOINT_NOT_IMPLEMENTED = 1, // not implememented yet
+  ENDPOINT_UNKNOWN         = 2, // unknown parameter
+  ENDPOINT_NOT_SUPPORTED   = 4, // not supported
+  ENDPOINT_INVALID         = 8, // Invalid parameter for some reason
+  ENDPOINT_HANDLER_ERROR   = 16 // Error in data handler
+}ruuvi_endpoint_ret_t;
 
 typedef struct __attribute__((packed)){
   uint8_t sample_rate;
@@ -87,7 +112,7 @@ typedef struct __attribute__((packed)){
   uint8_t scale;
   uint8_t dsp_function;
   uint8_t dsp_parameter;
-  uint8_t log;
+  uint8_t target;
   uint8_t reserved;
 }ruuvi_sensor_configuration_t;
 
@@ -111,11 +136,19 @@ void set_temperature_handler(message_handler handler);
 void set_unknown_handler(message_handler handler);
 
 //Data transmission handlers
-void set_data_handler(message_handler handler);
+void set_ble_adv_handler(message_handler handler);
+void set_ble_gatt_handler(message_handler handler);
+void set_proprietary_handler(message_handler handler);
+void set_nfc_handler(message_handler handler);
+void set_reply_handler(message_handler handler);
 void set_ram_handler(message_handler handler);
 void set_flash_handler(message_handler handler);
 
-message_handler get_data_handler(void);
+message_handler get_reply_handler(void);
+message_handler get_ble_adv_handler(void);
+message_handler get_ble_gatt_handler(void);
+message_handler get_proprietary_handler(void);
+message_handler get_nfc_handler(void);
 message_handler get_ram_handler(void);
 message_handler get_flash_handler(void);
 
