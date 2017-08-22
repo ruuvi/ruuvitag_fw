@@ -142,8 +142,8 @@ int main(void)
   
   NRF_LOG_INFO("BME280 init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   
-  
-  /*NRF_LOG_INFO("Starting automated test.\r\n");    
+  /*
+  NRF_LOG_INFO("Starting automated test.\r\n");    
   uint32_t test_start = millis();
   test_rtc();
   test_rng();
@@ -152,8 +152,8 @@ int main(void)
   test_mam();
   test_byte_tryte_conversion();
   uint32_t test_end = millis();
-  NRF_LOG_INFO("Automated test completed in %d milliseconds\r\n", test_end - test_start);  */
-  
+  NRF_LOG_INFO("Automated test completed in %d milliseconds\r\n", test_end - test_start);
+  */
   
   bluetooth_advertising_start();  
   nrf_delay_ms(10);  
@@ -174,7 +174,7 @@ int main(void)
   NRF_LOG_INFO("NUS connected, switching to BLE-based test.\r\n");
 
   //TODO: Test endpoint-communication
-  /*
+  
   const char seed[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9";
   
   static int32_t raw_t  = 0;
@@ -190,7 +190,7 @@ int main(void)
   
   char message[100] = {0};
   char trytes[200] = {0};  
-  sprintf(message, "temperature: %ld.%ld, pressure: %lu, humidity: %lu", raw_t/100, raw_t%100, raw_p>>8, raw_h>>10); //Wrong decimals on negative values.
+  sprintf(message, "{T:%ld%ld,P:%lu,H:%lu}", raw_t/100, raw_t%100, raw_p>>8, raw_h>>10); //Wrong decimals on negative values.
   NRF_LOG_INFO("ASCII message: %s\r\n", (uint32_t)message);
   toTrytes((void*)message, trytes, strlen(message));
   NRF_LOG_INFO("Tryte message: %s\r\n", (uint32_t)trytes);
@@ -219,7 +219,7 @@ int main(void)
   // -> Cannot be freed until data is sent, TX frees once tx is complete free(bytes);
   //free(result);
   NRF_LOG_INFO("TX queueing status %d.\r\n", err_code);
-  */
+  
   while(1)
   {
     ble_message_queue_process(); //TODO: move to scheduler?

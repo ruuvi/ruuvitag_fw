@@ -12,13 +12,15 @@ message_handler p_nfc_handler = NULL;
 message_handler p_ram_handler = NULL;
 message_handler p_flash_handler = NULL;
 
+static ruuvi_sensor_configuration_t m_configuration = {0};
+
 //TODO: Add timer interrupt to sample rate to read samples 
-/** This must be called as last function, as this function may bring BME280 out of sleep which prevents further configuration  **/
+/**     This must be called as last function, as this function may bring BME280 out of sleep which prevents further configuration  **/
 static ret_code_t set_sample_rate(uint8_t sample_rate)
 {
   if(SAMPLE_RATE_STOP == message.payload.sample_rate)      { return bme280_set_mode(BME280_MODE_SLEEP); }
   if(SAMPLE_RATE_SINGLE == message.payload.sample_rate)    { return bme280_set_mode(BME280_MODE_FORCED);}
-  if(SAMPLE_RATE_NO_CHANGE == message.payload.sample_rate) { return NRF_SUCCESS; }
+  if(SAMPLE_RATE_NO_CHANGE == message.payload.sample_rate) { return ENDPOINT_SUCCESS; }
   
   //Round sample rate down.
   ruuvi_sensor_configuration_t* payload = (ruuvi_sensor_configuration_t*)message.payload;
@@ -84,9 +86,11 @@ static ret_code_t set_target(uint8_t target)
   
   //NULL handlers
   }
-  TRANSMISSION_TARGET_STOP        = 0,    // Do not transmit any data anywhere
+  if(TRANSMISSION_TARGET_BLE_GATT == target
+  
+  /*
+  TODO
   TRANSMISSION_TARGET_BLE_ADV     = 1,    // Broadcast data as BLE adverisement
-  TRANSMISSION_TARGET_BLE_GATT    = 2,    // Transmit data through BLE GATT
   TRANSMISSION_TARGET_BLE_MESH    = 4,    // Transmit data through BLE MESH  
   TRANSMISSION_TARGET_PROPRIETARY = 8,    // Transmit data through proprietary protocol
   TRANSMISSION_TARGET_NFC         = 16,   // Transmit data through NFC
@@ -94,8 +98,8 @@ static ret_code_t set_target(uint8_t target)
   TRANSMISSION_TARGET_FLASH       = 64,   // Store transmission to FLASH
   TRANSMISSION_TARGET_TIMESTAMP   = 128,  // Add Timestamp (uses lot of memory / bandwidth)
   TRANSMISSION_TARGET_NO_CHANGE   = 255
+  */
   
-  }
   return 1; //TODO: not implemented err_code
 }
 
@@ -125,7 +129,7 @@ static ret_code_t configure_sensor(message)
 
 ret_code_t bme280_temperature_handler(const ruuvi_standard_message_t message)
 {
-  if(TEMPERATURE != message.destination_endpoint){ return 1; } //TODO Proper error code
+  if(TEMPERATURE != message.destination_endpoint){ return ENDPOINT_INVALID; }
 
   switch(message.type)
   {
@@ -143,16 +147,16 @@ ret_code_t bme280_temperature_handler(const ruuvi_standard_message_t message)
       break;
       
     case LOG_QUERY:
-      return unknown_handler(message); //TODO - add not implemented?
+      return unknown_handler(message);
       break;
       
     case CAPABILITY_QUERY:
-      return unknown_handler(message); //TODO - add not implemented?
+      return unknown_handler(message);
       break;
       
     default:
       return unknown_handler(message);
       break;
   }
-  return NRF_SUCCESS; //TODO: Should not be reached
+  return ENDPOINT_HANDLER_ERROR; // Should not be reached
 }

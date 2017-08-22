@@ -43,7 +43,7 @@ init_err_code_t init_ble(void)
     
     //Enable scheduler - required for BLE stack
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
-    APP_TIMER_APPSH_INIT(RUUVITAG_APP_TIMER_PRESCALER, RUUVITAG_APP_TIMER_OP_QUEUE_SIZE, true);
+    APP_TIMER_APPSH_INIT(RUUVITAG_APP_TIMER_PRESCALER, SCHED_QUEUE_SIZE, true);
 
     //Enable BLE STACK
     err_code =  ble_stack_init();

@@ -34,11 +34,19 @@
 #include "bluetooth_core.h"
 
 //Timers
+/** PRESCALER: will be written to the RTC1 PRESCALER register. 
+ *  This determines the time resolution of the timer, and thus the amount of time it can count before it wrap around. 
+ *  On the nRF52 the RTC is a 24-bit counter with a 12 bit prescaler that run on the 32.768 LFCLK. 
+ *  The counter increment frequency (tick rate) fRTC [kHz] = 32.768/(PRESCALER+1). For example, a prescaler value of 15 means that the tick rate or time resolution is 
+ *  32.768 kHz * 1/(15+1) = 2.048 kHz and the timer will wrap around every (2^24) * 1/2.048 kHz = 8192 s. 
+ **/
+#define RUUVITAG_APP_TIMER_PRESCALER 15 //App timer increments at 32.768 kHz
+#define RUUVITAG_APP_TIMER_OP_QUEUE_SIZE 160 //160 ops in time queue max
 #define APP_TIMER_PRESCALER             RUUVITAG_APP_TIMER_PRESCALER      /**< Value of the RTC1 PRESCALER register. */
 #define APP_TIMER_OP_QUEUE_SIZE         RUUVITAG_APP_TIMER_OP_QUEUE_SIZE  /**< Size of timer operation queues. */
 // Scheduler settings                                         
 #define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, sizeof(nrf_drv_gpiote_pin_t))
-#define SCHED_QUEUE_SIZE                10
+#define SCHED_QUEUE_SIZE                RUUVITAG_APP_TIMER_OP_QUEUE_SIZE
 
 #define ERROR_BLINK_INTERVAL 250u   //toggle interval of error led
 #define INIT_OK_DELAY        3000u  //delay after successful init

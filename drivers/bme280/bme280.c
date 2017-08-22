@@ -44,6 +44,7 @@
 #include <stdbool.h>
 
 #include "bme280.h"
+#include "init.h" //Timer ticks - todo: refactor
 
 #define NRF_LOG_MODULE_NAME "BME280"
 #include "nrf_log.h"

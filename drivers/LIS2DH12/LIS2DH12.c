@@ -24,6 +24,7 @@ For a detailed description see the detailed description in @ref LIS2DH12.h
 #include "app_timer.h"
 #include "bsp.h"
 #include "boards.h"
+#include "init.h" //Timer ticks - todo: refactor
 
 
 

@@ -13,6 +13,7 @@
 #ifndef BLUETOOTH_CONFIG_H
 #define BLUETOOTH_CONFIG_H 
 #include "bluetooth_board_config.h"
+#include "init.h" //For timer tick
 //#define board manufacturer etc in board-specific ble config
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 1                                 /**< Include the service changed characteristic. If not enabled, the server's database cannot be changed for the lifetime of the device. */
