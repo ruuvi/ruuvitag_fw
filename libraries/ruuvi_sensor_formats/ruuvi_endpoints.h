@@ -21,13 +21,13 @@ typedef enum{
 }ruuvi_endpoint_t;
 
 typedef enum{
-  SENSOR_CONFIGURATION  = 0x01,  // Configure sensor
-  ACTUATOR_CONFIGRATION = 0x02,  // Configure actuator
-  ACKNOWLEDGEMENT       = 0x03,  // Acknowledge message
-  STATUS_QUERY          = 0x04,  // Query status from endpoint - returns current configuration
-  DATA_QUERY            = 0x05,  // Query data from endpoint - returns latest data
-  LOG_QUERY             = 0x06,  // Query log from endpoint - initiates bulk write
-  CAPABILITY_QUERY      = 0x07,  // Query endpoint capablities: samplerate, resolution, scale, log, power consumption with settings given in query
+  SENSOR_CONFIGURATION  = 0x01, // Configure sensor
+  ACTUATOR_CONFIGRATION = 0x02, // Configure actuator
+  ACKNOWLEDGEMENT       = 0x03, // Acknowledge message
+  STATUS_QUERY          = 0x04, // Query status from endpoint - returns current configuration
+  DATA_QUERY            = 0x05, // Query data from endpoint - returns latest data
+  LOG_QUERY             = 0x06, // Query log from endpoint - initiates bulk write
+  CAPABILITY_QUERY      = 0x07, // Query endpoint capablities: samplerate, resolution, scale, log, power consumption with settings given in query
   SAMPLERATE_RESPONSE   = 0x08,
   RESOLUTION_RESPONSE   = 0x09,
   SCALE_RESPONSE        = 0x10,
@@ -36,14 +36,15 @@ typedef enum{
   TIMESTAMP             = 0x13,
   UNKNOWN               = 0x14,
   ERROR                 = 0x15,
-  UINT8                 = 0x80,  // Array of uint8
+  UINT8                 = 0x80, // Array of uint8
   INT8                  = 0x81,
   UINT16                = 0x82,
   INT16                 = 0x83,
   UINT32                = 0x84,
   INT32                 = 0x85,
-  UINT64                = 0x86,  // Single uint64
-  INT64                 = 0x87
+  UINT64                = 0x86, // Single uint64
+  INT64                 = 0x87,
+  ASCII                 = 0x88  // ASCII array
 }ruuvi_message_type_t;
 
 typedef enum {
