@@ -296,9 +296,6 @@ uint32_t ble_stack_init(void)
     application_services_init();
     advertising_init();
     conn_params_init();
-    
-    // Application messaging data is sent by BLE
-    set_data_handler(ble_std_transfer_asynchronous);
 
     return err_code;
 }
