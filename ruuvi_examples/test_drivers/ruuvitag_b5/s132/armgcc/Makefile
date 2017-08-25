@@ -72,6 +72,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/bluetooth/ble_event_handlers.c \
   $(PROJ_DIR)/../../drivers/bluetooth/bluetooth_core.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
+  $(PROJ_DIR)/../../drivers/bme280/bme280_temperature_handler.c \
   $(PROJ_DIR)/../../drivers/init/init.c \
   $(PROJ_DIR)/../../drivers/LIS2DH12/LIS2DH12.c \
   $(PROJ_DIR)/../../drivers/rng/rng.c \
@@ -89,6 +90,7 @@ SRC_FILES += \
   $(PROJ_DIR)/tests/test_rng.c \
   $(PROJ_DIR)/tests/test_rtc.c \
   $(PROJ_DIR)/main.c \
+  $(PROJ_DIR)/mam.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \

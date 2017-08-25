@@ -29,7 +29,7 @@
 #include "nordic_common.h"
 #include "softdevice_handler.h"
 #include "bsp.h"
-#include "app_timer.h"
+#include "app_timer_appsh.h"
 #include "app_error.h"
 
 /** Ruuvi Drivers **/
@@ -58,6 +58,7 @@
 #include  "test_rtc.h"
 #include  "test_environmental.h"
 #include  "test_mam.h"
+#include  "mam.h"
 
 #define NRF_LOG_MODULE_NAME "MAIN"
 #include "nrf_log.h"
@@ -174,56 +175,16 @@ int main(void)
   NRF_LOG_INFO("NUS connected, switching to BLE-based test.\r\n");
 
   //TODO: Test endpoint-communication
-  
-  const char seed[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9";
-  
-  static int32_t raw_t  = 0;
-  static uint32_t raw_p = 0;
-  static uint32_t raw_h = 0;
-  err_code |= bme280_set_mode(BME280_MODE_FORCED);
-  nrf_delay_ms(15);
-  err_code |= bme280_set_mode(BME280_MODE_FORCED);
-  nrf_delay_ms(15);
-  raw_t = bme280_get_temperature();
-  raw_p = bme280_get_pressure();
-  raw_h = bme280_get_humidity();
-  
-  char message[100] = {0};
-  char trytes[200] = {0};  
-  sprintf(message, "{T:%ld%ld,P:%lu,H:%lu}", raw_t/100, raw_t%100, raw_p>>8, raw_h>>10); //Wrong decimals on negative values.
-  NRF_LOG_INFO("ASCII message: %s\r\n", (uint32_t)message);
-  toTrytes((void*)message, trytes, strlen(message));
-  NRF_LOG_INFO("Tryte message: %s\r\n", (uint32_t)trytes);
-
-  size_t start = MAM_START;
-  size_t count = MAM_COUNT;
-  size_t index = MAM_INDEX;
-  size_t next_start = MAM_NEXT_START;
-  size_t next_count = MAM_NEXT_COUNT;
-  size_t security = MAM_SECURITY;
-    
-  NRF_LOG_INFO("Start MAM creation.\r\n");
-  //Returns dynamically allocated pointer. REMEMBER TO FREE
-  char* result = (char*)mam_create(seed, trytes, start, count, index, next_start, next_count, security);
-  if(result == NULL) { NRF_LOG_ERROR("MAM ERROR \r\n"); }
-
-  
-  size_t result_len = strlen(result);
-  //Zero-pad with tryte on uneven result length for conversion to binary. Overwrites terminating null.
-  //if(result_len%2) { result[result_len] = '9'; result_len++; } 
-  //uint8_t* bytes  = calloc(result_len/2, sizeof(uint8_t));
-  //err_code = fromTrytes(result, bytes, result_len);
-  //NRF_LOG_INFO("Binary message status %d: %s\r\n", err_code, (uint32_t)bytes);  
-  NRF_LOG_INFO("MAM created, start TX of %d bytes.\r\n", result_len);
-  err_code = ble_bulk_transfer_asynchronous(MAM, (void*)result, result_len);
-  // -> Cannot be freed until data is sent, TX frees once tx is complete free(bytes);
-  //free(result);
-  NRF_LOG_INFO("TX queueing status %d.\r\n", err_code);
+  send_environmental_mam();
   
   while(1)
   {
-    ble_message_queue_process(); //TODO: move to scheduler?
+    //Execute scheduler first
     app_sched_execute();
+    //Process queue once schdule has placed new elements to queue
+    ble_message_queue_process(); 
+    NRF_LOG_INFO("Loop\r\n");
+    //Might not return until there is a new BLE event
     power_manage();
   }
 }
