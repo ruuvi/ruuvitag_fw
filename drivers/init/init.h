@@ -32,6 +32,7 @@
 
 //Libraries
 #include "bluetooth_core.h"
+#include "ruuvi_endpoints.h"
 
 //Timers
 /** PRESCALER: will be written to the RTC1 PRESCALER register. 
@@ -41,11 +42,11 @@
  *  32.768 kHz * 1/(15+1) = 2.048 kHz and the timer will wrap around every (2^24) * 1/2.048 kHz = 8192 s. 
  **/
 #define RUUVITAG_APP_TIMER_PRESCALER 15 //App timer increments at 32.768 kHz
-#define RUUVITAG_APP_TIMER_OP_QUEUE_SIZE 160 //160 ops in time queue max
+#define RUUVITAG_APP_TIMER_OP_QUEUE_SIZE 16 //16 ops in time queue max
 #define APP_TIMER_PRESCALER             RUUVITAG_APP_TIMER_PRESCALER      /**< Value of the RTC1 PRESCALER register. */
 #define APP_TIMER_OP_QUEUE_SIZE         RUUVITAG_APP_TIMER_OP_QUEUE_SIZE  /**< Size of timer operation queues. */
 // Scheduler settings                                         
-#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, sizeof(nrf_drv_gpiote_pin_t))
+#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, sizeof(ruuvi_standard_message_t))
 #define SCHED_QUEUE_SIZE                RUUVITAG_APP_TIMER_OP_QUEUE_SIZE
 
 #define ERROR_BLINK_INTERVAL 250u   //toggle interval of error led

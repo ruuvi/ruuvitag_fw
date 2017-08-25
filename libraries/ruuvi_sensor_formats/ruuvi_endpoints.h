@@ -5,7 +5,6 @@
 
 typedef enum{
   PLAINTEXT_MESSAGE       = 0x10, // Plaintext data for info, debug etc
-  MESSAGE_ACKNOWLEDGEMENT = 0x11, // Acknowledge a message
   BATTERY                 = 0x20, // Battery state message
   RNG                     = 0x21, // Random number
   RTC                     = 0x22, // Real time clock 
@@ -127,6 +126,8 @@ typedef struct __attribute__((packed)){
 // Declare message handler type
 typedef ret_code_t(*message_handler)(const ruuvi_standard_message_t);
 
+void ble_gatt_scheduler_event_handler(void *p_event_data, uint16_t event_size);
+
 //pass structs by value, as they might be copied to tx buffer somewhere.
 void route_message(const ruuvi_standard_message_t message);
 
@@ -148,6 +149,7 @@ void set_flash_handler(message_handler handler);
 message_handler get_reply_handler(void);
 message_handler get_ble_adv_handler(void);
 message_handler get_ble_gatt_handler(void);
+message_handler get_ble_mesh_handler(void);
 message_handler get_proprietary_handler(void);
 message_handler get_nfc_handler(void);
 message_handler get_ram_handler(void);

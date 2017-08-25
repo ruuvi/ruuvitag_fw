@@ -1,6 +1,8 @@
 #include "application_service_if.h"
 #include <stdint.h>
 
+#include "app_scheduler.h"
+
 #include "ble_nus.h"
 
 #include "ble_bulk_transfer.h"
@@ -20,9 +22,11 @@ static void nus_data_handler(ble_nus_t * p_nus, uint8_t * p_data, uint16_t lengt
     ruuvi_standard_message_t message = { .destination_endpoint = p_data[0],
                                          .source_endpoint = p_data[1],
                                          .type = p_data[2],
-                                         .payload = {(p_data[3])}};
-    
-    route_message(message);
+                                         .payload = {0}};
+    memcpy(&(message.payload[0]), &(p_data[3]), sizeof(message.payload));
+    app_sched_event_put	(	&message,
+                          sizeof(message),
+                          ble_gatt_scheduler_event_handler);
   }
 }
 

@@ -2,6 +2,7 @@
 #include "init.h"
 #include "ruuvi_endpoints.h"
 #include "ble_bulk_transfer.h"
+#include "bme280_temperature_handler.h"
 
 #define NRF_LOG_MODULE_NAME "INIT"
 #include "nrf_log.h"
@@ -150,6 +151,7 @@ init_err_code_t init_sensors(void)
     bme280_set_mode(BME280_MODE_SLEEP); //Set sleep mode to allow configuration, sensor might have old config in internal RAM
     BME280RetVal |= bme280_set_interval(BME280_STANDBY_1000_MS);
 
+
     if (BME280_RET_OK == BME280RetVal)
     {
         NRF_LOG_DEBUG("BME280 init Done\r\n");
@@ -198,7 +200,8 @@ init_err_code_t init_bme280(void)
 
     if (BME280_RET_OK == BME280RetVal)
     {
-        NRF_LOG_DEBUG("BME280 init Done\r\n");
+        NRF_LOG_DEBUG("BME280 init Done, setting up message handlers\r\n");
+        set_temperature_handler(bme280_temperature_handler);
     }
     else
     {

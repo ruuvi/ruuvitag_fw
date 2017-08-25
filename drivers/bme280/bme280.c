@@ -140,6 +140,7 @@ BME280_Ret bme280_init()
  */
 BME280_Ret bme280_set_mode(enum BME280_MODE mode)
 {
+  NRF_LOG_DEBUG("Setting BME mode: %x\r\n", mode);
   if(!bme280.sensor_available) { return BME280_RET_ERROR;  }
 	uint8_t conf, reg;
   uint32_t err_code = 0;
@@ -165,6 +166,8 @@ BME280_Ret bme280_set_mode(enum BME280_MODE mode)
             break;
 
         case BME280_MODE_FORCED:
+            err_code = app_timer_stop(bme280_timer_id);
+            APP_ERROR_CHECK(err_code);        
             bme280_read_measurements(); //read previous data
             status = bme280_write_reg(BME280REG_CTRL_MEAS, conf); //start new measurement
             break;

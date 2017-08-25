@@ -1,47 +1,53 @@
 #include "ruuvi_endpoints.h"
+#include "nrf_delay.h"
 
 #define NRF_LOG_MODULE_NAME "ENDPOINTS"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
 /** Sensor data handlers **/
-message_handler p_unknown_handler           = NULL;
-message_handler p_battery_handler           = NULL;
-message_handler p_rng_handler               = NULL;
-message_handler p_rtc_handler               = NULL;
-message_handler p_temperature_handler       = NULL;
-message_handler p_humidity_handler          = NULL;
-message_handler p_pressure_handler          = NULL;
-message_handler p_air_quality_handler       = NULL;
-message_handler p_acceleration_handler      = NULL;
-message_handler p_magnetometer_handler      = NULL;
-message_handler p_gyroscope_handler         = NULL;
-message_handler p_movement_detector_handler = NULL;
-message_handler p_mam_handler               = NULL;
+static message_handler p_battery_handler           = NULL;
+static message_handler p_rng_handler               = NULL;
+static message_handler p_rtc_handler               = NULL;
+static message_handler p_temperature_handler       = NULL;
+static message_handler p_humidity_handler          = NULL;
+static message_handler p_pressure_handler          = NULL;
+static message_handler p_air_quality_handler       = NULL;
+static message_handler p_acceleration_handler      = NULL;
+static message_handler p_magnetometer_handler      = NULL;
+static message_handler p_gyroscope_handler         = NULL;
+//static message_handler p_movement_detector_handler = NULL; TODO
+//static message_handler p_mam_handler               = NULL;
 
 /** Data traffic handlers **/
-message_handler p_reply_handler       = NULL;
-message_handler p_ble_adv_handler     = NULL;
-message_handler p_ble_gatt_handler    = NULL;
-message_handler p_proprietary_handler = NULL;
-message_handler p_nfc_handler         = NULL;
-message_handler p_ram_handler         = NULL;
-message_handler p_flash_handler       = NULL;
+static message_handler p_reply_handler       = NULL;
+static message_handler p_ble_adv_handler     = NULL;
+static message_handler p_ble_gatt_handler    = NULL;
+static message_handler p_ble_mesh_handler    = NULL;
+static message_handler p_proprietary_handler = NULL;
+static message_handler p_nfc_handler         = NULL;
+static message_handler p_ram_handler         = NULL;
+static message_handler p_flash_handler       = NULL;
+
+/** Scheduler handler to call message router **/
+void ble_gatt_scheduler_event_handler(void *p_event_data, uint16_t event_size)
+{
+  //TODO: Handle incoming bulk writes
+  ruuvi_standard_message_t message = {};
+  memcpy(&message, p_event_data, sizeof(message));
+  route_message(message);
+}
 
 /** Routes message to appropriate endpoint handler.
  *  Messages will send data to their configured transmission points
  **/
 void route_message(const ruuvi_standard_message_t message)
 {
-    NRF_LOG_INFO("Routing message.\r\n");
+    NRF_LOG_INFO("Routing message. %x, %x, %x, \r\n",message.destination_endpoint, message.source_endpoint, message.type);
     switch(message.destination_endpoint)
     {
       case PLAINTEXT_MESSAGE:
         unknown_handler(message); // Application does not handle plain text - TODO: Not implemented hander?
-        break;
-      
-      case MESSAGE_ACKNOWLEDGEMENT:
-        unknown_handler(message); // Application does not handle acknowledgements
         break;
       
       case BATTERY:
@@ -61,6 +67,8 @@ void route_message(const ruuvi_standard_message_t message)
 
       case TEMPERATURE:
         NRF_LOG_INFO("Message is a temperature message.\r\n");
+        NRF_LOG_FLUSH();
+        nrf_delay_ms(1);
         if(p_temperature_handler) {p_temperature_handler(message); } 
         else {unknown_handler(message); }
         break;
@@ -127,6 +135,11 @@ void set_ble_gatt_handler(message_handler handler)
   p_ble_gatt_handler = handler;
 }
 
+void set_ble_mesh_handler(message_handler handler)
+{
+  p_ble_mesh_handler = handler;
+}
+
 void set_proprietary_handler(message_handler handler)
 {
   p_proprietary_handler = handler;
@@ -162,6 +175,11 @@ message_handler get_ble_gatt_handler(void)
   return p_ble_gatt_handler;
 }
 
+message_handler get_ble_mesh_handler(void)
+{
+  return p_ble_mesh_handler;
+}
+
 message_handler get_proprietary_handler(void)
 {
   return p_proprietary_handler;
@@ -185,6 +203,7 @@ message_handler get_flash_handler(void)
 // Send payload back to source with type "UNKNOWN"
 ret_code_t unknown_handler(const ruuvi_standard_message_t message)
 {
+  NRF_LOG_INFO("Unknown message\r\n");
   ruuvi_standard_message_t reply = { .destination_endpoint = message.source_endpoint,
                                      .source_endpoint = message.destination_endpoint,
                                      .type = UNKNOWN,
