@@ -150,11 +150,17 @@ int main(void)
   test_rng();
   test_led();
   test_environmental();
-  test_mam();
+
   test_byte_tryte_conversion();
   uint32_t test_end = millis();
   NRF_LOG_INFO("Automated test completed in %d milliseconds\r\n", test_end - test_start);
   */
+  
+  /*for(int ii = 0; ii < 10; ii++)
+  {
+  test_mam();
+  NRF_LOG_INFO("MAM %d\r\n", (uint32_t) ii);
+  }*/
   
   bluetooth_advertising_start();  
   nrf_delay_ms(10);  
@@ -175,7 +181,8 @@ int main(void)
   NRF_LOG_INFO("NUS connected, switching to BLE-based test.\r\n");
 
   //TODO: Test endpoint-communication
-  send_environmental_mam();
+  //send_environmental_mam();
+  set_mam_handler(mam_handler); //XXX POC
   
   while(1)
   {
