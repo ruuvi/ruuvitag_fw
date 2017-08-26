@@ -135,6 +135,7 @@ ret_code_t unknown_handler(const ruuvi_standard_message_t message);
 
 //Peripheral handlers
 void set_temperature_handler(message_handler handler);
+void set_mam_handler(message_handler handler);
 void set_unknown_handler(message_handler handler);
 
 //Data transmission handlers

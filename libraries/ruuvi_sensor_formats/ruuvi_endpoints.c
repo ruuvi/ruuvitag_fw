@@ -16,8 +16,8 @@ static message_handler p_air_quality_handler       = NULL;
 static message_handler p_acceleration_handler      = NULL;
 static message_handler p_magnetometer_handler      = NULL;
 static message_handler p_gyroscope_handler         = NULL;
-//static message_handler p_movement_detector_handler = NULL; TODO
-//static message_handler p_mam_handler               = NULL;
+static message_handler p_movement_detector_handler = NULL;
+static message_handler p_mam_handler               = NULL;
 
 /** Data traffic handlers **/
 static message_handler p_reply_handler       = NULL;
@@ -104,7 +104,12 @@ void route_message(const ruuvi_standard_message_t message)
         break;
         
       case MOVEMENT_DETECTOR:
-        if(p_pressure_handler) {p_pressure_handler(message); } 
+        if(p_movement_detector_handler) {p_movement_detector_handler(message); } 
+        else {unknown_handler(message); }
+        break;
+
+      case MAM:
+        if(p_mam_handler) {p_mam_handler(message); } 
         else {unknown_handler(message); }
         break;
     
@@ -118,6 +123,11 @@ void route_message(const ruuvi_standard_message_t message)
 void set_temperature_handler(message_handler handler)
 {
   p_temperature_handler = handler;
+}
+
+void set_mam_handler(message_handler handler)
+{
+  p_mam_handler = handler;
 }
 
 void set_reply_handler(message_handler handler)
