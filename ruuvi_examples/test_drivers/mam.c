@@ -25,10 +25,23 @@ void send_environmental_mam(void)
   NRF_LOG_INFO("Seed:\r\n");
   NRF_LOG_INFO("%s\r\n",(uint32_t)seed);
 
-  char message[] = "IAMSOMEMESSAGE9HEARMEROARMYMESSAGETOTHEWORLDYOUHEATHEN";
-  //char message[54] = {0};
-  //sprintf(message, "temperature: %ld, pressure: %u, humidity: %u", raw_t/100, (unsigned int)raw_p>>8, (unsigned int)raw_h>>10); //Wrong decimals on negative values.
-  NRF_LOG_INFO("Message: %s\r\n",(uint32_t)message);
+  ret_code_t err_code = NRF_SUCCESS;
+  char message[30] = {0};
+  char trytes[60] = {0};
+  err_code |= bme280_set_mode(BME280_MODE_FORCED);
+  nrf_delay_ms(15);//XX
+  err_code |= bme280_set_mode(BME280_MODE_FORCED);
+  nrf_delay_ms(15);
+  int32_t  raw_t = bme280_get_temperature();
+  uint32_t raw_p = bme280_get_pressure();
+  uint32_t raw_h = bme280_get_humidity();
+
+  sprintf(message, "{T:%ld%ld,P:%lu,H:%lu}", raw_t/100, raw_t%100, raw_p>>8, raw_h>>10); //Wrong decimals on negative values.
+  NRF_LOG_INFO("ASCII message: %s\r\n", (uint32_t)message);
+  toTrytes((void*)message, trytes, strlen(message));
+  NRF_LOG_INFO("Tryte message: %s\r\n", (uint32_t)trytes);
+
+
 
   size_t start = MAM_START;
   size_t count = MAM_COUNT;
@@ -38,7 +51,8 @@ void send_environmental_mam(void)
   size_t security = MAM_SECURITY;
     
   //Returns dynamically allocated pointer. REMEMBER TO FREE
-  char* result = (char*)mam_create(seed, message, start, count, index, next_start, next_count, security);
+  char* result = (char*)mam_create(seed, trytes, start, count, index, next_start, next_count, security);
+//  size_t result_len = strlen(result);
   //char* result = merkle_keys(seed, next_start, next_count, security);
   NRF_LOG_INFO("mam done\r\n");
   NRF_LOG_FLUSH();
@@ -49,23 +63,9 @@ void send_environmental_mam(void)
   //char* root = strtok(NULL, "\n");
   //Could be done with pointer arithmetic too.
   size_t mam_length = strlen(masked_payload); 
-  /*
-  char chunk[19] = {0};  
-  int ii = 0;
-  for(ii = 0; (ii+1)*18 < mam_length; ii++)
-  {
-    for (int jj = 0; jj < 18; jj++)
-    {
-      chunk[jj] = masked_payload[ii*18+jj];
-    }
-    NRF_LOG_DEBUG("Chunk %d: %s\r\n", ii, (uint32_t)chunk);
-
-    //NRF_LOG_FLUSH();
-    //nrf_delay_ms(10);      
-  }
-*/
+//  err_code = ble_bulk_transfer_asynchronous(MAM, (void*)result, result_len);
+  err_code = ble_bulk_transfer_asynchronous(MAM, (void*)masked_payload, mam_length);
   NRF_LOG_INFO("%d\r\n", mam_length);
-  free(result);
 }
 
 ret_code_t mam_handler(const ruuvi_standard_message_t message)
@@ -86,14 +86,6 @@ ret_code_t mam_handler(const ruuvi_standard_message_t message)
     p_reply_handler(reply);
   }
   ble_message_queue_process();  //XXX message queue should be processed in background
-  send_environmental_mam();
-  NRF_LOG_INFO("1 MAM\r\n");
-  send_environmental_mam();
-  NRF_LOG_INFO("2 MAM\r\n");
-  send_environmental_mam();
-  NRF_LOG_INFO("3 MAM\r\n");
-  send_environmental_mam();
-  NRF_LOG_INFO("4 MAM\r\n");
   send_environmental_mam();
   return NRF_SUCCESS;
 }
