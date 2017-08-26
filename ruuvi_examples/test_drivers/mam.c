@@ -19,6 +19,7 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
+//XXX This is fir hackathon and will be removed
 void send_environmental_mam(void)
 {
   const char seed[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9";
@@ -57,15 +58,15 @@ void send_environmental_mam(void)
   NRF_LOG_INFO("mam done\r\n");
   NRF_LOG_FLUSH();
   nrf_delay_ms(10);
+  size_t result_length = strlen(result); 
 
-  NRF_LOG_INFO("splitting: \r\n");
-  char* masked_payload = strtok((char * restrict)result, "\n");
   //char* root = strtok(NULL, "\n");
   //Could be done with pointer arithmetic too.
-  size_t mam_length = strlen(masked_payload); 
-//  err_code = ble_bulk_transfer_asynchronous(MAM, (void*)result, result_len);
-  err_code = ble_bulk_transfer_asynchronous(MAM, (void*)masked_payload, mam_length);
-  NRF_LOG_INFO("%d\r\n", mam_length);
+
+  err_code = ble_bulk_transfer_asynchronous(MAM, (void*)result, result_length);
+//  err_code = ble_bulk_transfer_asynchronous(MAM, (void*)masked_payload, mam_length);
+  NRF_LOG_INFO("%d\r\n", result_length);
+
 }
 
 ret_code_t mam_handler(const ruuvi_standard_message_t message)

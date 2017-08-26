@@ -192,6 +192,14 @@ ret_code_t ble_bulk_message_queue_purge()
 /** Free single tx element **/
 ret_code_t ble_bulk_message_clean(ble_bulk_tx_t* element)
 {
+  //This is a fix to a mystery bug where MAM creation will fail on
+  //second run if the MAM string is not tokenized. 
+  //TODO: Figure out why this is necessary.
+  if(element->endpoint == MAM)
+  { 
+    char* masked_payload = strtok((char * restrict)element->data, "\n");
+    NRF_LOG_INFO("splitting: %d\r\n", strlen(masked_payload));
+  }
   //Free TX data
   free(element->data);
   free(element->chunk_index);
