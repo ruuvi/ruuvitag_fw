@@ -10,23 +10,32 @@ Hardware Driver for the LIS2DH12 Acceleration Sensor
 #ifndef LIS2DH12_H
 #define LIS2DH12_H
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 /* INCLUDES ***************************************************************************************/
 #include <stdbool.h>
 #include <stdint.h>
 #include "app_error.h"
-
-#include "nrf_drv_gpiote.h"
 #include "app_scheduler.h"
 #include "nordic_common.h"
 #include "app_timer_appsh.h"
 
 /* CONSTANTS **************************************************************************************/
 #define LIS2DH12_FIFO_MAX_LENGTH 32
+
+/* TYPES ******************************************************************************************/
+/** Structure containing sensor data for all 3 axis */
+typedef struct
+{
+    int16_t x;
+    int16_t y;
+    int16_t z;
+} acceleration_t;
+
+/** Union to split raw data to values for each axis */
+typedef union
+{
+  uint8_t raw[SENSOR_DATA_SIZE];
+  acceleration_t sensor;
+}sensor_buffer_t;
 
 /* MACROS *****************************************************************************************/
 
@@ -40,17 +49,8 @@ typedef enum
     LIS2DH12_RET_NULL = 4,			/**< NULL Pointer detected */
     LIS2DH12_RET_ERROR_SELFTEST = 8,/**< Selftest  failed */
     LIS2DH12_RET_ERROR = 16    		/**< Not otherwise specified error */
-} LIS2DH12_Ret;
+} lis2dh12_ret_t;
 
-/** Available Power Modes for the LIS2DH12 */
-typedef enum{
-//	LIS2DH12_POWER_NORMAL = 0, /**< Normal Power Mode, 10-bit resoulution, 100Hz, 20uA */
-	LIS2DH12_POWER_LOW = 0,			 /**< Low Power Mode, 10-bit resolution, 1Hz, 2uA */
-	LIS2DH12_POWER_BURST,        /**< 25 Hz 12-bit resolution, Stored to FiFo, read at 1 Hz, 6 µA */	
-//	LIS2DH12_POWER_FAST,		   /**< Low Power Mode, 8-bit resolution, 1620Hz, 100uA */
-//	LIS2DH12_POWER_HIGHRES,		 /**< High Power Mode, 12-bit resolution, 1344Hz, 185uA  */
-	LIS2DH12_POWER_DOWN			     /**< Stop Operation */
-} LIS2DH12_PowerMode;
 
 /** Available Scales */
 typedef enum{
@@ -58,14 +58,26 @@ typedef enum{
 	LIS2DH12_SCALE4G = 1,		/**< Scale Selection: +/- 4g */
 	LIS2DH12_SCALE8G = 2,		/**< Scale Selection: +/- 8g */
 	LIS2DH12_SCALE16G = 3		/**< Scale Selection: +/- 16g */
-}LIS2DH12_Scale;
+}lis2dh12_scale_t;
 
 /** Available Resolutions */
 typedef enum{
-	LIS2DH12_RES8BIT = 8,		  /**< 8 extra bits */
+	LIS2DH12_RES8BIT = 8,		/**< 8 extra bits */
 	LIS2DH12_RES10BIT = 6,		/**< 6 extra bits */
 	LIS2DH12_RES12BIT = 4		/**< 4 extra bits */
-}LIS2DH12_Resolution;
+}lis2dh12_resolution_t;
+
+/** Available sample rates */
+typedef enum{
+	LIS2DH12_RATE_0   = 0,		/**< Power down */
+	LIS2DH12_RATE_1   = 1<<4,	/**< 1 Hz */
+	LIS2DH12_RATE_10  = 2<<4,	/**< 10 Hz*/
+	LIS2DH12_RATE_25  = 3<<4,		
+    LIS2DH12_RATE_50  = 4<<4,		
+    LIS2DH12_RATE_100 = 5<<4,		
+    LIS2DH12_RATE_200 = 6<<4,		
+    LIS2DH12_RATE_400 = 7<<4    /** 1k+ rates not implemented */		
+}lis2dh12_sample_rate_t;
 
 /** Data Ready Event Callback Type */
 typedef void (*LIS2DH12_drdy_event_t)(void);
@@ -73,107 +85,49 @@ typedef void (*LIS2DH12_drdy_event_t)(void);
 /* PROTOTYPES *************************************************************************************/
 
 /**
- * Initialize the Acceleration Sensor
- *
- * This Function initializes the Acceleration Sensor LIS2DH12 to work with the SPI Interface. The
- * SPI Interface will be initialized by this function accordingly. This Function also set the
- * requested Power mode for the LIS2DH12. All Axis(x,y,z) will be enabled.
- * The Data Ready Callback Function can be used to get notified when new Data is available. But causen,
- * the callback will be called in interrupt context. 
- *
- * @param[in] powerMode Requested Power Mode the LIS2DH12 should work with.
- * @param[in] scale 	Scale, the Sensor shall operate.
- * @param[in] drdyCB 	Data Ready Callback, optional, pass over NULL if not used
- *
- * @retval LIS2DH12_RET_OK 			Init successful
- * @retval LIS2DH12_RET_ERROR 		Something went wrong
- * @retval LIS2DH12_NOT_SUPPORTED 	Requested powerMode or scale not yet supported
+ *  Initializes LIS2DH12, and puts it in sleep mode.
+ *  
  */
-LIS2DH12_Ret LIS2DH12_init(LIS2DH12_PowerMode powerMode, LIS2DH12_Scale scale, LIS2DH12_drdy_event_t drdyCB);
+lis2dh12_ret_t lis2dh12_init(void);
 
 /**
- * Change maximum scale
- *
- * This function changes the maximum scale sensor can measure. 
- *
- * Note: This function only works after correct initialization.
- * Note: After changing the scale, it needs some time till new values are available, see datasheet for details
- * Note: As resolution of LIS2DH12 is fixed, increasing scale leads to reduced sensitivity
- *
- * @param[in] scale Requested scale the LIS2DH12 should work with.
- *
- * @retval LIS2DH12_RET_OK          Change successful
- * @retval LIS2DH12_RET_ERROR       Something went wrong
- *
+ *  
  */
-LIS2DH12_Ret LIS2DH12_setScale(LIS2DH12_Scale scale);
+lis2dh12_ret_t lis2dh12_set_scale(lis2dh12_scale_t scale);
 
 /**
- * Change power mode
- *
- * This function changes the current power mode the acceleration sensor is running. In some use cases it useful for battery saving to
- * run the sensor in a low power mode to detect the start of a movement and then switch to a higher resolution.
- *
- * Note: This function only works after correct initialization.
- * Note: After changeing the power mode, it needs some time till new values are available, see datasheet for details
- *
- * @param[in] powerMode Requested Power Mode the LIS2DH12 should work with.
- *
- * @retval LIS2DH12_RET_OK          Change successful
- * @retval LIS2DH12_RET_ERROR       Something went wrong
  *
  */
-LIS2DH12_Ret LIS2DH12_setPowerMode(LIS2DH12_PowerMode powerMode);
+lis2dh12_ret_t lis2dh12_set_resolution(lis2dh12_resolution_t resolution);
 
 /**
- * Return X acceleration
  *
- * @param[out] accX Acceleration in mG
- *
- * @retval LIS2DH12_RET_OK 			Data valid
- * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
- * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
-LIS2DH12_Ret LIS2DH12_getXmG(int32_t* const accX);
+lis2dh12_ret_t lis2dh12_set_sample_rate(lis2dh12_sample_rate_t sample_rate);
 
 /**
- * Return Y acceleration
  *
- * @param[out] accY Acceleration in mG
- *
- * @retval LIS2DH12_RET_OK 			Data valid
- * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
- * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
-LIS2DH12_Ret LIS2DH12_getYmG(int32_t* const accY);
+lis2dh12_ret_t lis2dh12_set_fifo_mode(lis2dh12_fifo_mode_t mode)
 
 /**
- * Return Z acceleration
  *
- * @param[out] accZ Acceleration in mG
- *
- * @retval LIS2DH12_RET_OK 			Data valid
- * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
- * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
-LIS2DH12_Ret LIS2DH12_getZmG(int32_t* const accZ);
+lis2dh12_ret_t lis2dh12_set_fifo_mode(lis2dh12_fifo_mode_t mode);
 
 /**
- * Return acceleration of all axis
  *
- * @param[out] accX Acceleration in mG
- * @param[out] accY Acceleration in mG
- * @param[out] accZ Acceleration in mG
- *
- * @retval LIS2DH12_RET_OK 			Data valid
- * @retval LIS2DH12_RET_INVALID 	Data invalid because of power down or data not ready
- * @retval LIS2DH12_RET_NULL NULL 	Pointer detected
  */
-LIS2DH12_Ret LIS2DH12_getALLmG(int32_t* const accX, int32_t* const accY, int32_t* const accZ);
+lis2dh12_ret_t lis2dh12_read_samples(sensor_buffer_t* buffer, size_t count)
 
+/**
+ *
+ */
+lis2dh12_ret_t lis2dh12_get_fifo_sample_number(size_t* count);
 
-#ifdef __cplusplus
-}
-#endif
+/**
+ *
+ */
+lis2dh12_ret_t lis2dh12_set_fifo_watermark(size_t* count);
 
 #endif  /* LIS2DH12_H */

@@ -122,15 +122,11 @@ int main(void)
   NRF_LOG_INFO("RTC init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   nrf_delay_ms(10);  
   
-
   //Init RNG
   err_code |= init_rng();
   NRF_LOG_INFO("RNG init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   NRF_LOG_FLUSH();
   nrf_delay_ms(10);
-
-  //Init LEDs - TODO: move blink to a test
-
   
   //Check battery reading
   uint16_t voltage = getBattery();
@@ -140,8 +136,13 @@ int main(void)
   
   //Start BME280
   err_code |= init_bme280();
-  
   NRF_LOG_INFO("BME280 init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
+  NRF_LOG_FLUSH();
+  nrf_delay_ms(10);
+
+  //Start LIS2DH12
+  err_code |= init_lis2dh12();
+  NRF_LOG_INFO("LIS2DH12 init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   
   /*
   NRF_LOG_INFO("Starting automated test.\r\n");    
@@ -165,23 +166,7 @@ int main(void)
   bluetooth_advertising_start();  
   nrf_delay_ms(10);  
   
-  NRF_LOG_INFO("Waiting for BLE connection\r\n")
-  while(!is_ble_connected())
-  {
-    app_sched_execute();
-    power_manage();    
-  }
-  NRF_LOG_INFO("BLE connected, waiting for UART notifications to be registered\r\n");
   ble_nus_t* p_nus = get_nus();
-  while(!(p_nus->is_notification_enabled))
-  {
-    app_sched_execute();
-    power_manage();
-  }
-  NRF_LOG_INFO("NUS connected, switching to BLE-based test.\r\n");
-
-  //TODO: Test endpoint-communication
-  //send_environmental_mam();
   set_mam_handler(mam_handler); //XXX POC
   
   while(1)
