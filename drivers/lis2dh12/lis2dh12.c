@@ -19,15 +19,15 @@ For a detailed description see the detailed description in @ref LIS2DH12.h
 
 #include "spi.h"
 #include "nrf_drv_gpiote.h"
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
 #include "nrf.h"
 #include "app_timer.h"
 #include "bsp.h"
 #include "boards.h"
 #include "init.h" //Timer ticks - todo: refactor
 
-
+#define NRF_LOG_MODULE_NAME "LIS2DH12"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
 
 
 /* CONSTANTS **************************************************************************************/
@@ -54,6 +54,9 @@ static lis2dh12_ret_t selftest(void);
 void timer_lis2dh12_event_handler(void* p_context);
 
 /* VARIABLES **************************************************************************************/
+static lis2dh12_scale_t      state_scale = LIS2DH12_SCALE16G;
+static lis2dh12_resolution_t state_resolution = LIS2DH12_RES10BIT;
+static const uint8_t lis2dh12_mgpb_map[] = {1,2,4,12};
 
 /**
  *  Initializes LIS2DH12, and puts it in sleep mode.
@@ -101,6 +104,7 @@ lis2dh12_ret_t lis2dh12_set_scale(lis2dh12_scale_t scale)
     ctrl4[0] |= scale;
     //Write register value back to lis2dh12
     err_code |= lis2dh12_write_register(LIS2DH12_CTRL_REG4, ctrl4, 1);
+    if(LIS2DH12_RET_OK == err_code){ state_scale = scale; }
     return err_code;
 }
 
@@ -142,6 +146,7 @@ lis2dh12_ret_t lis2dh12_set_resolution(lis2dh12_resolution_t resolution)
     }
     err_code |= lis2dh12_write_register(LIS2DH12_CTRL_REG1, ctrl1, 1);
     err_code |= lis2dh12_write_register(LIS2DH12_CTRL_REG4, ctrl4, 1);
+    if(LIS2DH12_RET_OK == err_code){ state_resolution = resolution; }    
     return err_code;
 }
 
@@ -157,13 +162,13 @@ lis2dh12_ret_t lis2dh12_set_sample_rate(lis2dh12_sample_rate_t sample_rate)
     lis2dh12_ret_t err_code = LIS2DH12_RET_OK;
     uint8_t ctrl[1] = {0};
     err_code |= lis2dh12_read_register(LIS2DH12_CTRL_REG1, ctrl, 1);
-    NRF_LOG_INFO("Read samplerate %x, status %d", ctrl[0], err_code);
+    NRF_LOG_DEBUG("Read samplerate %x, status %d\r\n", ctrl[0], err_code);
     // Clear sample rate bits
     ctrl[0] &= ~LIS2DH12_ODR_MASK;
     // Setup sample rate
     ctrl[0] |= sample_rate;
     err_code |= lis2dh12_write_register(LIS2DH12_CTRL_REG1, ctrl, 1);
-    NRF_LOG_INFO("Wrote samplerate %x, status %d", ctrl[0], err_code);
+    NRF_LOG_INFO("Wrote samplerate %x, status %d\r\n", ctrl[0], err_code);
 
     //Always read REFERENCE register when powering down to reset filter.
     if(LIS2DH12_RATE_0 == sample_rate)
@@ -195,10 +200,51 @@ lis2dh12_ret_t lis2dh12_set_fifo_mode(lis2dh12_fifo_mode_t mode)
     return err_code;
 }
 
+/** Return factor for current state **/
+uint8_t get_mgpb()
+{
+    switch(state_scale)
+    {
+        case LIS2DH12_SCALE2G:  return lis2dh12_mgpb_map[0];
+        case LIS2DH12_SCALE4G:  return lis2dh12_mgpb_map[1];
+        case LIS2DH12_SCALE8G:  return lis2dh12_mgpb_map[2];
+        case LIS2DH12_SCALE16G: return lis2dh12_mgpb_map[3];
+        default:                return 0;
+    }
+}
+
+/** Return factor for current state **/
+uint8_t get_justification()
+{
+    NRF_LOG_INFO("resolution %d\r\n", state_resolution);
+    switch(state_resolution)
+    {
+        case LIS2DH12_RES8BIT:  return 4;
+        case LIS2DH12_RES10BIT: return 4;
+        case LIS2DH12_RES12BIT: return 4;
+        default:                return 16;
+    }
+}
+
 lis2dh12_ret_t lis2dh12_read_samples(lis2dh12_sensor_buffer_t* buffer, size_t count)
 {
      lis2dh12_ret_t err_code = LIS2DH12_RET_OK;
      err_code |= lis2dh12_read_register(LIS2DH12_OUT_X_L, (uint8_t*)buffer, count*sizeof(lis2dh12_sensor_buffer_t));
+     uint8_t mgpb = get_mgpb();
+     uint8_t justify = get_justification();
+     for(int ii = 0; ii < count; ii++)
+     {
+        NRF_LOG_INFO("Before justification %d \r\n", buffer[ii].sensor.z);
+        NRF_LOG_FLUSH();
+        nrf_delay_ms(10);
+        buffer[ii].sensor.x >>= justify;
+        buffer[ii].sensor.y >>= justify;
+        buffer[ii].sensor.z >>= justify;
+        NRF_LOG_INFO("Before scaling %d \r\n", buffer[ii].sensor.z);
+        buffer[ii].sensor.x *= mgpb;
+        buffer[ii].sensor.y *= mgpb;
+        buffer[ii].sensor.z *= mgpb;
+     }
      return err_code;
 }
 
@@ -237,6 +283,7 @@ static lis2dh12_ret_t selftest(void)
 {
     uint8_t value[1] = {0};
     lis2dh12_read_register(LIS2DH12_WHO_AM_I, value, 1);
+    if(LIS2DH12_I_AM_MASK != value[0]) { NRF_LOG_ERROR("WHO_AM_I: %x\r\n", value[0])}
     return (LIS2DH12_I_AM_MASK == value[0]) ? LIS2DH12_RET_OK : LIS2DH12_RET_ERROR;
 }
 

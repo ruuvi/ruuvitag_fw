@@ -55,10 +55,10 @@ typedef enum
 
 /** Available Scales */
 typedef enum{
-	LIS2DH12_SCALE2G = 0,		/**< Scale Selection: +/- 2g */
-	LIS2DH12_SCALE4G = 1,		/**< Scale Selection: +/- 4g */
-	LIS2DH12_SCALE8G = 2,		/**< Scale Selection: +/- 8g */
-	LIS2DH12_SCALE16G = 3		/**< Scale Selection: +/- 16g */
+	LIS2DH12_SCALE2G = LIS2DH12_FS_2G,  /**< Scale Selection: +/- 2g */
+	LIS2DH12_SCALE4G = LIS2DH12_FS_4G,	/**< Scale Selection: +/- 4g */
+	LIS2DH12_SCALE8G = LIS2DH12_FS_8G,	/**< Scale Selection: +/- 8g */
+	LIS2DH12_SCALE16G = LIS2DH12_FS_16G	/**< Scale Selection: +/- 16g */
 }lis2dh12_scale_t;
 
 /** Available Resolutions */

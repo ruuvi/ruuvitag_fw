@@ -1,6 +1,6 @@
 /** Based on ST MicroElectronics LIS2DH datasheet http://www.st.com/web/en/resource/technical/document/datasheet/DM00042751.pdf
 * 18/06/2014 by Conor Forde <me@conorforde.com>
-* Updates should be available at https://github.com/Snowda/LIS2DH
+* Modified for RuuviTag by Ruuvi community (check git log)
 *
 
 */
@@ -98,6 +98,10 @@
 #define LIS2DH12_BDU_MASK          0x80
 #define LIS2DH12_BLE_MASK          0x40
 #define LIS2DH12_FS_MASK           0x30
+#define LIS2DH12_FS_2G             0x00
+#define LIS2DH12_FS_4G             0x10
+#define LIS2DH12_FS_8G             0x20
+#define LIS2DH12_FS_16G            0x30
 #define LIS2DH12_HR_MASK           0x08
 #define LIS2DH12_ST_MASK           0x06
 #define LIS2DH12_SIM_MASK          0x01
