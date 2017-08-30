@@ -35,7 +35,7 @@
 /** Ruuvi Drivers **/
 #include "init.h"
 #include "bme280.h"
-#include "LIS2DH12.h"
+#include "lis2dh12.h"
 #include "bluetooth_core.h"
 #include "ble_event_handlers.h"
 #include "ble_bulk_transfer.h"
@@ -57,6 +57,7 @@
 #include  "test_rng.h"
 #include  "test_rtc.h"
 #include  "test_environmental.h"
+#include  "test_lis2dh12.h"
 #include  "test_mam.h"
 #include  "mam.h"
 
@@ -144,6 +145,8 @@ int main(void)
   err_code |= init_lis2dh12();
   NRF_LOG_INFO("LIS2DH12 init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
   
+  test_lis2dh12();
+
   /*
   NRF_LOG_INFO("Starting automated test.\r\n");    
   uint32_t test_start = millis();
@@ -166,7 +169,6 @@ int main(void)
   bluetooth_advertising_start();  
   nrf_delay_ms(10);  
   
-  ble_nus_t* p_nus = get_nus();
   set_mam_handler(mam_handler); //XXX POC
   
   while(1)

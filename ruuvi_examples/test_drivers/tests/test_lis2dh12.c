@@ -46,10 +46,15 @@ static void test_read_samples(void)
 {
   lis2dh12_sensor_buffer_t buffer;
   lis2dh12_read_samples(&buffer, 1);
-  nrf_log_info("Got X:%d, Y:%d, Z:%d\r\n", buffer.sensor.x, buffer.sensor.y, buffer.sensor.z);
+  NRF_LOG_INFO("Got X:%d, Y:%d, Z:%d\r\n", buffer.sensor.x, buffer.sensor.y, buffer.sensor.z);
 }
 
 static void test_watermark(void)
+{
+
+}
+
+static void test_sample_rates(void)
 {
 
 }

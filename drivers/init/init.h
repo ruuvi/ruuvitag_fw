@@ -127,6 +127,11 @@ init_err_code_t init_buttons(void);
 init_err_code_t init_sensors(void);
 
 /**
+ *
+ */
+init_err_code_t init_lis2dh12(void);
+
+/**
  * Initialise BME280. Sensor will be put to sleep mode, with all sensors 
  * in oversampling x1 mode
  *

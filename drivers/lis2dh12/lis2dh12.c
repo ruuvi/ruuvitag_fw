@@ -51,9 +51,9 @@ APP_TIMER_DEF(lis2dh12_timer_id);                           /** Creates timer id
 
 /* PROTOTYPES *************************************************************************************/
 static lis2dh12_ret_t selftest(void);
+void timer_lis2dh12_event_handler(void* p_context);
 
 /* VARIABLES **************************************************************************************/
-void timer_lis2dh12_event_handler(void* p_context);
 
 /**
  *  Initializes LIS2DH12, and puts it in sleep mode.
@@ -69,10 +69,10 @@ lis2dh12_ret_t lis2dh12_init(void)
     // Initialize the lis2dh12 timer module.
     // Requires the low-frequency clock initialized
     // Create timer TODO refactor to some place else.
-    err_code |= app_timer_create(&lis2dh12_timer_id,
+    /*err_code |= app_timer_create(&lis2dh12_timer_id,
                                   APP_TIMER_MODE_REPEATED,
-                                  timer_lis2dh12_event_handler);
-    APP_ERROR_CHECK(err_code);
+                                  NULL);
+    APP_ERROR_CHECK(err_code);*/
 
     /* Enable XYZ axes */
     uint8_t ctrl[1] = {0};
@@ -157,11 +157,13 @@ lis2dh12_ret_t lis2dh12_set_sample_rate(lis2dh12_sample_rate_t sample_rate)
     lis2dh12_ret_t err_code = LIS2DH12_RET_OK;
     uint8_t ctrl[1] = {0};
     err_code |= lis2dh12_read_register(LIS2DH12_CTRL_REG1, ctrl, 1);
+    NRF_LOG_INFO("Read samplerate %x, status %d", ctrl[0], err_code);
     // Clear sample rate bits
     ctrl[0] &= ~LIS2DH12_ODR_MASK;
     // Setup sample rate
     ctrl[0] |= sample_rate;
     err_code |= lis2dh12_write_register(LIS2DH12_CTRL_REG1, ctrl, 1);
+    NRF_LOG_INFO("Wrote samplerate %x, status %d", ctrl[0], err_code);
 
     //Always read REFERENCE register when powering down to reset filter.
     if(LIS2DH12_RATE_0 == sample_rate)
@@ -272,7 +274,7 @@ lis2dh12_ret_t lis2dh12_read_register(const uint8_t address, uint8_t* const p_to
         if (SPI_RET_OK == (SPI_Ret)err_code)
         {
             /* Transfer was ok, copy result */
-            memcpy(p_toRead, read_buffer + 1U, count);
+            memcpy(p_toRead, &(read_buffer[1]), count);
         }
     }
     NRF_LOG_DEBUG("LIS2DH12 Register read complete'\r\n");
@@ -300,7 +302,7 @@ lis2dh12_ret_t lis2dh12_write_register(uint8_t address, uint8_t* const dataToWri
     if (address <= ADR_MAX)
     {
         to_write[0] = address;
-        memcpy(to_write, dataToWrite, count);
+        memcpy(&(to_write[1]), dataToWrite, count);
 
         err_code |= spi_transfer_lis2dh12(to_write, (count+1), to_read);
     }
