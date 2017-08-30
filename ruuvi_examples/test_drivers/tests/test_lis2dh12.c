@@ -9,6 +9,7 @@
 #include "bsp.h"
 #include "app_timer_appsh.h"
 #include "app_error.h"
+#include "nrf_delay.h"
 
 /** Drivers **/
 #include "lis2dh12.h"
@@ -21,45 +22,62 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
-static test_scale(void);
+static void test_scale(void)
 {
 
 }
 
-void test_lis2dh12(void);
+static void test_resolution(void)
 {
 
-// Test scaling by ramping through 2G->16G
+}
+
+static void test_fifo_modes(void)
+{
+
+}
+
+static void test_fifo_depth_reading(void)
+{
+
+}
+
+static void test_read_samples(void)
+{
+  lis2dh12_sensor_buffer_t buffer;
+  lis2dh12_read_samples(&buffer, 1);
+  nrf_log_info("Got X:%d, Y:%d, Z:%d\r\n", buffer.sensor.x, buffer.sensor.y, buffer.sensor.z);
+}
+
+static void test_watermark(void)
+{
+
+}
+
+void test_lis2dh12(void)
+{
+  //Start sampling
+  lis2dh12_set_sample_rate(LIS2DH12_RATE_100);
+
+  //  Test reading samples
+  nrf_delay_ms(11);
+  test_read_samples();
+
+  // Test scaling by ramping through 2G->16G
   test_scale();
 
-// Test resolution by ramping 8->12 bits
-
+  // Test resolution by ramping 8->12 bits
   test_resolution();
 
-lis2dh12_ret_t lis2dh12_set_resolution(lis2dh12_resolution_t resolution);
+  // Test FiFo modes by starting stream
+  test_fifo_modes();
 
-/**
- *
- */
-lis2dh12_ret_t lis2dh12_set_sample_rate(lis2dh12_sample_rate_t sample_rate);
+  // Test reading nbr of samples in FIFOs
+  test_fifo_depth_reading();
 
-/**
- *
- */
-lis2dh12_ret_t lis2dh12_set_fifo_mode(lis2dh12_fifo_mode_t mode)
+  // Test sample rates - TODO requires interrupt/other synch mechanism.
+  test_sample_rates();
 
-/**
- *
- */
-lis2dh12_ret_t lis2dh12_read_samples(sensor_buffer_t* buffer, size_t count)
-
-/**
- *
- */
-lis2dh12_ret_t lis2dh12_get_fifo_sample_number(size_t* count);
-
-/**
- *
- */
-lis2dh12_ret_t lis2dh12_set_fifo_watermark(size_t* count);
+  //Test interrupt on watermark
+  test_watermark();
 }

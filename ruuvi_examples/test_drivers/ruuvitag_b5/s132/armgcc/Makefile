@@ -74,11 +74,10 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280_temperature_handler.c \
   $(PROJ_DIR)/../../drivers/init/init.c \
-  $(PROJ_DIR)/../../drivers/LIS2DH12/LIS2DH12.c \
+  $(PROJ_DIR)/../../drivers/lis2dh12/lis2dh12.c \
   $(PROJ_DIR)/../../drivers/rng/rng.c \
   $(PROJ_DIR)/../../drivers/rtc/rtc.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
-  $(PROJ_DIR)/../../libraries/acceleration/acceleration.c \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/ruuvi_endpoints.c \
   $(PROJ_DIR)/../../libraries/rust_allocator/rust_allocator.c \
   $(PROJ_DIR)/../../sdk_overrides/app_button.c \
@@ -86,6 +85,7 @@ SRC_FILES += \
   $(PROJ_DIR)/ble_services/application_service_if.c \
   $(PROJ_DIR)/tests/test_environmental.c \
   $(PROJ_DIR)/tests/test_led.c \
+  $(PROJ_DIR)/tests/test_lis2dh12.c \
   $(PROJ_DIR)/tests/test_mam.c \
   $(PROJ_DIR)/tests/test_rng.c \
   $(PROJ_DIR)/tests/test_rtc.c \
@@ -196,11 +196,10 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../drivers/battery/ \
   $(PROJ_DIR)/../../drivers/bme280 \
   $(PROJ_DIR)/../../drivers/init \
-  $(PROJ_DIR)/../../drivers/LIS2DH12 \
+  $(PROJ_DIR)/../../drivers/lis2dh12 \
   $(PROJ_DIR)/../../drivers/rng/ \
   $(PROJ_DIR)/../../drivers/rtc/ \
   $(PROJ_DIR)/../../drivers/spi/ \
-  $(PROJ_DIR)/../../libraries/acceleration \
   $(PROJ_DIR)/../../libraries/rust_allocator/ \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/ \
   ../config \

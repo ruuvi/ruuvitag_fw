@@ -26,7 +26,7 @@
 #include "bsp.h"
 
 //Drivers
-#include "LIS2DH12.h"
+#include "lis2dh12.h"
 #include "bme280.h"
 #include "battery.h"
 

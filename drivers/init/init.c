@@ -3,6 +3,7 @@
 #include "ruuvi_endpoints.h"
 #include "ble_bulk_transfer.h"
 #include "bme280_temperature_handler.h"
+#include "lis2dh12.h"
 
 #define NRF_LOG_MODULE_NAME "INIT"
 #include "nrf_log.h"
@@ -118,6 +119,51 @@ init_err_code_t init_buttons(void)
     return INIT_SUCCESS; // Cannot fail under any reasonable circumstance
 }
 
+init_err_code_t init_lis2dh12(void)
+{
+    init_err_code_t err_code = INIT_SUCCESS;
+    err_code |= lis2dh12_init();
+
+    if (INIT_SUCCESS == err_code)
+    {
+        NRF_LOG_DEBUG("LIS2DH12 init Done\r\n");
+    }
+    else
+    {
+        NRF_LOG_ERROR("LIS2DH12 init Failed: Error Code: %d\r\n", (int32_t)err_code);
+    }
+  return err_code;
+}
+
+init_err_code_t init_bme280(void)
+{
+    // Read calibration
+    init_err_code_t err_code = INIT_SUCCESS;
+    err_code = bme280_init();
+    if (INIT_SUCCESS != err_code)
+    {
+      return (BME280_RET_ERROR_SELFTEST == (BME280_Ret)err_code) ? INIT_ERR_SELFTEST : INIT_ERR_NO_RESPONSE;
+    }
+    //TODO: reset
+    bme280_set_mode(BME280_MODE_SLEEP); //Set sleep mode to allow configuration, sensor might have old config in internal RAM
+    err_code |= bme280_set_interval(BME280_STANDBY_1000_MS);
+    err_code |= bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
+    err_code |= bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
+    err_code |= bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
+
+    if (BME280_RET_OK == (BME280_Ret)err_code)
+    {
+        NRF_LOG_DEBUG("BME280 init Done, setting up message handlers\r\n");
+        set_temperature_handler(bme280_temperature_handler);
+    }
+    else
+    {
+        NRF_LOG_ERROR("BME280 init Failed: Error Code: %d\r\n", (uint32_t)err_code); 
+    }
+
+    return err_code;
+}
+
 /**
  * Initialize sensors
  *
@@ -130,88 +176,12 @@ init_err_code_t init_buttons(void)
 init_err_code_t init_sensors(void)
 {
     //Init accelerometer lis2dh12
-    uint8_t retval = 0;
-    LIS2DH12_Ret Lis2dh12RetVal;
-    Lis2dh12RetVal = LIS2DH12_init(LIS2DH12_POWER_DOWN, LIS2DH12_SCALE2G, NULL);
+    init_err_code_t err_code = INIT_SUCCESS;
+    err_code |= init_lis2dh12();
+    err_code |= init_bme280();
 
-    if (LIS2DH12_RET_OK == Lis2dh12RetVal)
-    {
-        NRF_LOG_DEBUG("LIS2DH12 init Done\r\n");
-    }
-    else
-    {
-        retval = 1;
-        NRF_LOG_ERROR("LIS2DH12 init Failed: Error Code: %d\r\n", (int32_t)Lis2dh12RetVal);
-        return retval;
-    }
-
-    // Read calibration
-    BME280_Ret BME280RetVal;
-    BME280RetVal = bme280_init();
-    bme280_set_mode(BME280_MODE_SLEEP); //Set sleep mode to allow configuration, sensor might have old config in internal RAM
-    BME280RetVal |= bme280_set_interval(BME280_STANDBY_1000_MS);
-
-
-    if (BME280_RET_OK == BME280RetVal)
-    {
-        NRF_LOG_DEBUG("BME280 init Done\r\n");
-    }
-    else
-    {
-        retval = 1;
-        NRF_LOG_ERROR("BME280 init Failed: Error Code: %d\r\n", (int32_t)BME280RetVal); 
-    }
-
-    return INIT_SUCCESS;
+    return err_code;
 }
-
-init_err_code_t init_lis2dh12(void)
-{
-    LIS2DH12_Ret Lis2dh12RetVal;
-    Lis2dh12RetVal = LIS2DH12_init(LIS2DH12_POWER_DOWN, LIS2DH12_SCALE2G, NULL);
-
-    if (LIS2DH12_RET_OK == Lis2dh12RetVal)
-    {
-        NRF_LOG_DEBUG("LIS2DH12 init Done\r\n");
-    }
-    else
-    {
-        NRF_LOG_ERROR("LIS2DH12 init Failed: Error Code: %d\r\n", (int32_t)Lis2dh12RetVal);
-        return INIT_ERR_UNKNOWN;
-    }
-  return INIT_SUCCESS;
-}
-
-init_err_code_t init_bme280(void)
-{
-    // Read calibration
-    BME280_Ret BME280RetVal;
-    BME280RetVal = bme280_init();
-    if (BME280_RET_OK != BME280RetVal)
-    {
-      return (BME280_RET_ERROR_SELFTEST == BME280RetVal) ? INIT_ERR_SELFTEST : INIT_ERR_NO_RESPONSE;
-    }
-    //TODO: reset
-    bme280_set_mode(BME280_MODE_SLEEP); //Set sleep mode to allow configuration, sensor might have old config in internal RAM
-    BME280RetVal |= bme280_set_interval(BME280_STANDBY_1000_MS);
-    BME280RetVal |= bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
-    BME280RetVal |= bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
-    BME280RetVal |= bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
-
-    if (BME280_RET_OK == BME280RetVal)
-    {
-        NRF_LOG_DEBUG("BME280 init Done, setting up message handlers\r\n");
-        set_temperature_handler(bme280_temperature_handler);
-    }
-    else
-    {
-        NRF_LOG_ERROR("BME280 init Failed: Error Code: %d\r\n", (uint32_t)BME280RetVal); 
-        return INIT_ERR_UNKNOWN;
-    }
-
-    return INIT_SUCCESS;
-}
-
 
 /**
  * Display init status

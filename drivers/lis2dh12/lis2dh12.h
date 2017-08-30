@@ -17,13 +17,14 @@ Hardware Driver for the LIS2DH12 Acceleration Sensor
 #include "app_scheduler.h"
 #include "nordic_common.h"
 #include "app_timer_appsh.h"
+#include "lis2dh12_registers.h"
 
 /* CONSTANTS **************************************************************************************/
 #define LIS2DH12_FIFO_MAX_LENGTH 32
 
 /* TYPES ******************************************************************************************/
 /** Structure containing sensor data for all 3 axis */
-typedef struct
+typedef struct __attribute__((packed))
 {
     int16_t x;
     int16_t y;
@@ -33,9 +34,9 @@ typedef struct
 /** Union to split raw data to values for each axis */
 typedef union
 {
-  uint8_t raw[SENSOR_DATA_SIZE];
+  uint8_t raw[sizeof(acceleration_t)];
   acceleration_t sensor;
-}sensor_buffer_t;
+}lis2dh12_sensor_buffer_t;
 
 /* MACROS *****************************************************************************************/
 
@@ -79,6 +80,14 @@ typedef enum{
     LIS2DH12_RATE_400 = 7<<4    /** 1k+ rates not implemented */		
 }lis2dh12_sample_rate_t;
 
+/** Available modes */
+typedef enum{
+    LIS2DH12_MODE_BYPASS = 0,                                              /**< FIFO off */
+    LIS2DH12_MODE_FIFO   = LIS2DH12_FM_FIFO,                               /**< FIFO on */
+    LIS2DH12_MODE_STREAM = LIS2DH12_FM_STREAM,                             /**< Stream on */
+    LIS2DH12_MODE_STREAM_TO_FIFO = (LIS2DH12_FM_FIFO | LIS2DH12_FM_STREAM) /**< Stream until trigger */
+}lis2dh12_fifo_mode_t;
+
 /** Data Ready Event Callback Type */
 typedef void (*LIS2DH12_drdy_event_t)(void);
 
@@ -108,17 +117,12 @@ lis2dh12_ret_t lis2dh12_set_sample_rate(lis2dh12_sample_rate_t sample_rate);
 /**
  *
  */
-lis2dh12_ret_t lis2dh12_set_fifo_mode(lis2dh12_fifo_mode_t mode)
-
-/**
- *
- */
 lis2dh12_ret_t lis2dh12_set_fifo_mode(lis2dh12_fifo_mode_t mode);
 
 /**
  *
  */
-lis2dh12_ret_t lis2dh12_read_samples(sensor_buffer_t* buffer, size_t count)
+lis2dh12_ret_t lis2dh12_read_samples(lis2dh12_sensor_buffer_t* buffer, size_t count);
 
 /**
  *
@@ -128,6 +132,9 @@ lis2dh12_ret_t lis2dh12_get_fifo_sample_number(size_t* count);
 /**
  *
  */
-lis2dh12_ret_t lis2dh12_set_fifo_watermark(size_t* count);
+lis2dh12_ret_t lis2dh12_set_fifo_watermark(size_t count);
+
+lis2dh12_ret_t lis2dh12_read_register(uint8_t address, uint8_t* const p_toRead, size_t count);
+lis2dh12_ret_t lis2dh12_write_register(uint8_t address, uint8_t* const dataToWrite, size_t count);
 
 #endif  /* LIS2DH12_H */
