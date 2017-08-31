@@ -15,7 +15,10 @@
 #define BLE_RAW_SIZE BLE_NUS_MAX_DATA_LEN
 #define BLE_BULK_HEADER_SIZE 4
 
-#define BLE_STD_QUEUE_SIZE 20
+//Large enough queue for 32 FiFo samples by default
+#ifndef BLE_STD_QUEUE_SIZE
+   #define BLE_STD_QUEUE_SIZE 40
+#endif
 
 typedef struct{
   const ruuvi_endpoint_t endpoint;

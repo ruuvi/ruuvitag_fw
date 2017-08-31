@@ -21,7 +21,7 @@
  */
 init_err_code_t init_log(void)
 {
-    uint32_t err_code;
+    init_err_code_t err_code;
     err_code = NRF_LOG_INIT(NULL);
     APP_ERROR_CHECK(err_code);
     NRF_LOG_DEBUG("Logging init\r\n");
@@ -37,7 +37,7 @@ init_err_code_t init_log(void)
  */
 init_err_code_t init_ble(void)
 {
-    uint32_t err_code;
+    init_err_code_t err_code;
 
     //Enable DC/DC for BLE
     NRF_POWER->DCDCEN = 1;
@@ -74,7 +74,7 @@ init_err_code_t init_timer(app_timer_id_t main_timer_id, uint32_t main_interval,
     //TODO Check lfclk config
     // Requires low-frequency clock initialized.
     // Create timer
-    uint32_t err_code = app_timer_create(&main_timer_id,
+    init_err_code_t err_code = app_timer_create(&main_timer_id,
                                 APP_TIMER_MODE_REPEATED,
                                 timer_handler);
     APP_ERROR_CHECK(err_code);

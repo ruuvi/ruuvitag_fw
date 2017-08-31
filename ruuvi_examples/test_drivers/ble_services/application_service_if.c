@@ -24,6 +24,7 @@ static void nus_data_handler(ble_nus_t * p_nus, uint8_t * p_data, uint16_t lengt
                                          .type = p_data[2],
                                          .payload = {0}};
     memcpy(&(message.payload[0]), &(p_data[3]), sizeof(message.payload));
+    //Schedule handling of the message - do not process in interrupt context
     app_sched_event_put	(	&message,
                           sizeof(message),
                           ble_gatt_scheduler_event_handler);
