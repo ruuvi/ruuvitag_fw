@@ -8,6 +8,8 @@
 #include "ruuvi_endpoints.h"
 #include "bme280.h"
 #include "ble_bulk_transfer.h"
+//XXX Hackathon
+#include "lis2dh12_acceleration_handler.h"
 
 /** IOTA lib **/
 #include "iota/iota.h"
@@ -19,25 +21,25 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
-//XXX This is fir hackathon and will be removed
+//XXX This is for hackathon and will be removed
 void send_environmental_mam(void)
 {
   const char seed[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9";
   NRF_LOG_INFO("Seed:\r\n");
   NRF_LOG_INFO("%s\r\n",(uint32_t)seed);
 
-  ret_code_t err_code = NRF_SUCCESS;
+  //ret_code_t err_code = NRF_SUCCESS;
   char message[30] = {0};
   char trytes[60] = {0};
-  err_code |= bme280_set_mode(BME280_MODE_FORCED);
+/*  err_code |= bme280_set_mode(BME280_MODE_FORCED);
   nrf_delay_ms(15);//XX
   err_code |= bme280_set_mode(BME280_MODE_FORCED);
   nrf_delay_ms(15);
   int32_t  raw_t = bme280_get_temperature();
   uint32_t raw_p = bme280_get_pressure();
   uint32_t raw_h = bme280_get_humidity();
-
-  sprintf(message, "{T:%ld%ld,P:%lu,H:%lu}", raw_t/100, raw_t%100, raw_p>>8, raw_h>>10); //Wrong decimals on negative values.
+*/
+  sprintf(message, "%lu", get_exercise()/10000); //Wrong decimals on negative values.
   NRF_LOG_INFO("ASCII message: %s\r\n", (uint32_t)message);
   toTrytes((void*)message, trytes, strlen(message));
   NRF_LOG_INFO("Tryte message: %s\r\n", (uint32_t)trytes);
@@ -53,7 +55,7 @@ void send_environmental_mam(void)
     
   //Returns dynamically allocated pointer. REMEMBER TO FREE
   char* result = (char*)mam_create(seed, trytes, start, count, index, next_start, next_count, security);
-//  size_t result_len = strlen(result);
+  //size_t result_len = strlen(result);
   //char* result = merkle_keys(seed, next_start, next_count, security);
   NRF_LOG_INFO("mam done\r\n");
   NRF_LOG_FLUSH();
@@ -63,9 +65,9 @@ void send_environmental_mam(void)
   //char* root = strtok(NULL, "\n");
   //Could be done with pointer arithmetic too.
 
-  err_code = ble_bulk_transfer_asynchronous(MAM, (void*)result, result_length);
-//  err_code = ble_bulk_transfer_asynchronous(MAM, (void*)masked_payload, mam_length);
-  NRF_LOG_INFO("%d\r\n", result_length);
+  ble_bulk_transfer_asynchronous(MAM, (void*)result, result_length);
+  //err_code = ble_bulk_transfer_asynchronous(MAM, (void*)masked_payload, mam_length);
+  //NRF_LOG_INFO("%d\r\n", result_length);
 
 }
 
