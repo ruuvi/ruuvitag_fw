@@ -225,7 +225,7 @@ lis2dh12_ret_t lis2dh12_read_samples(lis2dh12_sensor_buffer_t* buffer, size_t co
 {
      lis2dh12_ret_t err_code = LIS2DH12_RET_OK;
      size_t bytes_to_read = count*sizeof(lis2dh12_sensor_buffer_t);
-     NRF_LOG_INFO("Reading %d bytes \r\n", bytes_to_read);
+     NRF_LOG_DEBUG("Reading %d bytes \r\n", bytes_to_read);
      err_code |= lis2dh12_read_register(LIS2DH12_OUT_X_L, (uint8_t*)buffer, count*sizeof(lis2dh12_sensor_buffer_t));
      uint8_t mgpb = get_mgpb();
      // Use constant bitshift, so we don't have to adjust mgpb with resolution

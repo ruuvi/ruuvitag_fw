@@ -379,7 +379,7 @@ uint32_t get_exercise(void)
 /** Handle interrupt from lis2dh12, schedule sensor read & transmit **/
 ret_code_t lis2dh12_int1_handler(const ruuvi_standard_message_t message)
 {
-    NRF_LOG_INFO("Accelerometer interrupt\r\n");
+    NRF_LOG_DEBUG("Accelerometer interrupt\r\n");
    
     app_sched_event_put ((void*)(&message),
                          sizeof(message),

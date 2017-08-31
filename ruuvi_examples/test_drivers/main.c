@@ -193,7 +193,7 @@ int main(void)
     app_sched_execute();
     //Process queue once schdule has placed new elements to queue
     ble_message_queue_process(); 
-    NRF_LOG_INFO("Loop\r\n");
+    NRF_LOG_DEBUG("Loop\r\n");
     //Might not return until there is a new BLE event
     power_manage();
   }
