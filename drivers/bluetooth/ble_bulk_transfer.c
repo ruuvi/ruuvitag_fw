@@ -45,13 +45,13 @@ bulk_transfer_ret_t ble_bulk_transfer_asynchronous(const ruuvi_endpoint_t endpoi
                       .chunk_index = index,
                       .header = header
                      };
-  NRF_LOG_INFO("Preparing to send %d bytes in %d chunks\r\n", length, num_chunks);
+  NRF_LOG_DEBUG("Preparing to send %d bytes in %d chunks\r\n", length, num_chunks);
   return nrf_queue_push(&m_ble_tx_queue, &tx);
 }
 
 ret_code_t ble_std_transfer_asynchronous(const ruuvi_standard_message_t message)
 {
-  NRF_LOG_INFO("STD message added to queue\r\n");
+  NRF_LOG_DEBUG("STD message added to queue\r\n");
   return nrf_queue_push(&m_std_tx_queue, &message);
 }
 
@@ -71,7 +71,7 @@ ret_code_t ble_message_queue_process(void)
     err_code |= ble_transfer_raw((void*) tx, sizeof(ruuvi_standard_message_t));
     //Pop tx if transmission was placed in SD queue
     if(NRF_SUCCESS == err_code) {nrf_queue_pop (&m_std_tx_queue, tx); }
-    NRF_LOG_INFO("Sent STD message\r\n");
+    NRF_LOG_DEBUG("Sent STD message\r\n");
   }
 
   //return success if bulk queue is empty and there was no error in std queue
@@ -148,11 +148,11 @@ ret_code_t ble_message_queue_process(void)
       //Clear TX out of memory and queue
       nrf_queue_pop (&m_ble_tx_queue, tx);
       ble_bulk_message_clean(tx);      
-      NRF_LOG_INFO("Processed tx from queue.\r\n");
+      NRF_LOG_DEBUG("Processed tx from queue.\r\n");
       break;
     }
   }
-  if(NRF_SUCCESS != err_code){ NRF_LOG_INFO("BLE transfer status: %d\r\n", err_code); }
+  if(NRF_SUCCESS != err_code){ NRF_LOG_DEBUG("BLE transfer status: %d\r\n", err_code); }
   return err_code;
 }
 
@@ -162,7 +162,7 @@ ret_code_t ble_message_queue_process(void)
  */
 ret_code_t ble_transfer_raw(uint8_t* data, size_t length)
 {
-  NRF_LOG_INFO("Transferring %d bytes\r\n", length);
+  NRF_LOG_DEBUG("Transferring %d bytes\r\n", length);
   uint8_t data_array[BLE_RAW_SIZE] = {0};
   uint32_t       err_code;
   memcpy(&data_array, data, length);  
@@ -198,7 +198,7 @@ ret_code_t ble_bulk_message_clean(ble_bulk_tx_t* element)
   if(element->endpoint == MAM)
   { 
     char* masked_payload = strtok((char * restrict)element->data, "\n");
-    NRF_LOG_INFO("splitting: %d\r\n", strlen(masked_payload));
+    NRF_LOG_DEBUG("splitting: %d\r\n", strlen(masked_payload));
   }
   //Free TX data
   free(element->data);
