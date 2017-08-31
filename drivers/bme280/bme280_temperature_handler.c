@@ -9,13 +9,13 @@
 #include "nrf_log_ctrl.h"
 
 /** Data target handlers **/
-message_handler p_ble_adv_handler = NULL;
-message_handler p_ble_gatt_handler = NULL;
-message_handler p_ble_mesh_handler = NULL;
-message_handler p_proprietary_handler = NULL;
-message_handler p_nfc_handler = NULL;
-message_handler p_ram_handler = NULL;
-message_handler p_flash_handler = NULL;
+static message_handler p_ble_adv_handler = NULL;
+static message_handler p_ble_gatt_handler = NULL;
+static message_handler p_ble_mesh_handler = NULL;
+static message_handler p_proprietary_handler = NULL;
+static message_handler p_nfc_handler = NULL;
+static message_handler p_ram_handler = NULL;
+static message_handler p_flash_handler = NULL;
 
 /** State variables **/
 static ruuvi_sensor_configuration_t m_configuration = {0};

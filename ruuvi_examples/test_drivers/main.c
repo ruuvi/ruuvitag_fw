@@ -103,27 +103,6 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
     return NRF_SUCCESS;
 }
 
-/** Scheduler handler to read accelerometer buffer **/
-void accelerometer_scheduler_event_handler(void *p_event_data, uint16_t event_size)
-{
-    NRF_LOG_INFO("Accelerometer scheduled function\r\n");
-    size_t count = 0;
-    lis2dh12_get_fifo_sample_number(&count);
-    lis2dh12_sensor_buffer_t buffer[32];
-    memset(buffer, 0, sizeof(buffer));
-    lis2dh12_read_samples(buffer, count);
-    NRF_LOG_INFO("Got X:%d, Y:%d, Z:%d\r\n", (buffer[0]).sensor.x, (buffer[0]).sensor.y, (buffer[0]).sensor.z);
-}
-
-ret_code_t accelerometer_int1_handler(const ruuvi_standard_message_t message)
-{
-    NRF_LOG_INFO("Accelerometer interrupt\r\n");
-   
-    app_sched_event_put ((void*)(&message),
-                         sizeof(message),
-                         accelerometer_scheduler_event_handler);
-    return NRF_SUCCESS;
-}
 
 
 
@@ -164,7 +143,10 @@ int main(void)
   NRF_LOG_INFO("Checking battery state... %d mV\r\n", (uint32_t)voltage);
   NRF_LOG_FLUSH();
   nrf_delay_ms(10);
-  
+
+  //Start interrupts
+  err_code |= pin_interrupt_init();
+
   //Start BME280
   err_code |= init_bme280();
   NRF_LOG_INFO("BME280 init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
@@ -175,14 +157,12 @@ int main(void)
   err_code |= init_lis2dh12();
   NRF_LOG_INFO("LIS2DH12 init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
 
-  err_code |= pin_interrupt_init();
+  
   err_code |= pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler);
-  err_code |= pin_interrupt_enable(INT_ACC1_PIN, NRF_GPIOTE_POLARITY_LOTOHI, accelerometer_int1_handler);
 
   NRF_LOG_INFO("Interrupt init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
 
   test_lis2dh12();
-  //Start interrupts
 
   /*
   NRF_LOG_INFO("Starting automated test.\r\n");    
@@ -202,16 +182,7 @@ int main(void)
   test_mam();
   NRF_LOG_INFO("MAM %d\r\n", (uint32_t) ii);
   }*/
-
-  lis2dh12_set_scale(LIS2DH12_SCALE2G);
-  lis2dh12_set_resolution(LIS2DH12_RES10BIT);
-  lis2dh12_set_fifo_watermark(25);
-  lis2dh12_set_interrupts(LIS2DH12_I1_WTM);
-  lis2dh12_set_fifo_mode(LIS2DH12_MODE_STREAM);  
-  lis2dh12_set_sample_rate(LIS2DH12_RATE_100);
   
-
-
   bluetooth_advertising_start();  
   
   set_mam_handler(mam_handler); //XXX POC

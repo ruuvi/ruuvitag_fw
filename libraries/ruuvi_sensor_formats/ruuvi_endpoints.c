@@ -66,9 +66,7 @@ void route_message(const ruuvi_standard_message_t message)
         break;
 
       case TEMPERATURE:
-        NRF_LOG_INFO("Message is a temperature message.\r\n");
-        NRF_LOG_FLUSH();
-        nrf_delay_ms(1);
+        NRF_LOG_DEBUG("Message is a temperature message.\r\n");
         if(p_temperature_handler) {p_temperature_handler(message); } 
         else {unknown_handler(message); }
         break;
@@ -123,6 +121,11 @@ void route_message(const ruuvi_standard_message_t message)
 void set_temperature_handler(message_handler handler)
 {
   p_temperature_handler = handler;
+}
+
+void set_acceleration_handler(message_handler handler)
+{
+  p_acceleration_handler = handler;
 }
 
 void set_mam_handler(message_handler handler)

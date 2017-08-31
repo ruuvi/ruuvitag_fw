@@ -4,6 +4,8 @@
 #include "ble_bulk_transfer.h"
 #include "bme280_temperature_handler.h"
 #include "lis2dh12.h"
+#include "lis2dh12_acceleration_handler.h"
+#include "pin_interrupt.h"
 
 #define NRF_LOG_MODULE_NAME "INIT"
 #include "nrf_log.h"
@@ -110,6 +112,7 @@ init_err_code_t init_leds(void)
  * TODO: event / interrupt driven button reading 
  * TODO: Generalise
  *
+ * XXX
  */
 init_err_code_t init_buttons(void)
 {
@@ -127,6 +130,8 @@ init_err_code_t init_lis2dh12(void)
     if (INIT_SUCCESS == err_code)
     {
         NRF_LOG_DEBUG("LIS2DH12 init Done\r\n");
+        set_acceleration_handler(lis2dh12_acceleration_handler);
+        err_code |= pin_interrupt_enable(INT_ACC1_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int1_handler);
     }
     else
     {
@@ -209,4 +214,3 @@ init_err_code_t init_blink_status(uint8_t init_status)
     
     return INIT_SUCCESS;
 }
-

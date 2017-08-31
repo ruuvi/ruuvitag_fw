@@ -27,14 +27,14 @@ typedef enum{
   DATA_QUERY            = 0x05, // Query data from endpoint - returns latest data
   LOG_QUERY             = 0x06, // Query log from endpoint - initiates bulk write
   CAPABILITY_QUERY      = 0x07, // Query endpoint capablities: samplerate, resolution, scale, log, power consumption with settings given in query
-  SAMPLERATE_RESPONSE   = 0x08,
-  RESOLUTION_RESPONSE   = 0x09,
-  SCALE_RESPONSE        = 0x10,
-  LOG_RESPONSE          = 0x11,
-  POWER_RESPONSE        = 0x12,
-  TIMESTAMP             = 0x13,
-  UNKNOWN               = 0x14,
-  ERROR                 = 0x15,
+  SAMPLERATE_RESPONSE   = 0x08, // Response with allowed sample rates
+  RESOLUTION_RESPONSE   = 0x09, // Response with allowed resolutions
+  SCALE_RESPONSE        = 0x10, // Response with allowed scales
+  TARGET_RESPONSE       = 0x11, // Response with allowed targets
+  POWER_RESPONSE        = 0x12, // Response with allowed power levels
+  TIMESTAMP             = 0x13, // Timestamp related to next event
+  UNKNOWN               = 0x14, // Unknown, may be a reply if incoming message was not understood
+  ERROR                 = 0x15, // Error, payload may contain details
   UINT8                 = 0x80, // Array of uint8
   INT8                  = 0x81,
   UINT16                = 0x82,
@@ -135,6 +135,7 @@ ret_code_t unknown_handler(const ruuvi_standard_message_t message);
 
 //Peripheral handlers
 void set_temperature_handler(message_handler handler);
+void set_acceleration_handler(message_handler handler);
 void set_mam_handler(message_handler handler);
 void set_unknown_handler(message_handler handler);
 

@@ -21,6 +21,7 @@ Hardware Driver for the LIS2DH12 Acceleration Sensor
 
 /* CONSTANTS **************************************************************************************/
 #define LIS2DH12_FIFO_MAX_LENGTH 32
+#define LIS2DH12_NO_INTERRUPTS 0
 
 /* TYPES ******************************************************************************************/
 /** Structure containing sensor data for all 3 axis */
@@ -29,7 +30,7 @@ typedef struct __attribute__((packed))
     int16_t x;
     int16_t y;
     int16_t z;
-} acceleration_t;
+}acceleration_t;
 
 /** Union to split raw data to values for each axis */
 typedef union
