@@ -134,6 +134,11 @@ lis2dh12_ret_t lis2dh12_get_fifo_sample_number(size_t* count);
  */
 lis2dh12_ret_t lis2dh12_set_fifo_watermark(size_t count);
 
+/**
+ *
+ */
+lis2dh12_ret_t lis2dh12_set_interrupts(uint8_t interrupts);
+
 lis2dh12_ret_t lis2dh12_read_register(uint8_t address, uint8_t* const p_toRead, size_t count);
 lis2dh12_ret_t lis2dh12_write_register(uint8_t address, uint8_t* const dataToWrite, size_t count);
 

@@ -73,6 +73,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/bluetooth/bluetooth_core.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280_temperature_handler.c \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_pininterrupt/pin_interrupt.c \
   $(PROJ_DIR)/../../drivers/init/init.c \
   $(PROJ_DIR)/../../drivers/lis2dh12/lis2dh12.c \
   $(PROJ_DIR)/../../drivers/rng/rng.c \
@@ -197,6 +198,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../drivers/bme280 \
   $(PROJ_DIR)/../../drivers/init \
   $(PROJ_DIR)/../../drivers/lis2dh12 \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_pininterrupt \
   $(PROJ_DIR)/../../drivers/rng/ \
   $(PROJ_DIR)/../../drivers/rtc/ \
   $(PROJ_DIR)/../../drivers/spi/ \

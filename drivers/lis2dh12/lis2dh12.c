@@ -168,7 +168,7 @@ lis2dh12_ret_t lis2dh12_set_sample_rate(lis2dh12_sample_rate_t sample_rate)
     // Setup sample rate
     ctrl[0] |= sample_rate;
     err_code |= lis2dh12_write_register(LIS2DH12_CTRL_REG1, ctrl, 1);
-    NRF_LOG_INFO("Wrote samplerate %x, status %d\r\n", ctrl[0], err_code);
+    NRF_LOG_DEBUG("Wrote samplerate %x, status %d\r\n", ctrl[0], err_code);
 
     //Always read REFERENCE register when powering down to reset filter.
     if(LIS2DH12_RATE_0 == sample_rate)
@@ -190,13 +190,21 @@ lis2dh12_ret_t lis2dh12_set_sample_rate(lis2dh12_sample_rate_t sample_rate)
 lis2dh12_ret_t lis2dh12_set_fifo_mode(lis2dh12_fifo_mode_t mode)
 {
     lis2dh12_ret_t err_code = LIS2DH12_RET_OK;
-    uint8_t ctrl[1] = {0};
-    err_code |= lis2dh12_read_register(LIS2DH12_FIFO_CTRL_REG, ctrl, 1);
-    // Clear sample rate bits
-    ctrl[0] &= ~LIS2DH12_FM_MASK;
-    // Setup sample rate
-    ctrl[0] |= mode;
-    err_code |= lis2dh12_write_register(LIS2DH12_FIFO_CTRL_REG, ctrl, 1);
+    uint8_t ctrl_fifo[1] = {0};
+    uint8_t ctrl5[1] = {0};
+
+    err_code |= lis2dh12_read_register(LIS2DH12_FIFO_CTRL_REG, ctrl_fifo, 1);
+    err_code |= lis2dh12_read_register(LIS2DH12_FIFO_CTRL_REG, ctrl5, 1);
+    // Clear FiFo bits
+    ctrl_fifo[0] &= ~LIS2DH12_FM_MASK;
+    //Clear enable bit
+    ctrl5[0] &= ~LIS2DH12_FIFO_EN_MASK;
+    // Setup FiFo rate
+    ctrl_fifo[0] |= mode;
+    //Enable FiFo if appropriate
+    if(LIS2DH12_MODE_BYPASS != mode){ ctrl5[0] |= LIS2DH12_FIFO_EN_MASK; }
+    err_code |= lis2dh12_write_register(LIS2DH12_FIFO_CTRL_REG, ctrl_fifo, 1);
+    err_code |= lis2dh12_write_register(LIS2DH12_CTRL_REG5, ctrl5, 1);
     return err_code;
 }
 
@@ -213,34 +221,22 @@ uint8_t get_mgpb()
     }
 }
 
-/** Return factor for current state **/
-uint8_t get_justification()
-{
-    NRF_LOG_INFO("resolution %d\r\n", state_resolution);
-    switch(state_resolution)
-    {
-        case LIS2DH12_RES8BIT:  return 4;
-        case LIS2DH12_RES10BIT: return 4;
-        case LIS2DH12_RES12BIT: return 4;
-        default:                return 16;
-    }
-}
-
 lis2dh12_ret_t lis2dh12_read_samples(lis2dh12_sensor_buffer_t* buffer, size_t count)
 {
      lis2dh12_ret_t err_code = LIS2DH12_RET_OK;
+     size_t bytes_to_read = count*sizeof(lis2dh12_sensor_buffer_t);
+     NRF_LOG_INFO("Reading %d bytes \r\n", bytes_to_read);
      err_code |= lis2dh12_read_register(LIS2DH12_OUT_X_L, (uint8_t*)buffer, count*sizeof(lis2dh12_sensor_buffer_t));
      uint8_t mgpb = get_mgpb();
-     uint8_t justify = get_justification();
+     // Use constant bitshift, so we don't have to adjust mgpb with resolution
+     uint8_t justify = 4; 
      for(int ii = 0; ii < count; ii++)
      {
-        NRF_LOG_INFO("Before justification %d \r\n", buffer[ii].sensor.z);
-        NRF_LOG_FLUSH();
-        nrf_delay_ms(10);
+        NRF_LOG_DEBUG("Before justification %d \r\n", buffer[ii].sensor.z);
         buffer[ii].sensor.x >>= justify;
         buffer[ii].sensor.y >>= justify;
         buffer[ii].sensor.z >>= justify;
-        NRF_LOG_INFO("Before scaling %d \r\n", buffer[ii].sensor.z);
+        NRF_LOG_DEBUG("Before scaling %d \r\n", buffer[ii].sensor.z);
         buffer[ii].sensor.x *= mgpb;
         buffer[ii].sensor.y *= mgpb;
         buffer[ii].sensor.z *= mgpb;
@@ -271,10 +267,18 @@ lis2dh12_ret_t lis2dh12_set_fifo_watermark(size_t count)
     return err_code;
 }
 
+lis2dh12_ret_t lis2dh12_set_interrupts(uint8_t interrupts)
+{
+  uint8_t ctrl[1]; 
+  ctrl[0] = interrupts;
+  return lis2dh12_write_register(LIS2DH12_CTRL_REG3, ctrl, 1);
+}
+
 /* INTERNAL FUNCTIONS *****************************************************************************/
 
 /**
  * Execute LIS2DH12 Selftest
+ * TODO: Run the self-test internal to device
  *
  * @return LIS2DH12_RET_OK Selftest passed
  * @return LIS2DH12_RET_ERROR_SELFTEST Selftest failed
