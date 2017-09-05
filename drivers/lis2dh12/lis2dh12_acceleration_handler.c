@@ -176,7 +176,7 @@ static ret_code_t set_dsp_parameter(uint8_t dsp_parameter)
 
 static ret_code_t set_target(uint8_t target)
 {
-  NRF_LOG_DEBUG("Setting targets %d\r\n", target);
+  NRF_LOG_INFO("Setting targets %d\r\n", target);
   if(TRANSMISSION_TARGET_NO_CHANGE == target) { return ENDPOINT_SUCCESS; }
   if(TRANSMISSION_TARGET_STOP == target)
   {
@@ -285,8 +285,8 @@ static ret_code_t read_sensor(const ruuvi_standard_message_t message)
     uint8_t* cast  = (void*)&rvalue;
     NRF_LOG_DEBUG("Sending raw reply\r\n");  
     ruuvi_standard_message_t reply = {.destination_endpoint = message.source_endpoint,
-                                    .source_endpoint = TEMPERATURE,
-                                    .type = ASCII,
+                                    .source_endpoint = ACCELERATION,
+                                    .type = UINT16,
                                     .payload = {cast[0]}}; //TODO: Check the casts
     err_code |= transmit(reply);
     return err_code;
@@ -331,7 +331,6 @@ ret_code_t lis2dh12_acceleration_handler(const ruuvi_standard_message_t message)
 }
 
 /** Scheduler handler to read accelerometer buffer **/
-static uint32_t exercise_value = 0;
 void lis2dh12_scheduler_event_handler(void *p_event_data, uint16_t event_size)
 {
     NRF_LOG_DEBUG("Accelerometer scheduled function\r\n");
@@ -340,6 +339,7 @@ void lis2dh12_scheduler_event_handler(void *p_event_data, uint16_t event_size)
     lis2dh12_sensor_buffer_t buffer[32];
     memset(buffer, 0, sizeof(buffer));
     lis2dh12_read_samples(buffer, count);
+    NRF_LOG_INFO("Sending raw UINT16 reply\r\n");
     for(int ii = 0; ii < count; ii++)
     {
         int16_t rvalue[4];
@@ -347,33 +347,16 @@ void lis2dh12_scheduler_event_handler(void *p_event_data, uint16_t event_size)
         rvalue[1] = buffer[ii].sensor.y;
         rvalue[2] = buffer[ii].sensor.z;
         rvalue[3] = sqrt(rvalue[0]*rvalue[0] + rvalue[1]*rvalue[1] + rvalue[2]*rvalue[2]);
-        /*
-        uint8_t* cast  = (void*)&rvalue;
-        ruuvi_standard_message_t message;
-        message.source_endpoint = ACCELERATION;
-        message.destination_endpoint = m_destination_endpoint;
-        message.type = UINT16;
-        
-        NRF_LOG_INFO("Sending raw reply\r\n");  
-        ruuvi_standard_message_t reply = {.destination_endpoint = message.source_endpoint,
-                                        .source_endpoint = TEMPERATURE,
-                                        .type = ASCII,
-                                        .payload = {cast[0]}}; //TODO: Check the casts
+        ruuvi_standard_message_t reply = {.destination_endpoint = m_destination_endpoint,
+                                        .source_endpoint = ACCELERATION,
+                                        .type = UINT16,
+                                        .payload = {0}};
+        memcpy(reply.payload, rvalue, sizeof(reply.payload));
         transmit(reply);
-        */
-        //XXX Hack for the hackathon
-        int16_t accumulation = rvalue[3] - 1200;
-        if(accumulation > 0) { exercise_value += accumulation; }
-        //NRF_LOG_INFO("%d %d %d %d\r\n", rvalue[0], rvalue[1], rvalue[2], rvalue[3])
+        
+        NRF_LOG_DEBUG("%d %d %d %d\r\n", rvalue[0], rvalue[1], rvalue[2], rvalue[3])
     }
 
-    NRF_LOG_INFO("Accumulated exercise %d\r\n", exercise_value);
-}
-
-//XXX Hackathon
-uint32_t get_exercise(void)
-{
-    return exercise_value;
 }
 
 /** Handle interrupt from lis2dh12, schedule sensor read & transmit **/

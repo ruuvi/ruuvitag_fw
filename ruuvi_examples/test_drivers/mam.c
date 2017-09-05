@@ -2,14 +2,11 @@
 
 /** NRF LIBS **/
 #include "nrf_error.h"
-#include "nrf_delay.h"//XXX
 
 /** Ruuvi libs **/
 #include "ruuvi_endpoints.h"
 #include "bme280.h"
 #include "ble_bulk_transfer.h"
-//XXX Hackathon
-#include "lis2dh12_acceleration_handler.h"
 
 /** IOTA lib **/
 #include "iota/iota.h"
@@ -39,7 +36,7 @@ void send_environmental_mam(void)
   uint32_t raw_p = bme280_get_pressure();
   uint32_t raw_h = bme280_get_humidity();
 */
-  sprintf(message, "%lu", get_exercise()/10000); //Wrong decimals on negative values.
+  sprintf(message, "hello");
   NRF_LOG_INFO("ASCII message: %s\r\n", (uint32_t)message);
   toTrytes((void*)message, trytes, strlen(message));
   NRF_LOG_INFO("Tryte message: %s\r\n", (uint32_t)trytes);
@@ -58,8 +55,6 @@ void send_environmental_mam(void)
   //size_t result_len = strlen(result);
   //char* result = merkle_keys(seed, next_start, next_count, security);
   NRF_LOG_INFO("mam done\r\n");
-  NRF_LOG_FLUSH();
-  nrf_delay_ms(10);
   size_t result_length = strlen(result); 
 
   //char* root = strtok(NULL, "\n");
