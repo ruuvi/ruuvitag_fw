@@ -161,7 +161,7 @@ SDK, details can be found at [Nordic Infocenter] (https://infocenter.nordicsemi.
 Second time running `make` builds all the sources. 
 `make clean` cleans the build directories.
 
-For more help, please request an invite to Ruuvi Community's Slack channel by emailing us an informal request: slack@ruuvi.com
+For more help, please join [Ruuvi Slack](http://slack.ruuvi.com).
 
 # Flashing
 
