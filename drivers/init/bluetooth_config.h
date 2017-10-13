@@ -11,7 +11,8 @@
  */
 
 #ifndef BLUETOOTH_CONFIG_H
-#define BLUETOOTH_CONFIG_H 
+#define BLUETOOTH_CONFIG_H
+#include "bluetooth_application_config.h"
 #include "bluetooth_board_config.h"
 #include "init.h" //For timer tick
 //#define board manufacturer etc in board-specific ble config
@@ -25,7 +26,7 @@
 
 #define APP_CFG_NON_CONN_ADV_INTERVAL_MS    MSEC_TO_UNITS(500, UNIT_0_625_MS) /**< The advertising interval for non-connectable advertisement (100 ms). This value can vary between 100 ms and 10.24 s). */
 
-#define BLE_TX_POWER                    0                                 /** dBm **/
+#define BLE_TX_POWER                    4                                 /** dBm **/
 
 #if (NRF_SD_BLE_API_VERSION == 3)
 #define NRF_BLE_MAX_MTU_SIZE            GATT_MTU_SIZE_DEFAULT                       /**< MTU size used in the softdevice enabling and to reply to a BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST event. */
@@ -45,6 +46,15 @@
 #define FIRST_CONN_PARAMS_UPDATE_DELAY  APP_TIMER_TICKS(5000,  RUUVITAG_APP_TIMER_PRESCALER)  /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (5 seconds). */
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000, RUUVITAG_APP_TIMER_PRESCALER) /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT    3                                           /**< Number of attempts before giving up the connection parameter negotiation. */
+
+#define SEC_PARAM_BOND                  1                                           /**< Perform bonding. */
+#define SEC_PARAM_MITM                  0                                           /**< Man In The Middle protection not required. */
+#define SEC_PARAM_LESC                  0                                           /**< LE Secure Connections not enabled. */
+#define SEC_PARAM_KEYPRESS              0                                           /**< Keypress notifications not enabled. */
+#define SEC_PARAM_IO_CAPABILITIES       BLE_GAP_IO_CAPS_NONE                        /**< No I/O capabilities. */
+#define SEC_PARAM_OOB                   0                                           /**< Out Of Band data not available. */
+#define SEC_PARAM_MIN_KEY_SIZE          7                                           /**< Minimum encryption key size. */
+#define SEC_PARAM_MAX_KEY_SIZE          16                                          /**< Maximum encryption key size. */
 
 
 

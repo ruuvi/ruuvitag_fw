@@ -11,27 +11,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-//Nordic SDK
-#include "ble_advdata.h"
-#include "nordic_common.h"
-#include "softdevice_handler.h"
 #include "app_scheduler.h"
 #include "app_timer_appsh.h"
-#include "nrf_drv_clock.h"
-#include "nrf_gpio.h"
-#include "nrf_delay.h"
-
-
-//BSP
-#include "bsp.h"
-
-//Drivers
-#include "lis2dh12.h"
-#include "bme280.h"
-#include "battery.h"
-
-//Libraries
-#include "bluetooth_core.h"
 #include "ruuvi_endpoints.h"
 
 //Timers
@@ -137,6 +118,11 @@ init_err_code_t init_lis2dh12(void);
  *
  */
 init_err_code_t init_bme280(void);
+
+/**
+ * Initialise PWM channels
+ */
+init_err_code_t init_pwm();
 
 /**
  * Display init status

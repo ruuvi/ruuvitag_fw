@@ -1,11 +1,11 @@
-PROJECT_NAME     := bootloader_dfu_ble_s132_ruuvitag_b3_production
-TARGETS          := ruuvitag_b3_bootloader
+PROJECT_NAME     := bootloader_dfu_ble_s132_ruuvitag_b_production
+TARGETS          := ruuvitag_b_bootloader
 OUTPUT_DIRECTORY := _build
 
 SDK_ROOT := $(abspath ../../../nRF5_SDK_12.3.0_d7731ad)
 PROJ_DIR := $(abspath ../..)
 
-$(OUTPUT_DIRECTORY)/ruuvitag_b3_bootloader.out: \
+$(OUTPUT_DIRECTORY)/ruuvitag_b_bootloader.out: \
   LINKER_SCRIPT  := secure_dfu_gcc_nrf52_debug.ld
 # Source files common to all targets
 SRC_FILES += \
@@ -107,7 +107,7 @@ CFLAGS += -DNRF52
 CFLAGS += -DNRF_DFU_SETTINGS_VERSION=1
 CFLAGS += -DSVC_INTERFACE_CALL_AS_NORMAL_FUNCTION
 CFLAGS += -DBOARD_CUSTOM
-CFLAGS += -DBOARD_RUUVITAG_B3
+CFLAGS += -DBOARD_RUUVITAG_B
 CFLAGS += -DRUUVI_BOOTLOADER_WORKAROUND
 CFLAGS += -DNRF52832
 CFLAGS += -DNRF_DFU_DEBUG_VERSION
@@ -151,7 +151,7 @@ ASMFLAGS += -DNRF52
 ASMFLAGS += -DNRF_DFU_SETTINGS_VERSION=1
 ASMFLAGS += -DSVC_INTERFACE_CALL_AS_NORMAL_FUNCTION
 ASMFLAGS += -DBOARD_CUSTOM
-ASMFLAGS += -DBOARD_RUUVITAG_B3
+ASMFLAGS += -DBOARD_RUUVITAG_B
 ASMFLAGS += -DNRF52832
 ASMFLAGS += -DNRF_DFU_DEBUG_VERSION
 ASMFLAGS += -DNRF52_PAN_12
@@ -193,12 +193,12 @@ LDFLAGS += --specs=nano.specs -lc -lnosys
 
 .PHONY: $(TARGETS) default all clean help flash 
 # Default target - first one defined
-default: ruuvitag_b3_bootloader
+default: ruuvitag_b_bootloader
 
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo ruuvitag_b3_bootloader
+	@echo ruuvitag_b_bootloader
 
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
 

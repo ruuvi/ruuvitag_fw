@@ -1,5 +1,5 @@
 #include "ruuvi_endpoints.h"
-#include "nrf_delay.h"
+#include "chain_channels.h"
 
 #define NRF_LOG_MODULE_NAME "ENDPOINTS"
 #include "nrf_log.h"
@@ -19,6 +19,9 @@ static message_handler p_gyroscope_handler         = NULL;
 static message_handler p_movement_detector_handler = NULL;
 static message_handler p_mam_handler               = NULL;
 
+/** Chain handler **/
+static message_handler p_chain_handler = NULL;
+
 /** Data traffic handlers **/
 static message_handler p_reply_handler       = NULL;
 static message_handler p_ble_adv_handler     = NULL;
@@ -30,6 +33,7 @@ static message_handler p_ram_handler         = NULL;
 static message_handler p_flash_handler       = NULL;
 
 /** Scheduler handler to call message router **/
+// TODO rename as incoming message handler and parse all messages through this function?
 void ble_gatt_scheduler_event_handler(void *p_event_data, uint16_t event_size)
 {
   //TODO: Handle incoming bulk writes
@@ -112,9 +116,18 @@ void route_message(const ruuvi_standard_message_t message)
         break;
     
       default:
-        unknown_handler(message);
+        //Call chain handler if applicable
+        if(ENDPOINT_CHAIN_OFFSET <= message.destination_endpoint && 
+          (ENDPOINT_CHAIN_OFFSET + NUM_CHAIN_CHANNELS) > message.destination_endpoint &&
+          p_chain_handler)
+        {
+          p_chain_handler(message);
+        }
+        else
+        {
+          unknown_handler(message);
+        }
         break;
-
     }
 }
 
@@ -173,6 +186,11 @@ void set_flash_handler(message_handler handler)
   p_flash_handler = handler;
 }
 
+void set_chain_handler(message_handler handler)
+{
+  p_chain_handler = handler;
+}
+
 message_handler get_reply_handler(void)
 {
   return p_reply_handler;
@@ -213,10 +231,15 @@ message_handler get_flash_handler(void)
   return p_flash_handler;
 }
 
+message_handler get_chain_handler(void)
+{
+  return p_chain_handler;
+}
+
 // Send payload back to source with type "UNKNOWN"
 ret_code_t unknown_handler(const ruuvi_standard_message_t message)
 {
-  NRF_LOG_INFO("Unknown message\r\n");
+  NRF_LOG_INFO("Unknown message. %x, %x, %x, \r\n",message.destination_endpoint, message.source_endpoint, message.type);
   ruuvi_standard_message_t reply = { .destination_endpoint = message.source_endpoint,
                                      .source_endpoint = message.destination_endpoint,
                                      .type = UNKNOWN,

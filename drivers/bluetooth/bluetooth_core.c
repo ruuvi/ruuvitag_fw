@@ -17,9 +17,12 @@
  */
 
 #include "bluetooth_core.h"
+
 #include "ble_advdata.h"
 #include "ble_advertising.h"
+#include "ble_conn_params.h"
 #include "ble_nus.h"
+#include "peer_manager.h"
 #include "sdk_errors.h"
 #include "nrf_delay.h"
 
@@ -54,10 +57,10 @@
 #endif
 
 #define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
-static ble_uuid_t                       m_adv_uuids[] = {{BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}};  /**< Universally unique service identifier. */
+//static ble_uuid_t                       m_adv_uuids[] = {{BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}};  /**< Universally unique service identifier. */
 
 //TODO: Move defaults to application configuration.
-static int8_t tx_power = 0;
+static int8_t tx_power = 4;
 //https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s132.api.v3.0.0%2Fstructble__gap__adv__params__t.html
 static ble_gap_adv_params_t m_adv_params = {
    // BLE_GAP_ADV_TYPE_ADV_DIRECT_IND,  // Connectable, directed to specific device
@@ -88,8 +91,8 @@ ble_advdata_t advdata =
 // BLE_ADVDATA_NO_NAME
 // BLE_ADVDATA_SHORT_NAME
 // BLE_ADVDATA_FULL_NAME
- .name_type = BLE_ADVDATA_FULL_NAME, //scan response has full name
- .short_name_len = 5, //Name get truncated to "Ruuvi" if full name does not fit
+ .name_type = BLE_ADVDATA_NO_NAME, //scan response has full name
+ .short_name_len = 4, //Name get truncated to 4 first letters if full name does not fit
  .include_appearance = false, // scan response has appearance
  .flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE, // Low energy, discoverable
  .p_tx_power_level        = &tx_power,
@@ -109,12 +112,12 @@ ble_advdata_t advdata =
 
 ble_advdata_t scanresp =
 {
- .name_type = BLE_ADVDATA_NO_NAME, //scan response
- .short_name_len = 5,                //Name gets truncated to "Ruuvi" if full name does not fit
- .include_appearance = true,         // scan response
- .flags = 0, // Flags shall not be included in the scan response data.
+ .name_type = BLE_ADVDATA_FULL_NAME, //scan response
+ .short_name_len = 5,              //Name gets truncated to "Ruuvi" if full name does not fit
+ .include_appearance = true,       // scan response has appearance
+ .flags = 0,                       // Flags shall not be included in the scan response data.
  .p_tx_power_level        = NULL,
- .uuids_more_available    = {.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]), .p_uuids = m_adv_uuids},    // Add some services?
+ .uuids_more_available    = {.uuid_cnt = 0, .p_uuids = NULL},    // Add some services?
  .uuids_complete          = {.uuid_cnt = 0, .p_uuids = NULL},
  .uuids_solicited         = {.uuid_cnt = 0, .p_uuids = NULL},
  .p_slave_conn_int        = NULL,
@@ -127,7 +130,34 @@ ble_advdata_t scanresp =
  .p_sec_mgr_oob_flags     = NULL, //always when on BLE
  .p_lesc_data             = NULL //always when on BLE
 };
+
+static bool advertising = false;
+static ble_gap_conn_params_t   gap_conn_params;
+static ble_gap_conn_sec_mode_t sec_mode;
  
+ /**
+  *  Set name to be advertised
+  */
+uint32_t bluetooth_set_name(const char* name_base, size_t name_length)
+{
+  uint32_t err_code = NRF_SUCCESS;
+  bool was_advertising = advertising;
+  if(advertising) { bluetooth_advertising_stop(); }
+  unsigned int mac0 =  NRF_FICR->DEVICEID[0];
+  // space + 4 hex chars
+  char name[20] = { 0 };
+  memcpy(name, name_base, name_length);
+  sprintf(name + name_length, " %x", mac0>>16);
+  NRF_LOG_DEBUG("%s\r\n", (uint32_t)name);
+  NRF_LOG_HEXDUMP_DEBUG((uint8_t*)name, name_length+ 5);
+  err_code |= sd_ble_gap_device_name_set(&sec_mode,
+                                        (const uint8_t *) name,
+                                        name_length + 5);
+  bluetooth_advertise_data();
+  if(was_advertising) { bluetooth_advertising_start(); }
+  return err_code;
+}
+
  /**
  * @brief Function adjusting advertising interval. 
  * @details Sets the advertising interval in program.    
@@ -169,7 +199,7 @@ void configure_advertisement_type(uint8_t type)
  * @details  https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s132.api.v3.0.0%2Fstructble__gap__adv__params__t.html
  * @param fp Advertisement timout in seconds, 0x0001 ... 0x3FFF, 0 to disable
  */
- void configure_advertisement_timout(uint16_t timeout)
+ void configure_advertisement_timeout(uint16_t timeout)
  {
   //TODO: Handle invalid parameter
   if(timeout > 0x3FFF){ return; }
@@ -188,25 +218,18 @@ uint32_t ble_apply_configuration()
  */
 static void gap_params_init(void)
 {
-    uint32_t                err_code;
-    ble_gap_conn_params_t   gap_conn_params;
-    ble_gap_conn_sec_mode_t sec_mode;
-
+    uint32_t                err_code = NRF_SUCCESS;
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
 
-    err_code = sd_ble_gap_device_name_set(&sec_mode,
-                                          (const uint8_t *) APP_DEVICE_NAME,
-                                          strlen(APP_DEVICE_NAME));
-    APP_ERROR_CHECK(err_code);
-
     memset(&gap_conn_params, 0, sizeof(gap_conn_params));
-
     gap_conn_params.min_conn_interval = MIN_CONN_INTERVAL;
     gap_conn_params.max_conn_interval = MAX_CONN_INTERVAL;
     gap_conn_params.slave_latency     = SLAVE_LATENCY;
     gap_conn_params.conn_sup_timeout  = CONN_SUP_TIMEOUT;
 
-    err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
+    err_code |= bluetooth_set_name(APP_DEVICE_NAME, APP_DEVICE_NAME_LENGTH);
+
+    err_code |= sd_ble_gap_ppcp_set(&gap_conn_params);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -247,7 +270,7 @@ static void advertising_init(void)
     APP_ERROR_CHECK(err_code);
 }
 
-uint32_t ble_stack_init(void)
+uint32_t bluetooth_stack_init(void)
 {
     uint32_t err_code;
 
@@ -265,9 +288,24 @@ uint32_t ble_stack_init(void)
     err_code = softdevice_enable_get_default_config(CENTRAL_LINK_COUNT,
                                                     PERIPHERAL_LINK_COUNT,
                                                     &ble_enable_params);
-    NRF_LOG_DEBUG("Softdevice configuration ready, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));       
+    
+    //TODO: refactor into application                                                
+    #define BLE_ATTRIBUTE_TABLE_SIZE 0x1000
+    #ifdef BLE_ATTRIBUTE_TABLE_SIZE
+    //Adjust attribute table size, linkerscript has to be adjusted if this value is changed
+    NRF_LOG_INFO("Attribute table size: %d\r\n", ble_enable_params.gatts_enable_params.attr_tab_size);
+    ble_enable_params.gatts_enable_params.attr_tab_size   = BLE_ATTRIBUTE_TABLE_SIZE;
+    NRF_LOG_INFO("Attribute table size: %d\r\n", ble_enable_params.gatts_enable_params.attr_tab_size);
+    #endif
+    
+    //Adjust UUID count TODO refactor into application
+    #define BLE_UUID_COUNT 10
+    #ifdef BLE_UUID_COUNT
+    ble_enable_params.common_enable_params.vs_uuid_count = BLE_UUID_COUNT;
+    #endif
+    NRF_LOG_INFO("Softdevice configuration ready, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));       
     NRF_LOG_FLUSH();  
-    //nrf_delay_ms(10);                                           
+    nrf_delay_ms(10);                                           
     APP_ERROR_CHECK(err_code);
 
     //Check the ram settings against the used number of links
@@ -282,22 +320,71 @@ uint32_t ble_stack_init(void)
     err_code = softdevice_ble_evt_handler_set(ble_evt_dispatch);
     APP_ERROR_CHECK(err_code);
 
+    // Register with the SoftDevice handler module for BLE events.
+    err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
+    APP_ERROR_CHECK(err_code);    
+
+
     // Enable BLE stack.
     err_code = softdevice_enable(&ble_enable_params);
     NRF_LOG_DEBUG("Softdevice enabled, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));
-    NRF_LOG_FLUSH();
-    //nrf_delay_ms(20);
     APP_ERROR_CHECK(err_code);
+
+    //Enable peer manager, erase bonds
+    peer_manager_init(true);
+
+    err_code |= application_services_init();
+    NRF_LOG_DEBUG("Services init status %d\r\n", err_code);
     
     gap_params_init();
     NRF_LOG_DEBUG("GAP params init\r\n");
-    NRF_LOG_FLUSH();
-    //nrf_delay_ms(20);
-    application_services_init();
-    advertising_init();
+
     conn_params_init();
+    advertising_init();    
 
     return err_code;
+}
+
+/**@brief Function for the Peer Manager initialization.
+ *
+ * @param[in] erase_bonds  Indicates whether bonding information should be cleared from
+ *                         persistent storage during initialization of the Peer Manager.
+ */
+void peer_manager_init(bool erase_bonds)
+{
+    ble_gap_sec_params_t sec_param;
+    ret_code_t           err_code;
+
+    err_code = pm_init();
+    APP_ERROR_CHECK(err_code);
+
+    if (erase_bonds)
+    {
+        err_code = pm_peers_delete();
+        APP_ERROR_CHECK(err_code);
+    }
+
+    memset(&sec_param, 0, sizeof(ble_gap_sec_params_t));
+
+    // Security parameters to be used for all security procedures.
+    sec_param.bond           = SEC_PARAM_BOND;
+    sec_param.mitm           = SEC_PARAM_MITM;
+    sec_param.lesc           = SEC_PARAM_LESC;
+    sec_param.keypress       = SEC_PARAM_KEYPRESS;
+    sec_param.io_caps        = SEC_PARAM_IO_CAPABILITIES;
+    sec_param.oob            = SEC_PARAM_OOB;
+    sec_param.min_key_size   = SEC_PARAM_MIN_KEY_SIZE;
+    sec_param.max_key_size   = SEC_PARAM_MAX_KEY_SIZE;
+    sec_param.kdist_own.enc  = 1;
+    sec_param.kdist_own.id   = 1;
+    sec_param.kdist_peer.enc = 1;
+    sec_param.kdist_peer.id  = 1;
+
+    err_code = pm_sec_params_set(&sec_param);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = pm_register(pm_evt_handler);
+    APP_ERROR_CHECK(err_code);
 }
 
 /**
@@ -321,7 +408,6 @@ uint32_t ble_tx_power_set(int8_t power)
  *
  * @return error code from BLE stack, NRF_SUCCESS if ok.
  */
-static bool advertising = false;
 uint32_t bluetooth_advertising_start(void)
 {
 
@@ -364,9 +450,6 @@ uint32_t bluetooth_advertising_stop(void)
  *
  * @details Initializes the BLE advertisement with given data as manufacturer specific data.
  * Company ID is included by default and doesn't need to be included in parameter data.  
- *
- * @param data pointer to data to advertise, maximum length 24 bytes
- * @param length length of data to advertise
  *
  * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
  */

@@ -31,8 +31,10 @@
 #include "bsp.h"
 #include "app_timer_appsh.h"
 #include "app_error.h"
+#include "nrf_delay.h"
 
 /** Ruuvi Drivers **/
+#include "battery.h"
 #include "init.h"
 #include "bme280.h"
 #include "lis2dh12.h"

@@ -20,7 +20,16 @@
  * @details Initializes the SoftDevice and the BLE event interrupt.
  * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
  */
-uint32_t ble_stack_init(void);
+uint32_t bluetooth_stack_init(void);
+
+/**@brief Function for the Peer Manager initialization.
+ *
+ * @param[in] erase_bonds  Indicates whether bonding information should be cleared from
+ *                         persistent storage during initialization of the Peer Manager.
+ */
+void peer_manager_init(bool erase_bonds);
+
+uint32_t bluetooth_set_name(const char* name_base, size_t name_length);
 
 /**
  *  Starts advertising with previously setup data and parameters.
@@ -31,7 +40,7 @@ uint32_t bluetooth_advertising_start(void);
 
 /**
  */
-uint32_t bluetooth_advertising_start(void);
+uint32_t bluetooth_advertising_stop(void);
 
 /**
  * @brief Function to setsBLE transmission power

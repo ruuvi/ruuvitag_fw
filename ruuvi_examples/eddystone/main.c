@@ -26,6 +26,7 @@
 #include <string.h>
 #include "bsp.h"
 #include "boards.h"
+#include "bsp_board_config.h"
 #include "ble_gap.h"
 #include "ble_conn_params.h"
 #include "ble_advertising.h"
@@ -38,6 +39,8 @@
 #include "nrf_ble_es.h"
 #include "fstorage.h"
 
+#include "event_handlers.h"
+
 #define NRF_LOG_MODULE_NAME "MAIN"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -45,9 +48,6 @@
 #include "init.h"
 
 #define DEAD_BEEF                   0xDEADBEEF       //!< Value used as error code on stack dump, can be used to identify stack location on stack unwind.
-#define NON_CONNECTABLE_ADV_LED_PIN BSP_BOARD_LED_1  //!< Toggles when non-connectable advertisement is sent.
-#define CONNECTED_LED_PIN           BSP_BOARD_LED_0  //!< Is on when device has connected.
-#define CONNECTABLE_ADV_LED_PIN     BSP_BOARD_LED_0  //!< Is on when device is advertising connectable advertisements.
 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -132,68 +132,6 @@ static void ble_evt_dispatch(ble_evt_t * p_ble_evt)
 }
 
 
-/**@brief Function for handling system events from the SoftDevice.
- *
- * @param[in] evt SoftDevice system event.
- */
-static void sys_evt_dispatch(uint32_t evt)
-{
-    fs_sys_event_handler(evt);
-}
-
-
-/**@brief Function for the GAP initialization.
-*
-* @details This function will set up all the necessary GAP (Generic Access Profile) parameters of
-*          the device. It also sets the permissions and appearance.
-*/
-static void gap_params_init(void)
-{
-   uint32_t                err_code;
-   ble_gap_conn_params_t   gap_conn_params;
-   ble_gap_conn_sec_mode_t sec_mode;
-   uint8_t                 device_name[] = APP_DEVICE_NAME;
-
-   BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
-
-   err_code = sd_ble_gap_device_name_set(&sec_mode,
-                                         device_name,
-                                         strlen((const char *)device_name));
-   APP_ERROR_CHECK(err_code);
-
-   memset(&gap_conn_params, 0, sizeof(gap_conn_params));
-
-   gap_conn_params.min_conn_interval = MIN_CONN_INTERVAL;
-   gap_conn_params.max_conn_interval = MAX_CONN_INTERVAL;
-   gap_conn_params.slave_latency     = SLAVE_LATENCY;
-   gap_conn_params.conn_sup_timeout  = CONN_SUP_TIMEOUT;
-
-   err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
-
-   APP_ERROR_CHECK(err_code);
-}
-
-
-/**@brief Function for initializing the Connection Parameters module.
- */
-static void conn_params_init(void)
-{
-    uint32_t               err_code;
-    ble_conn_params_init_t cp_init;
-
-    memset(&cp_init, 0, sizeof(cp_init));
-
-    cp_init.p_conn_params                  = NULL;
-    cp_init.first_conn_params_update_delay = FIRST_CONN_PARAMS_UPDATE_DELAY;
-    cp_init.next_conn_params_update_delay  = NEXT_CONN_PARAMS_UPDATE_DELAY;
-    cp_init.max_conn_params_update_count   = MAX_CONN_PARAMS_UPDATE_COUNT;
-    cp_init.start_on_notify_cccd_handle    = BLE_GATT_HANDLE_INVALID;
-    cp_init.disconnect_on_fail             = false;
-
-    err_code = ble_conn_params_init(&cp_init);
-    APP_ERROR_CHECK(err_code);
-
-}
 
 
 /**@brief Function for doing power management.
@@ -208,26 +146,7 @@ static void power_manage(void)
 }
 
 
-/**@brief Function for handling Eddystone events.
- *
- * @param[in] evt Eddystone event to handle.
- */
-static void on_es_evt(nrf_ble_es_evt_t evt)
-{
-    switch(evt)
-    {
-        case NRF_BLE_ES_EVT_ADVERTISEMENT_SENT:
-            //bsp_board_led_invert(NON_CONNECTABLE_ADV_LED_PIN);
-            break;
-        
-        case NRF_BLE_ES_EVT_CONNECTABLE_ADV_STARTED:
-            bsp_board_led_on(CONNECTABLE_ADV_LED_PIN);
-            break;
 
-        default:
-            break;
-    }
-}
 
 
 /**@brief Function for handling button events from app_button IRQ
@@ -306,10 +225,7 @@ int main(void)
     err_code = bsp_init(BSP_INIT_LED, APP_TIMER_TICKS(100, APP_TIMER_PRESCALER), NULL);
     APP_ERROR_CHECK(err_code);
 
-    gap_params_init();
-    conn_params_init();
     button_init();
-    nrf_ble_es_init(on_es_evt);
     gpio_init();
     
     NRF_LOG_INFO("Start!\r\n");

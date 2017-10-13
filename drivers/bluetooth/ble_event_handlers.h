@@ -17,8 +17,10 @@
 
 //#include "service_if.h"
 
+//TODO: Allow larger MTU
 #define NRF_BLE_MAX_MTU_SIZE GATT_MTU_SIZE_DEFAULT 
 
+//TODO: move to core
 bool is_ble_connected();
 
 /**@brief Function for handling the Application's BLE Stack events.

@@ -1,11 +1,37 @@
 #include <stdbool.h>
 #include "init.h"
-#include "ruuvi_endpoints.h"
+
+//Nordic SDK
+#include "ble_advdata.h"
+#include "nordic_common.h"
+#include "softdevice_handler.h"
+#include "app_scheduler.h"
+#include "app_timer_appsh.h"
+#include "nrf_drv_clock.h"
+#include "nrf_gpio.h"
+#include "nrf_delay.h"
+
+
+//BSP
+#include "bsp.h"
+#include "boards.h"
+
+//Drivers
+#include "lis2dh12.h"
+#include "bme280.h"
+#include "battery.h"
 #include "ble_bulk_transfer.h"
+#include "bluetooth_core.h"
 #include "bme280_temperature_handler.h"
 #include "lis2dh12.h"
 #include "lis2dh12_acceleration_handler.h"
 #include "pin_interrupt.h"
+#include "pwm.h"
+
+//Libraries
+#include "ruuvi_endpoints.h"
+#include "chain_channels.h"
+
 
 #define NRF_LOG_MODULE_NAME "INIT"
 #include "nrf_log.h"
@@ -50,7 +76,7 @@ init_err_code_t init_ble(void)
     APP_TIMER_APPSH_INIT(RUUVITAG_APP_TIMER_PRESCALER, SCHED_QUEUE_SIZE, true);
 
     //Enable BLE STACK
-    err_code =  ble_stack_init();
+    err_code =  bluetooth_stack_init();
     
     // Application Replies are sent by BLE GATT
     set_ble_gatt_handler(ble_std_transfer_asynchronous);
@@ -97,12 +123,18 @@ init_err_code_t init_timer(app_timer_id_t main_timer_id, uint32_t main_interval,
  */
 init_err_code_t init_leds(void)
 {
+  if(LED_RED)
+  {
     nrf_gpio_cfg_output	(LED_RED);
     nrf_gpio_pin_set(LED_RED);
+  }
+  if(LED_GREEN)
+  {
     nrf_gpio_cfg_output	(LED_GREEN);
     nrf_gpio_pin_set(LED_GREEN);
-    NRF_LOG_DEBUG("LEDs init\r\n");
-    return INIT_SUCCESS; // Cannot fail under any reasonable circumstance
+  }
+  NRF_LOG_DEBUG("LEDs init\r\n");
+  return INIT_SUCCESS; // Cannot fail under any reasonable circumstance
 }
 
 /**
@@ -180,12 +212,25 @@ init_err_code_t init_bme280(void)
  */
 init_err_code_t init_sensors(void)
 {
-    //Init accelerometer lis2dh12
     init_err_code_t err_code = INIT_SUCCESS;
+    //Init accelerometer lis2dh12
     err_code |= init_lis2dh12();
+    //init environmental sensor bme280
     err_code |= init_bme280();
+    //init chain channels
+    chain_handler_init();
+    set_chain_handler(chain_handler);
 
     return err_code;
+}
+
+/**
+ * Initialise PWM channels
+ */
+init_err_code_t init_pwm()
+{
+  pwm_init(200, LED_RED, LED_GREEN, 0, 0);
+  return INIT_SUCCESS;
 }
 
 /**

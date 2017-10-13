@@ -1,6 +1,7 @@
 #ifndef SDK_DEFAULT_CONFIG_H
 #define SDK__DEFAULT_CONFIG_H
-#include "sdk_board_config.h"   // For overrides, pin numbers
+#include "sdk_board_config.h"       // For overrides, pin numbers
+#include "sdk_application_config.h"
 
 // <<< Use Configuration Wizard in Context Menu >>>\n
 #ifdef USE_APP_CONFIG
@@ -3548,7 +3549,7 @@
 // <e> NRF_LOG_ENABLED - nrf_log - Logging
 //==========================================================
 #ifndef NRF_LOG_ENABLED
-#define NRF_LOG_ENABLED 1
+#define NRF_LOG_ENABLED 0
 #endif
 #if  NRF_LOG_ENABLED
 // <e> NRF_LOG_USES_COLORS - If enabled then ANSI escape code for colors is prefixed to every string
