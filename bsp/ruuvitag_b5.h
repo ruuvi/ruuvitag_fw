@@ -2,8 +2,8 @@
  *
  * License: BSD 
  */
-#ifndef RUUVITAG_B3_H
-#define RUUVITAG_B3_H
+#ifndef RUUVITAG_B5_H
+#define RUUVITAG_B5_H
 
 // LEDs definitions
 #define LEDS_NUMBER     2
@@ -45,18 +45,12 @@
   #define BSP_LED_2 LED_1
 #endif
 
-#define RX_PIN_NUMBER  8
-#define TX_PIN_NUMBER  6
-#define CTS_PIN_NUMBER 7
-#define RTS_PIN_NUMBER 5
-#define HWFC           true
-/*
-#define RX_PIN_NUMBER  4
-#define TX_PIN_NUMBER  5
+#define RX_PIN_NUMBER   4
+#define TX_PIN_NUMBER   5
+#define RTS_PIN_NUMBER  NRF_GPIO_UNUSED
+#define CTS_PIN_NUMBER  NRF_GPIO_UNUSED
 #define HWFC           false
-#define CTS_PIN_NUMBER 0
-#define RTS_PIN_NUMBER 0
-*/
+
 #define SPIM0_SCK_PIN     29  // SPI clock
 #define SPIM0_MOSI_PIN    25  // SPI Master Out Slave In
 #define SPIM0_MISO_PIN    28  // SPI Master In Slave Out
@@ -64,6 +58,8 @@
 #define SPIM0_SS_HUMI_PIN  3  // SPI Slave Select (BME280)
 #define INT_ACC1_PIN       2  // Accelerometer interrupt 1
 #define INT_ACC2_PIN       6  // Accelerometer interrupt 2
+
+#define REVERSE_PROT_VOLT_DROP_MILLIVOLTS 1    //!< Typical forward voltage drop of the mosfet
 
 // Low frequency clock source to be used by the SoftDevice
 #define NRF_CLOCK_LFCLKSRC      {.source        = NRF_CLOCK_LF_SRC_XTAL,            \
@@ -78,7 +74,5 @@
 //#define RUUVITAG_BME280_TIMER 2
 //#define RUUVITAG_USER_TIMER 3
 
-#define RUUVITAG_APP_TIMER_PRESCALER 0 //App timer increments at 32.768 kHz
-#define RUUVITAG_APP_TIMER_OP_QUEUE_SIZE 16 //16 ops in time queue max
 
-#endif // RUUVITAG_B2_H
+#endif // RUUVITAG_B5_H

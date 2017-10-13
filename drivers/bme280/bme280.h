@@ -34,11 +34,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
  
- /*
-  *  Changelog
-  *  2017-01-28 Otso Jousimaa Add comments.
-  *  2017-04-06: Add t_sb register values
-  */
+/*
+ *  Changelog
+ *  2016-11-17 Otso Jousimaa (otso@ruuvi.com): Port function calls to use Ruuvi SPI driver 
+ *  2016-11-18 Otso Jousimaa (otso@ruuvi.com): Add timer to poll data 
+ *  2017-01-28 Otso Jousimaa Add comments.
+ *  2017-04-06: Add t_sb register value. 
+ *  2017-08-12 Otso Jousimaa (otso@ruuvi.com): Add Error checking, IIR filtering
+ */
+
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -87,7 +91,7 @@ enum BME280_MODE {
 	BME280_MODE_SLEEP  = 0x00,
 	BME280_MODE_FORCED = 0x01,
 	BME280_MODE_NORMAL = 0x03
-};
+} BME280_Mode_t;
 
 /** States of the module */
 typedef enum
@@ -97,34 +101,42 @@ typedef enum
     BME280_INVALID = 2,                 /**< Returned data may be not valid, because of Power Down Mode or Data not ready */
     BME280_RET_NULL = 4,                /**< NULL Pointer detected */
     BME280_RET_ERROR_SELFTEST = 8,      /**< Selftest  failed */
-    BME280_RET_ERROR = 16               /**< Not otherwise specified error */
+    BME280_RET_ILLEGAL = 16,            /**< Unallowed configuration, i.e. adjusting configuration while not in sleep.*/
+    BME280_RET_ERROR = 32               /**< Not otherwise specified error */
 } BME280_Ret;
 
-#define BME280REG_CALIB_00	(0x88)
-#define BME280REG_ID		(0xD0)
-#define BME280REG_RESET		(0xE0)
-#define BME280REG_CALIB_26	(0xE1)
-#define BME280REG_CTRL_HUM	(0xF2)
-#define BME280REG_STATUS	(0xF3)
-#define BME280REG_CTRL_MEAS	(0xF4)
-#define BME280REG_CONFIG	(0xF5)
-#define BME280REG_PRESS_MSB	(0xF7)
-#define BME280REG_PRESS_LSB	(0xF8)
-#define BME280REG_PRESS_XLSB	(0xF9)
-#define BME280REG_TEMP_MSB	(0xFA)
-#define BME280REG_TEMP_LSB	(0xFB)
-#define BME280REG_TEMP_XLSB	(0xFC)
-#define BME280REG_HUM_MSB	(0xFD)
-#define BME280REG_HUM_LSB	(0xFE)
+#define BME280REG_CALIB_00   (0x88)
+#define BME280REG_ID         (0xD0)
+#define BME280REG_RESET      (0xE0)
+#define BME280REG_CALIB_26   (0xE1)
+#define BME280REG_CTRL_HUM   (0xF2)
+#define BME280REG_STATUS     (0xF3)
+#define BME280REG_CTRL_MEAS  (0xF4)
+#define BME280REG_CONFIG     (0xF5)
+#define BME280REG_PRESS_MSB  (0xF7)
+#define BME280REG_PRESS_LSB  (0xF8)
+#define BME280REG_PRESS_XLSB (0xF9)
+#define BME280REG_TEMP_MSB	 (0xFA)
+#define BME280REG_TEMP_LSB	 (0xFB)
+#define BME280REG_TEMP_XLSB	 (0xFC)
+#define BME280REG_HUM_MSB	   (0xFD)
+#define BME280REG_HUM_LSB	   (0xFE)
 
-#define ID_VALUE		(0x60)
+#define BME280_ID_VALUE      (0x60)
 
-#define BME280_OVERSAMPLING_SKIP	(0x00)
-#define BME280_OVERSAMPLING_1		(0x01)
-#define BME280_OVERSAMPLING_2		(0x02)
-#define BME280_OVERSAMPLING_4		(0x03)
-#define BME280_OVERSAMPLING_8		(0x04)
-#define BME280_OVERSAMPLING_16		(0x05)
+#define BME280_OVERSAMPLING_SKIP (0x00)
+#define BME280_OVERSAMPLING_1	   (0x01)
+#define BME280_OVERSAMPLING_2	   (0x02)
+#define BME280_OVERSAMPLING_4	   (0x03)
+#define BME280_OVERSAMPLING_8	   (0x04)
+#define BME280_OVERSAMPLING_16	 (0x05)
+
+#define BME280_IIR_MASK (0x1C)
+#define BME280_IIR_OFF	(0x00)
+#define BME280_IIR_2		(0x04)
+#define BME280_IIR_4		(0x08)
+#define BME280_IIR_8		(0x0C)
+#define BME280_IIR_16		(0x10)
 
 #define BME280_INTERVAL_MASK 0xE0
 enum BME280_INTERVAL {
@@ -135,14 +147,59 @@ enum BME280_INTERVAL {
 	BME280_STANDBY_1000_MS = 0xA0
 };
 
+/**
+ *  Initialises BME280 in sleep mode, all sensors enabled
+ */
 BME280_Ret bme280_init();
+
+/**
+ * Set mode of BME280: 
+ *  - Sleep  (off)
+ *  - Forced (one sample, back to sleep) 
+ *  - Normal (continuous)
+ */
 BME280_Ret bme280_set_mode(enum BME280_MODE mode);
+
+/**
+ * Set sampling interval of BME280 in normal mode
+ * Note that interval is a standby time between measurements,
+ * so if you set 1000 ms actual sampling interval is 1000 ms + tsample
+ */
 BME280_Ret bme280_set_interval(enum BME280_INTERVAL interval);
+
+/** Return current interval **/
+enum BME280_INTERVAL bme280_get_interval(void);
+
+/**
+ *  Return true if measurement is in progress
+ */
+ 
 int  bme280_is_measuring(void);
+
+/**
+ *  Read measurements from BME280 to nRF52. This is done automatically in normal mode,
+ *  in forced mode you have to call this manually
+ */
 BME280_Ret bme280_read_measurements();
+
+/**
+ *  Set oversampling. 
+ *  OFF - measurements are not done
+ *  1 - single measurement
+ *  2, 4, 8, 16 Take series of measurements in one sampling interval / forced sample
+ *
+ *  Gives a tradeoff between noise, sampling time and power consumption
+ */
 BME280_Ret bme280_set_oversampling_hum(uint8_t os);
 BME280_Ret bme280_set_oversampling_temp(uint8_t os);
 BME280_Ret bme280_set_oversampling_press(uint8_t os);
+
+/**
+ *  Set IIR filter to low pass measurements. off, 2, 4, 8, 16
+ *  Noise / settling time tradeoff
+ */
+BME280_Ret bme280_set_iir(uint8_t iir);
+
 /**
  * Returns temperature in DegC, resolution is 0.01 DegC.
  * Output value of “2134” equals 21.34 DegC.
@@ -161,8 +218,10 @@ uint32_t bme280_get_pressure(void);
  * (22 integer and 10 fractional bits).
  * Output value of “50532” represents 50532/1024 = 49.356 %RH
  */
-uint32_t bme280_get_humidity(void);
-uint8_t  bme280_read_reg(uint8_t reg);
+uint32_t   bme280_get_humidity(void);
+
+// Used internally
+uint8_t    bme280_read_reg(uint8_t reg);
 BME280_Ret bme280_write_reg(uint8_t reg, uint8_t value);
 BME280_Ret bme280_platform_init();
 
