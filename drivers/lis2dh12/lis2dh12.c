@@ -19,6 +19,7 @@ For a detailed description see the detailed description in @ref LIS2DH12.h
 
 #include "spi.h"
 #include "nrf_drv_gpiote.h"
+#include "nrf_delay.h"
 #include "nrf.h"
 #include "app_timer.h"
 #include "bsp.h"
@@ -76,17 +77,36 @@ lis2dh12_ret_t lis2dh12_init(void)
                                   APP_TIMER_MODE_REPEATED,
                                   NULL);
     APP_ERROR_CHECK(err_code);*/
+    
+    /** Reboot memory  - causes FIFO to fail - maybe delay is needed  before enabling axes? **/
+    //err_code |= lis2dh12_reset();
+    
+    /* Start Selftest */
+    err_code |= selftest();
 
+    return err_code;
+}
+
+/** Reboots memory to default settings **/
+lis2dh12_ret_t lis2dh12_reset(void)
+{
+    lis2dh12_ret_t err_code = LIS2DH12_RET_OK;
+    uint8_t ctrl[1] = {0};    
+    ctrl[0] = LIS2DH12_BOOT_MASK;
+    err_code |= lis2dh12_write_register(LIS2DH12_CTRL_REG5, ctrl, 1);
+    return err_code;
+}
+
+/**
+ *  Enables X-Y-Z axes
+ */
+lis2dh12_ret_t lis2dh12_enable(void)
+{
+    lis2dh12_ret_t err_code = LIS2DH12_RET_OK;
     /* Enable XYZ axes */
     uint8_t ctrl[1] = {0};
     ctrl[0] = LIS2DH12_XYZ_EN_MASK;
     err_code |= lis2dh12_write_register(LIS2DH12_CTRL_REG1, ctrl, 1);
-
-    /* Start Selftest */
-    err_code |= selftest();
-
-
-
     return err_code;
 }
 
@@ -193,8 +213,9 @@ lis2dh12_ret_t lis2dh12_set_fifo_mode(lis2dh12_fifo_mode_t mode)
     uint8_t ctrl_fifo[1] = {0};
     uint8_t ctrl5[1] = {0};
 
+    err_code |= lis2dh12_read_register(LIS2DH12_CTRL_REG5, ctrl5, 1);
     err_code |= lis2dh12_read_register(LIS2DH12_FIFO_CTRL_REG, ctrl_fifo, 1);
-    err_code |= lis2dh12_read_register(LIS2DH12_FIFO_CTRL_REG, ctrl5, 1);
+
     // Clear FiFo bits
     ctrl_fifo[0] &= ~LIS2DH12_FM_MASK;
     //Clear enable bit
@@ -203,8 +224,9 @@ lis2dh12_ret_t lis2dh12_set_fifo_mode(lis2dh12_fifo_mode_t mode)
     ctrl_fifo[0] |= mode;
     //Enable FiFo if appropriate
     if(LIS2DH12_MODE_BYPASS != mode){ ctrl5[0] |= LIS2DH12_FIFO_EN_MASK; }
-    err_code |= lis2dh12_write_register(LIS2DH12_FIFO_CTRL_REG, ctrl_fifo, 1);
+    //FIFO must be enabled before setting mode
     err_code |= lis2dh12_write_register(LIS2DH12_CTRL_REG5, ctrl5, 1);
+    err_code |= lis2dh12_write_register(LIS2DH12_FIFO_CTRL_REG, ctrl_fifo, 1);
     return err_code;
 }
 
@@ -359,5 +381,7 @@ lis2dh12_ret_t lis2dh12_write_register(uint8_t address, uint8_t* const dataToWri
     }
     free(to_read);
     free(to_write);
+
     return err_code;
 }
+

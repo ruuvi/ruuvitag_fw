@@ -8,18 +8,8 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
-/** Data target handlers **/
-static message_handler p_ble_adv_handler = NULL;
-static message_handler p_ble_gatt_handler = NULL;
-static message_handler p_ble_mesh_handler = NULL;
-static message_handler p_proprietary_handler = NULL;
-static message_handler p_nfc_handler = NULL;
-static message_handler p_ram_handler = NULL;
-static message_handler p_flash_handler = NULL;
 
-/** State variables **/
-static ruuvi_sensor_configuration_t m_configuration = {0};
-static ruuvi_endpoint_t m_destination_endpoint = MAM;
+static message_handler_state_t m_state = {0};
 
 static ret_code_t set_sample_rate(uint8_t sample_rate)
 {
@@ -30,7 +20,7 @@ static ret_code_t set_sample_rate(uint8_t sample_rate)
   { 
     err_code |= lis2dh12_set_sample_rate(LIS2DH12_RATE_0);
     lis2dh12_set_fifo_mode(LIS2DH12_MODE_BYPASS);
-    if(LIS2DH12_RET_OK == err_code) { m_configuration.sample_rate = sample_rate; }
+    if(LIS2DH12_RET_OK == err_code) { m_state.configuration.sample_rate = sample_rate; }
     return err_code;
   }
 
@@ -48,13 +38,12 @@ static ret_code_t set_sample_rate(uint8_t sample_rate)
   else if(sample_rate <= 400){ err_code |= lis2dh12_set_sample_rate(LIS2DH12_RATE_400); }    
   else { err_code |= LIS2DH12_RET_INVALID; }
   
-    if(LIS2DH12_RET_OK == err_code) 
-    { 
-        m_configuration.sample_rate = sample_rate; 
-        
-    }
+  if(LIS2DH12_RET_OK == err_code) 
+  { 
+    m_state.configuration.sample_rate = sample_rate; 
+  }
   
-    return err_code;
+  return err_code;
 }
 
 static ret_code_t set_transmission_rate(uint8_t transmission_rate)
@@ -67,7 +56,7 @@ static ret_code_t set_transmission_rate(uint8_t transmission_rate)
         err_code |= lis2dh12_set_interrupts(LIS2DH12_NO_INTERRUPTS);        
         break;
     case TRANSMISSION_RATE_SAMPLERATE:
-        NRF_LOG_INFO("Enabling LIS interrupts\r\n");
+        NRF_LOG_DEBUG("Enabling LIS interrupts\r\n");
         err_code |= lis2dh12_set_fifo_watermark(30);
         err_code |= lis2dh12_set_interrupts(LIS2DH12_I1_WTM);
         break;
@@ -82,6 +71,7 @@ static ret_code_t set_transmission_rate(uint8_t transmission_rate)
         err_code |= ENDPOINT_NOT_IMPLEMENTED;
         break;
   }
+  if(LIS2DH12_RET_OK == err_code) { m_state.configuration.transmission_rate = transmission_rate; }  
   return err_code;
 }
 
@@ -117,7 +107,7 @@ static ret_code_t set_resolution(uint8_t resolution)
         default:
             err_code |= ENDPOINT_NOT_SUPPORTED;
     }
-    if(ENDPOINT_SUCCESS == err_code) { m_configuration.resolution = resolution; }
+    if(ENDPOINT_SUCCESS == err_code) { m_state.configuration.resolution = resolution; }
     return err_code;
 }
 
@@ -153,7 +143,12 @@ static ret_code_t set_scale(uint8_t scale)
         case 16:
             err_code |= lis2dh12_set_scale(LIS2DH12_SCALE16G);
             break; 
-     }
+        
+        default:
+            err_code |= ENDPOINT_NOT_SUPPORTED;
+            break;
+     }     
+     if(ENDPOINT_SUCCESS == err_code) { m_state.configuration.scale = scale; }
 
      return err_code;
 }
@@ -162,7 +157,7 @@ static ret_code_t set_dsp_function(uint8_t dsp_function)
 {
   if(DSP_LAST == dsp_function)
   {
-    m_configuration.dsp_function = DSP_LAST;
+    m_state.configuration.dsp_function = DSP_LAST;
     return ENDPOINT_SUCCESS; 
   }
   return ENDPOINT_NOT_IMPLEMENTED; //TODO
@@ -170,55 +165,75 @@ static ret_code_t set_dsp_function(uint8_t dsp_function)
 
 static ret_code_t set_dsp_parameter(uint8_t dsp_parameter)
 {
-  m_configuration.dsp_parameter = 1;
+  m_state.configuration.dsp_parameter = 1;
   return ENDPOINT_NOT_IMPLEMENTED; //TODO
 }
 
+/** 
+ *  Setup targets to which data will be sent. 
+ *  Note: Chaining is done separately.
+ *  TODO: Can a function pointer / other code deduplication be used?
+ */
 static ret_code_t set_target(uint8_t target)
 {
   NRF_LOG_INFO("Setting targets %d\r\n", target);
   if(TRANSMISSION_TARGET_NO_CHANGE == target) { return ENDPOINT_SUCCESS; }
+
+  //NULL handlers
+  m_state.p_ble_adv_handler = NULL;
+  m_state.p_ble_gatt_handler = NULL;
+  m_state.p_ble_mesh_handler = NULL;
+  m_state.p_proprietary_handler = NULL;
+  m_state.p_nfc_handler = NULL;
+  m_state.p_ram_handler = NULL;
+  m_state.p_flash_handler = NULL;
+  m_state.configuration.target = target;  
+  
   if(TRANSMISSION_TARGET_STOP == target)
   {
     //Stop application timers - TODO
-  
-    //NULL handlers
-    p_ble_adv_handler = NULL;
-    p_ble_gatt_handler = NULL;
-    p_ble_mesh_handler = NULL;
-    p_proprietary_handler = NULL;
-    p_nfc_handler = NULL;
-    p_ram_handler = NULL;
-    p_flash_handler = NULL;
-    m_configuration.target = target;
     return ENDPOINT_SUCCESS;
   }
+  
+  //Resetup handlers
   if(TRANSMISSION_TARGET_BLE_GATT & target)
   {
-  p_ble_gatt_handler = get_ble_gatt_handler();
+  m_state.p_ble_gatt_handler = get_ble_gatt_handler();
   NRF_LOG_DEBUG("Setting up GATT handler\r\n");
   }
-  if(TRANSMISSION_TARGET_BLE_ADV & target){p_ble_adv_handler = get_ble_adv_handler();}
-  if(TRANSMISSION_TARGET_BLE_MESH & target){p_ble_mesh_handler = get_ble_mesh_handler();}
-  if(TRANSMISSION_TARGET_PROPRIETARY & target){ p_proprietary_handler = get_proprietary_handler(); }
-  if(TRANSMISSION_TARGET_NFC & target){ p_nfc_handler = get_nfc_handler(); }
-  if(TRANSMISSION_TARGET_RAM == target){ p_ram_handler = get_ram_handler(); }
-  if(TRANSMISSION_TARGET_FLASH == target){ p_flash_handler = get_flash_handler(); }
+  if(TRANSMISSION_TARGET_BLE_ADV & target){m_state.p_ble_adv_handler = get_ble_adv_handler();}
+  if(TRANSMISSION_TARGET_BLE_MESH & target){m_state.p_ble_mesh_handler = get_ble_mesh_handler();}
+  if(TRANSMISSION_TARGET_PROPRIETARY & target){ m_state.p_proprietary_handler = get_proprietary_handler(); }
+  if(TRANSMISSION_TARGET_NFC & target){ m_state.p_nfc_handler = get_nfc_handler(); }
+  if(TRANSMISSION_TARGET_RAM == target){ m_state.p_ram_handler = get_ram_handler(); }
+  if(TRANSMISSION_TARGET_FLASH == target){ m_state.p_flash_handler = get_flash_handler(); }
 
   return ENDPOINT_SUCCESS;
 }
-/** Send transmission to all data endpoints. 
+/** 
+ *  Send transmission to all data endpoints.
+ *  TODO: Can a function pointer / other code deduplication be used?
  */
 static ret_code_t transmit(const ruuvi_standard_message_t message)
 {
-  NRF_LOG_DEBUG("Transmitting to all data points\r\n");  
   ret_code_t err_code = ENDPOINT_SUCCESS;
-  if(p_ble_adv_handler)     { err_code |= p_ble_adv_handler(message); }
-  if(p_ble_gatt_handler)    { err_code |= p_ble_gatt_handler(message); }
-  if(p_proprietary_handler) { err_code |= p_proprietary_handler(message); }
-  if(p_nfc_handler)         { err_code |= p_nfc_handler(message); }
-  if(p_ram_handler)         { err_code |= p_ram_handler(message); }
-  if(p_flash_handler)       { err_code |= p_flash_handler(message); }
+  NRF_LOG_DEBUG("Transmitting to all data points\r\n");  
+  if(m_state.p_ble_adv_handler)     { err_code |= m_state.p_ble_adv_handler(message); }
+  if(m_state.p_ble_gatt_handler)    { err_code |= m_state.p_ble_gatt_handler(message); }
+  if(m_state.p_proprietary_handler) { err_code |= m_state.p_proprietary_handler(message); }
+  if(m_state.p_nfc_handler)         { err_code |= m_state.p_nfc_handler(message); }
+  if(m_state.p_ram_handler)         { err_code |= m_state.p_ram_handler(message); }
+  if(m_state.p_flash_handler)       { err_code |= m_state.p_flash_handler(message); }
+  if(m_state.p_chain_handler)
+  { 
+    ruuvi_standard_message_t chainmsg;
+    memcpy(&chainmsg, &message, sizeof(ruuvi_standard_message_t));
+    //Send message upstream to chain
+    chainmsg.destination_endpoint = m_state.downstream_endpoint;
+    NRF_LOG_DEBUG("Chaining to %d\r\n", chainmsg.destination_endpoint);
+    err_code |= m_state.p_chain_handler(chainmsg);
+  }
+  
   return err_code;
 }
 
@@ -254,12 +269,12 @@ static ret_code_t configure_sensor(const ruuvi_standard_message_t message)
   NRF_LOG_DEBUG("\r\n");
   
   //Store endpoint request came from, even if message will not be processed due to error (TODO?)
-  m_destination_endpoint = message.source_endpoint;
+  m_state.destination_endpoint = message.source_endpoint;
 
   ruuvi_standard_message_t reply = { .destination_endpoint = message.source_endpoint,
                                      .source_endpoint      = message.destination_endpoint,
                                      .type                 = ACKNOWLEDGEMENT,
-                                     .payload              = {*((uint8_t*)&result)}}; //TODO: Check cast (value of address of configuration casted to uint8_t)
+                                     .payload              = {*((uint8_t*)&result)}};
   //Return error if cannot reply
   ret_code_t err_code = ENDPOINT_HANDLER_ERROR;
   message_handler p_reply_handler = get_reply_handler();
@@ -271,8 +286,13 @@ static ret_code_t configure_sensor(const ruuvi_standard_message_t message)
   return err_code; //Error codes from configuration are in payload of reply
 }
 
+/**
+ *  Read function is also responsble for passing the raw data to chained listener.
+ *  Transmit function is responsible for determining if data should be sent.
+ */
 static ret_code_t read_sensor(const ruuvi_standard_message_t message)
 {
+    //TODO: Return DSP state
     ret_code_t err_code = ENDPOINT_SUCCESS;
   
     lis2dh12_sensor_buffer_t buffer; 
@@ -282,16 +302,60 @@ static ret_code_t read_sensor(const ruuvi_standard_message_t message)
     rvalue[1] = buffer.sensor.y;
     rvalue[2] = buffer.sensor.z;
     rvalue[3] = sqrt(rvalue[0]*rvalue[0] + rvalue[1]*rvalue[1] + rvalue[2]*rvalue[2]);
-    uint8_t* cast  = (void*)&rvalue;
     NRF_LOG_DEBUG("Sending raw reply\r\n");  
     ruuvi_standard_message_t reply = {.destination_endpoint = message.source_endpoint,
                                     .source_endpoint = ACCELERATION,
                                     .type = UINT16,
-                                    .payload = {cast[0]}}; //TODO: Check the casts
+                                    .payload = { 0 }};
+    memcpy(reply.payload, rvalue, sizeof(reply.payload));
     err_code |= transmit(reply);
     return err_code;
 }
 
+/**
+ *  Copy function pointer address to which to send the data to be chained
+ *  TODO: Check how this could be deduplicated
+ */
+static ret_code_t configure_chain_downstream(const ruuvi_standard_message_t message)
+{
+  ret_code_t err_code = ENDPOINT_SUCCESS;
+  // Return on invalid message type
+  if(CHAIN_DOWNSTREAM_CONFIGURATION != message.type) { return ENDPOINT_HANDLER_ERROR; }
+  ruuvi_chain_configuration_t* config = (void*)&message.payload;
+  // Stop transmitting if transmission rate is 0
+  if(TRANSMISSION_RATE_STOP == config->transmission_rate) 
+  {
+    m_state.downstream_endpoint = 0;
+    m_state.p_chain_handler = NULL;
+  }
+
+  //Else configure data chain
+  else
+  {  
+    //Get chain handler
+    m_state.p_chain_handler      = get_chain_handler();
+
+    //Get target endpoint
+    m_state.downstream_endpoint  = message.source_endpoint;
+  }
+  
+  //Reply via reply handler if applicable
+  message_handler p_reply_handler = get_reply_handler();
+  if(p_reply_handler) 
+  {  
+    ruuvi_standard_message_t reply = { .destination_endpoint = message.source_endpoint,
+                                       .source_endpoint      = message.destination_endpoint,
+                                       .type                 = ACKNOWLEDGEMENT,
+                                       .payload              = { 0 }};  
+    NRF_LOG_DEBUG("Sending reply after configuring Downstream Endpoint %d\r\n", m_state.downstream_endpoint);
+    err_code = p_reply_handler(reply);
+  }
+  return err_code;
+}
+
+/**
+ *  Handles incoming messages.
+ */
 ret_code_t lis2dh12_acceleration_handler(const ruuvi_standard_message_t message)
 {
   //Return if message was not meant for this endpoint.
@@ -299,7 +363,6 @@ ret_code_t lis2dh12_acceleration_handler(const ruuvi_standard_message_t message)
   if(ACCELERATION != message.destination_endpoint){ return ENDPOINT_INVALID; }
   switch(message.type)
   {
-  
     case SENSOR_CONFIGURATION:
       NRF_LOG_DEBUG("Configuring\r\n");
       return configure_sensor(message);
@@ -314,6 +377,16 @@ ret_code_t lis2dh12_acceleration_handler(const ruuvi_standard_message_t message)
       NRF_LOG_DEBUG("Querying\r\n");
       return read_sensor(message);
       break;
+      
+    case CHAIN_DOWNSTREAM_CONFIGURATION:
+      NRF_LOG_INFO("Setting up message chain\r\n");
+      return configure_chain_downstream(message);
+      break;
+      
+    case CHAIN_UPSTREAM_CONFIGURATION:
+      NRF_LOG_ERROR("Sensor cannot be upstream target\r\n");
+      return ENDPOINT_INVALID;
+      break;        
       
     case LOG_QUERY:
       return unknown_handler(message);
@@ -330,6 +403,15 @@ ret_code_t lis2dh12_acceleration_handler(const ruuvi_standard_message_t message)
   return ENDPOINT_HANDLER_ERROR; // Should not be reached
 }
 
+/** Process sensor data, I.E. transmit data onwards **/
+static void process(const ruuvi_standard_message_t message)
+{
+  if(TRANSMISSION_RATE_SAMPLERATE == m_state.configuration.transmission_rate)
+  {
+    transmit(message);
+  }
+}
+
 /** Scheduler handler to read accelerometer buffer **/
 void lis2dh12_scheduler_event_handler(void *p_event_data, uint16_t event_size)
 {
@@ -339,7 +421,7 @@ void lis2dh12_scheduler_event_handler(void *p_event_data, uint16_t event_size)
     lis2dh12_sensor_buffer_t buffer[32];
     memset(buffer, 0, sizeof(buffer));
     lis2dh12_read_samples(buffer, count);
-    NRF_LOG_INFO("Sending raw UINT16 reply\r\n");
+    NRF_LOG_DEBUG("Sending raw UINT16 reply\r\n");
     for(int ii = 0; ii < count; ii++)
     {
         int16_t rvalue[4];
@@ -347,23 +429,28 @@ void lis2dh12_scheduler_event_handler(void *p_event_data, uint16_t event_size)
         rvalue[1] = buffer[ii].sensor.y;
         rvalue[2] = buffer[ii].sensor.z;
         rvalue[3] = sqrt(rvalue[0]*rvalue[0] + rvalue[1]*rvalue[1] + rvalue[2]*rvalue[2]);
-        ruuvi_standard_message_t reply = {.destination_endpoint = m_destination_endpoint,
+        ruuvi_standard_message_t reply = {.destination_endpoint = m_state.destination_endpoint,
                                         .source_endpoint = ACCELERATION,
-                                        .type = UINT16,
+                                        .type = INT16,
                                         .payload = {0}};
         memcpy(reply.payload, rvalue, sizeof(reply.payload));
-        transmit(reply);
-        
-        NRF_LOG_DEBUG("%d %d %d %d\r\n", rvalue[0], rvalue[1], rvalue[2], rvalue[3])
-    }
 
+        // All samples are sent to processing.
+        process(reply);
+
+        NRF_LOG_DEBUG("%d %d %d %d\r\n", rvalue[0], rvalue[1], rvalue[2], rvalue[3]);
+    }
 }
 
-/** Handle interrupt from lis2dh12, schedule sensor read & transmit **/
+/** 
+ *  Handle interrupt from lis2dh12, schedule sensor read & transmit
+ *  Never do long actions, such as sensor reads in interrupt context.
+ *  Using peripherals in interrupt is also risky, as peripherals might require interrupts for their function.
+ **/
 ret_code_t lis2dh12_int1_handler(const ruuvi_standard_message_t message)
 {
     NRF_LOG_DEBUG("Accelerometer interrupt\r\n");
-   
+
     app_sched_event_put ((void*)(&message),
                          sizeof(message),
                          lis2dh12_scheduler_event_handler);
