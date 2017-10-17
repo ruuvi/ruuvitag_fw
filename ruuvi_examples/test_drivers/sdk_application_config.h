@@ -16,7 +16,7 @@
 #define TIMER4_ENABLED 1
 #define CRC16_ENABLED 1
 #define CRC32_ENABLED 1
-//#define NRF_LOG_ENABLED 0
+#define NRF_LOG_ENABLED 1
 
 #endif
 
