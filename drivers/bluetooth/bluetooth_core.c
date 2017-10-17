@@ -60,7 +60,7 @@
 //static ble_uuid_t                       m_adv_uuids[] = {{BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}};  /**< Universally unique service identifier. */
 
 //TODO: Move defaults to application configuration.
-static int8_t tx_power = 4;
+static int8_t tx_power = BLE_TX_POWER;
 //https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s132.api.v3.0.0%2Fstructble__gap__adv__params__t.html
 static ble_gap_adv_params_t m_adv_params = {
    // BLE_GAP_ADV_TYPE_ADV_DIRECT_IND,  // Connectable, directed to specific device
@@ -95,7 +95,7 @@ ble_advdata_t advdata =
  .short_name_len = 4, //Name get truncated to 4 first letters if full name does not fit
  .include_appearance = false, // scan response has appearance
  .flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE, // Low energy, discoverable
- .p_tx_power_level        = &tx_power,
+ .p_tx_power_level        = NULL,
  .uuids_more_available    = {.uuid_cnt = 0, .p_uuids = NULL},
  .uuids_complete          = {.uuid_cnt = 0, .p_uuids = NULL},
  .uuids_solicited         = {.uuid_cnt = 0, .p_uuids = NULL},
@@ -116,7 +116,7 @@ ble_advdata_t scanresp =
  .short_name_len = 5,              //Name gets truncated to "Ruuvi" if full name does not fit
  .include_appearance = true,       // scan response has appearance
  .flags = 0,                       // Flags shall not be included in the scan response data.
- .p_tx_power_level        = NULL,
+ .p_tx_power_level        = &tx_power,
  .uuids_more_available    = {.uuid_cnt = 0, .p_uuids = NULL},    // Add some services?
  .uuids_complete          = {.uuid_cnt = 0, .p_uuids = NULL},
  .uuids_solicited         = {.uuid_cnt = 0, .p_uuids = NULL},
@@ -134,6 +134,7 @@ ble_advdata_t scanresp =
 static bool advertising = false;
 static ble_gap_conn_params_t   gap_conn_params;
 static ble_gap_conn_sec_mode_t sec_mode;
+static ble_advdata_manuf_data_t m_manufacturer_data;
  
  /**
   *  Set name to be advertised
@@ -153,7 +154,6 @@ uint32_t bluetooth_set_name(const char* name_base, size_t name_length)
   err_code |= sd_ble_gap_device_name_set(&sec_mode,
                                         (const uint8_t *) name,
                                         name_length + 5);
-  bluetooth_advertise_data();
   if(was_advertising) { bluetooth_advertising_start(); }
   return err_code;
 }
@@ -163,7 +163,7 @@ uint32_t bluetooth_set_name(const char* name_base, size_t name_length)
  * @details Sets the advertising interval in program.    
  * @param interval advertisement interval in milliseconds, 100 - 10 000 
  */
-void configure_advertising_interval(uint16_t interval)
+void bluetooth_configure_advertising_interval(uint16_t interval)
  {
    if(interval > 10000) return;
    if(interval < 100) return;
@@ -175,7 +175,7 @@ void configure_advertising_interval(uint16_t interval)
  * @details https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s132.api.v3.0.0%2Fgroup___b_l_e___g_a_p___a_d_v___t_y_p_e_s.html
  * @param type Advertisement type, 0 ... 3
  */
-void configure_advertisement_type(uint8_t type)
+void bluetooth_configure_advertisement_type(uint8_t type)
  {
   //TODO: Handle invalid parameter
   if(type > 3){ return; }
@@ -187,7 +187,7 @@ void configure_advertisement_type(uint8_t type)
  * @details  https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s132.api.v3.0.0%2Fstructble__gap__adv__params__t.html
  * @param fp Advertisement filter policy, 0 ... 3
  */
- void configure_advertisement_filter(uint8_t fp)
+ void bluetooth_configure_advertisement_filter(uint8_t fp)
  {
   //TODO: Handle invalid parameter
   if(fp > 3){ return; }
@@ -199,14 +199,14 @@ void configure_advertisement_type(uint8_t type)
  * @details  https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s132.api.v3.0.0%2Fstructble__gap__adv__params__t.html
  * @param fp Advertisement timout in seconds, 0x0001 ... 0x3FFF, 0 to disable
  */
- void configure_advertisement_timeout(uint16_t timeout)
+ void bluetooth_configure_advertisement_timeout(uint16_t timeout)
  {
   //TODO: Handle invalid parameter
   if(timeout > 0x3FFF){ return; }
   m_adv_params.timeout = timeout;
  }
 
-uint32_t ble_apply_configuration()
+uint32_t bluetooth_apply_configuration()
 {
   return bluetooth_advertising_start();
 }
@@ -394,7 +394,7 @@ void peer_manager_init(bool erase_bonds)
  * @param int8_t power power in dBm, must be one of -40, -30, -20, -16, -12, -8, -4, 0, 4
  * @return error code, 0 if operation was success.
  */
-uint32_t ble_tx_power_set(int8_t power)
+uint32_t bluetooth_tx_power_set(int8_t power)
 {
     uint32_t err_code = sd_ble_gap_tx_power_set(power);
     APP_ERROR_CHECK(err_code);
@@ -450,20 +450,31 @@ uint32_t bluetooth_advertising_stop(void)
  *
  * @details Initializes the BLE advertisement with given data as manufacturer specific data.
  * Company ID is included by default and doesn't need to be included in parameter data.  
+ * Call bluetooth advertising start to apply new data
  *
  * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
  */
-uint32_t bluetooth_advertise_data()
+uint32_t bluetooth_set_manufacturer_data(uint8_t* data, size_t length)
 {
-    uint32_t err_code = NRF_SUCCESS;
+  uint32_t err_code = NRF_SUCCESS;
 
-    err_code |= ble_advdata_set(&advdata, &scanresp);
-    NRF_LOG_DEBUG("ADV data status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
-    NRF_LOG_FLUSH();
-    //nrf_delay_ms(10);
-    APP_ERROR_CHECK(err_code);
-    return err_code;
-    
+  //31 bytes - overhead - 2 bytes for manufacturer ID
+  if(24 > length)  { return NRF_ERROR_INVALID_PARAM; }
+  if(0 == length ) { advdata.p_manuf_specific_data = NULL; }
+  else 
+  {
+  static uint8_t data_array[24];
+  memset(data_array, 0, sizeof(data_array));
+  m_manufacturer_data.company_identifier = BLE_COMPANY_IDENTIFIER;
+  m_manufacturer_data.data.size = length;
+  m_manufacturer_data.data.p_data = data_array;
+
+  advdata.p_manuf_specific_data = &m_manufacturer_data;
+  }
+  err_code |= ble_advdata_set(&advdata, &scanresp);
+  NRF_LOG_DEBUG("ADV data status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
+
+  return err_code;
 }
 
 

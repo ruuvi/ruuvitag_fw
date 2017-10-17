@@ -26,34 +26,38 @@
 #include "nordic_common.h"
 #include "softdevice_handler.h"
 #include "app_timer.h"
-#include "es_app_config.h"
 #include "bluetooth_config.h"
+#include "bluetooth_core.h"
 #include "bsp.h"
+#include "es.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
 #include "bluetooth_core.h"
-
+#define EDDYSTONE_UUID 0xFEAA
 /**@brief Helper for advertising Eddystone URLs. BLE advertising must be started separately using
  * bluetooth_core / bluetooth_advertise_data().
  *
  * @details Encodes the required advertising data and passes it to the stack.
  *          Also builds a structure to be passed to the stack when starting advertising.
+ * Overrides scan response.
+ * TODO: Refactor: Only generate packet here, and apply advertisement packet with bluetooth_core
  */
 void eddystone_advertise_url(char* url, uint8_t length)
 {
     uint32_t      err_code;
     ble_advdata_t advdata;
     uint8_t       flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
-    ble_uuid_t    adv_uuids[] = {{APP_ES_UUID, BLE_UUID_TYPE_BLE}};
+    ble_uuid_t    adv_uuids[] = {{EDDYSTONE_UUID, BLE_UUID_TYPE_BLE}};
 
     uint8_array_t eddystone_data_array;                             // Array for Service Data structure.
+    uint8_t rf_power[] = APP_CONFIG_CALIBRATED_RANGING_DATA;
 /** @snippet [Eddystone data array] */
     char eddystone_url_data[21] = {0};
-    eddystone_url_data[0] = APP_ES_URL_FRAME_TYPE;   // Eddystone URL frame type.
-    eddystone_url_data[1] = -7;             // RSSI value at 0 m. at 0 dbm transmit. TODO
-    eddystone_url_data[2] = APP_ES_URL_SCHEME;       // Scheme or prefix for URL ("http", "http://www", etc.)
+    eddystone_url_data[0] = ES_FRAME_TYPE_URL;                      // Eddystone URL frame type.
+    eddystone_url_data[1] = rf_power[7];                            // RSSI value at 0 m. at 0 dbm transmit. TODO
+    eddystone_url_data[2] = 0x03;                                    //!< URL prefix scheme according to specification (0x03 = "https://").
     for (int ii = 0; ii < length; ii++)
     {
        eddystone_url_data[3+ii] = url[ii];  // URL with a maximum length of 17 bytes. Last byte is suffix (".com", ".org", etc.)
@@ -64,7 +68,7 @@ void eddystone_advertise_url(char* url, uint8_t length)
 /** @snippet [Eddystone data array] */
 
     ble_advdata_service_data_t service_data;                        // Structure to hold Service Data.
-    service_data.service_uuid = APP_ES_UUID;                 // Eddystone UUID to allow discoverability on iOS devices.
+    service_data.service_uuid = EDDYSTONE_UUID;                 // Eddystone UUID to allow discoverability on iOS devices.
     service_data.data = eddystone_data_array;                       // Array for service advertisement data.
 
     // Build and set advertising data.
@@ -77,6 +81,6 @@ void eddystone_advertise_url(char* url, uint8_t length)
     advdata.p_service_data_array    = &service_data;                // Pointer to Service Data structure.
     advdata.service_data_count      = 1;
 
-    bluetooth_advertising_init(); //Initialise advertising, does nothing if adv is already init.
     err_code = ble_advdata_set(&advdata, NULL);
-    APP_ERROR_CHECK(err_code);}
+    APP_ERROR_CHECK(err_code);
+}

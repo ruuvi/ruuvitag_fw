@@ -49,27 +49,32 @@ uint32_t bluetooth_advertising_stop(void);
  * @param int8_t power power in dBm, must be one of -40, -30, -20, -16, -12, -8, -4, 0, 4
  * @return error code, 0 if operation was success.
  */
-uint32_t ble_tx_power_set(int8_t power);
+uint32_t bluetooth_tx_power_set(int8_t power);
 
-/**@brief Initialize advertising parameters. Parameters can be adjusted by calling this function again. 
- *
- * @details Initializes the BLE advertisement 
- *
- * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
- */
-uint32_t bluetooth_advertising_init(void);
-
-/**@brief Function for advertising data. 
+/**@brief Function for advertising ḿanufacturer specific data. 
  *
  * @details Initializes the BLE advertisement with given data as manufacturer specific data.
- * Companyt ID is included by default and doesn't need to be included.  
+ * Company ID is included by default and doesn't need to be included.
+ * Every other data filed is overwritten
  *
  * @param data pointer to data to advertise, maximum length 24 bytes
  * @param length length of data to advertise
  *
- * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
+ * @return error code from BLE stack, NRF_SUCCESS if operation was ok
  */
-uint32_t bluetooth_advertise_data();
+uint32_t bluetooth_set_manufacturer_data(uint8_t* data, size_t length);
+
+/**
+ *  Updates bluetooth configuration
+ */
+uint32_t bluetooth_apply_configuration();
+
+ /**
+ * @brief Function adjusting advertising interval. 
+ * @details Sets the advertising interval in program.    
+ * @param interval advertisement interval in milliseconds, 100 - 10 000 
+ */
+void bluetooth_configure_advertising_interval(uint16_t interval);
 
 /**@brief Function adjusting advertising interval. 
  *
