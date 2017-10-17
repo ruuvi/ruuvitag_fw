@@ -82,6 +82,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/rtc/rtc.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/ruuvi_endpoints.c \
+  $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/chain_channels.c \
   $(PROJ_DIR)/../../libraries/rust_allocator/rust_allocator.c \
   $(PROJ_DIR)/../../libraries/dsp/dsp.c \
   $(PROJ_DIR)/../../sdk_overrides/app_button.c \
