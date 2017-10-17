@@ -158,6 +158,11 @@ int main(void)
   //Start LIS2DH12
   err_code |= init_lis2dh12();
   NRF_LOG_INFO("LIS2DH12 init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
+  //Erase previous configuration
+  lis2dh12_reset();
+  //Wait for reboot
+  nrf_delay_ms(10);
+  lis2dh12_enable();
 
   
   err_code |= pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler);
