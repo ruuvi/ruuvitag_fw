@@ -60,7 +60,7 @@ SRC_FILES += \
 INC_FOLDERS += \
   $(PROJ_DIR)/../bsp \
   $(PROJ_DIR) \
-  $(PROJ_DIR)/ruuvitag_b3_debug/config \
+  $(PROJ_DIR)/ruuvitag_b_production/config \
   $(SDK_ROOT)/components/toolchain/cmsis/include \
   $(SDK_ROOT)/components/drivers_nrf/rng \
   $(SDK_ROOT)/components/toolchain \

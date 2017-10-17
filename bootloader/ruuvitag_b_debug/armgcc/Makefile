@@ -5,7 +5,7 @@ OUTPUT_DIRECTORY := _build
 SDK_ROOT := $(abspath ../../../nRF5_SDK_12.3.0_d7731ad)
 PROJ_DIR := $(abspath ../..)
 
-$(OUTPUT_DIRECTORY)/ruuvitag_b3_bootloader.out: \
+$(OUTPUT_DIRECTORY)/ruuvitag_b_bootloader.out: \
   LINKER_SCRIPT  := secure_dfu_gcc_nrf52_debug.ld
 # Source files common to all targets
 SRC_FILES += \
@@ -59,7 +59,7 @@ SRC_FILES += \
 INC_FOLDERS += \
   $(PROJ_DIR)/../bsp \
   $(PROJ_DIR) \
-  $(PROJ_DIR)/ruuvitag_b3_debug/config \
+  $(PROJ_DIR)/ruuvitag_b_debug/config \
   $(SDK_ROOT)/components/toolchain/cmsis/include \
   $(SDK_ROOT)/components/drivers_nrf/rng \
   $(SDK_ROOT)/components/toolchain \
