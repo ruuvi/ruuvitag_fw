@@ -17,6 +17,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/bluetooth/ble_bulk_transfer.c \
   $(PROJ_DIR)/../../drivers/bluetooth/ble_event_handlers.c \
   $(PROJ_DIR)/../../drivers/bluetooth/bluetooth_core.c \
+  $(PROJ_DIR)/../../drivers/bluetooth/eddystone.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280_temperature_handler.c \
   $(PROJ_DIR)/../../drivers/nrf_nordic_pininterrupt/pin_interrupt.c \
@@ -28,16 +29,33 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/rtc/rtc.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../libraries/base64/base64.c \
+  $(PROJ_DIR)/../../libraries/data_structures/ringbuffer.c \
   $(PROJ_DIR)/../../libraries/dsp/dsp.c \
+  $(PROJ_DIR)/../../libraries/dsp/stdev.c \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/ruuvi_endpoints.c \
-  $(PROJ_DIR)/../../libraries/rust_allocator/rust_allocator.c \
+  $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/chain_channels.c \
+  $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/sensortag.c \
   $(PROJ_DIR)/../../sdk_overrides/app_button.c \
   $(PROJ_DIR)/ble_services/application_ble_event_handlers.c \
   $(PROJ_DIR)/ble_services/application_service_if.c \
   $(PROJ_DIR)/main.c \
   $(SDK_ROOT)/components/ble/common/ble_advdata.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_params.c \
+  $(SDK_ROOT)/components/ble/common/ble_conn_state.c \
   $(SDK_ROOT)/components/ble/common/ble_srv_common.c \
+  $(SDK_ROOT)/components/ble/nrf_ble_qwr/nrf_ble_qwr.c \
+  $(SDK_ROOT)/components/ble/peer_manager/gatt_cache_manager.c \
+  $(SDK_ROOT)/components/ble/peer_manager/gatts_cache_manager.c \
+  $(SDK_ROOT)/components/ble/peer_manager/id_manager.c \
+  $(SDK_ROOT)/components/ble/peer_manager/peer_data.c \
+  $(SDK_ROOT)/components/ble/peer_manager/peer_data_storage.c \
+  $(SDK_ROOT)/components/ble/peer_manager/peer_database.c \
+  $(SDK_ROOT)/components/ble/peer_manager/peer_manager.c \
+  $(SDK_ROOT)/components/ble/peer_manager/peer_id.c \
+  $(SDK_ROOT)/components/ble/peer_manager/pm_buffer.c \
+  $(SDK_ROOT)/components/ble/peer_manager/pm_mutex.c \
+  $(SDK_ROOT)/components/ble/peer_manager/security_dispatcher.c \
+  $(SDK_ROOT)/components/ble/peer_manager/security_manager.c \
   $(SDK_ROOT)/components/drivers_nrf/clock/nrf_drv_clock.c \
   $(SDK_ROOT)/components/drivers_nrf/clock/nrf_drv_clock.c \
   $(SDK_ROOT)/components/drivers_nrf/common/nrf_drv_common.c \
@@ -64,6 +82,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/util/app_util_platform.c \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \
   $(SDK_ROOT)/components/libraries/util/sdk_errors.c \
+  $(SDK_ROOT)/components/libraries/util/sdk_mapped_flags.c \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
   $(SDK_ROOT)/components/toolchain/gcc/gcc_startup_nrf52.S \
   $(SDK_ROOT)/components/toolchain/system_nrf52.c \
@@ -154,6 +173,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/crc32 \
   $(SDK_ROOT)/components/libraries/csense \
   $(SDK_ROOT)/components/libraries/csense_drv \
+  $(SDK_ROOT)/components/libraries/eddystone \
   $(SDK_ROOT)/components/libraries/experimental_section_vars \
   $(SDK_ROOT)/components/libraries/fds \
   $(SDK_ROOT)/components/libraries/fifo \
