@@ -5,8 +5,8 @@ GROUP(-lgcc -lc -lnosys)
 
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x1f000, LENGTH = 0x56000   /* Conserve space for debug bootloader */
-  RAM (rwx) :  ORIGIN = 0x20001930, LENGTH = 0xe6d0
+  FLASH (rx) : ORIGIN = 0x1f000, LENGTH = 0x56000    /* Conserve space for debug bootloader */
+  RAM (rwx) :  ORIGIN = 0x20002c38, LENGTH = 0xd3c8  /* <- Configure according to central/peripheral link count an service count */
 }
 
 SECTIONS
