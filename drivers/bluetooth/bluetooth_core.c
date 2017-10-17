@@ -24,7 +24,7 @@
 #include "ble_nus.h"
 #include "peer_manager.h"
 #include "sdk_errors.h"
-#include "nrf_delay.h"
+//#include "nrf_delay.h"
 
 #include "ble_event_handlers.h" 
 #include "bluetooth_config.h"
@@ -293,9 +293,9 @@ uint32_t bluetooth_stack_init(void)
     #define BLE_ATTRIBUTE_TABLE_SIZE 0x1000
     #ifdef BLE_ATTRIBUTE_TABLE_SIZE
     //Adjust attribute table size, linkerscript has to be adjusted if this value is changed
-    NRF_LOG_INFO("Attribute table size: %d\r\n", ble_enable_params.gatts_enable_params.attr_tab_size);
+    NRF_LOG_DEBUG("Attribute table size: %d\r\n", ble_enable_params.gatts_enable_params.attr_tab_size);
     ble_enable_params.gatts_enable_params.attr_tab_size   = BLE_ATTRIBUTE_TABLE_SIZE;
-    NRF_LOG_INFO("Attribute table size: %d\r\n", ble_enable_params.gatts_enable_params.attr_tab_size);
+    NRF_LOG_DEBUG("Attribute table size: %d\r\n", ble_enable_params.gatts_enable_params.attr_tab_size);
     #endif
     
     //Adjust UUID count TODO refactor into application
@@ -304,8 +304,7 @@ uint32_t bluetooth_stack_init(void)
     ble_enable_params.common_enable_params.vs_uuid_count = BLE_UUID_COUNT;
     #endif
     NRF_LOG_INFO("Softdevice configuration ready, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));       
-    NRF_LOG_FLUSH();  
-    nrf_delay_ms(10);                                           
+    //nrf_delay_ms(10);
     APP_ERROR_CHECK(err_code);
 
     //Check the ram settings against the used number of links
@@ -317,30 +316,40 @@ uint32_t bluetooth_stack_init(void)
     #endif
 
     // Subscribe for BLE events.
-    err_code = softdevice_ble_evt_handler_set(ble_evt_dispatch);
-    APP_ERROR_CHECK(err_code);
+    err_code |= softdevice_ble_evt_handler_set(ble_evt_dispatch);
+    NRF_LOG_INFO("BLE event handler set, status %d\r\n", err_code);
+    //nrf_delay_ms(10);
 
     // Register with the SoftDevice handler module for BLE events.
-    err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
-    APP_ERROR_CHECK(err_code);    
-
+    err_code |= softdevice_sys_evt_handler_set(sys_evt_dispatch);
+    NRF_LOG_INFO("System event handler set, status %d\r\n", err_code);
+    //nrf_delay_ms(10);
 
     // Enable BLE stack.
     err_code = softdevice_enable(&ble_enable_params);
-    NRF_LOG_DEBUG("Softdevice enabled, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));
-    APP_ERROR_CHECK(err_code);
+    NRF_LOG_INFO("Softdevice enabled, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));
+    //nrf_delay_ms(10);
 
     //Enable peer manager, erase bonds
     peer_manager_init(true);
+    NRF_LOG_INFO("Peer manager init \r\n");
+    //nrf_delay_ms(10);
 
     err_code |= application_services_init();
-    NRF_LOG_DEBUG("Services init status %d\r\n", err_code);
+    NRF_LOG_INFO("Services init status %d\r\n", err_code);
+    //nrf_delay_ms(10);
     
     gap_params_init();
-    NRF_LOG_DEBUG("GAP params init\r\n");
+    NRF_LOG_INFO("GAP params init\r\n");
+    //nrf_delay_ms(10);
 
     conn_params_init();
+    NRF_LOG_INFO("Conn params init, status\r\n");
+    //nrf_delay_ms(10);
+
     advertising_init();    
+    NRF_LOG_INFO("Advertising init, status\r\n");
+    //nrf_delay_ms(10);
 
     return err_code;
 }
