@@ -18,7 +18,7 @@ SDK_HOME    := $(TOP)/$(SDK_DIR)
 
 ifeq ($(OS),Windows_NT)
 	DOWNLOAD_CMD ?= powershell curl -o
-	UNZIP_CMD ?= powershell Expand-Archive -DestinationPath 
+	UNZIP_CMD ?= powershell Expand-Archive -DestinationPath .
 else
 	DOWNLOAD_CMD ?= curl -o
 	UNZIP_CMD ?= unzip -q
@@ -35,7 +35,6 @@ bootstrap: $(SDK_FILE) $(SDK_DIR) $(SDK_DIR)/external/micro-ecc/micro-ecc
 	@echo SDK_HOME = ${SDK_HOME}
 
 $(SDK_DIR):
-	#$(UNZIP_CMD) $(SDK_DIR) $(SDK_FILE)
 	$(UNZIP_CMD) $(SDK_FILE)
 	$(call patch_sdk_$(SDK_VERSION))
 
