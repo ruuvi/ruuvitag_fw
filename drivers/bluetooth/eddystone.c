@@ -45,34 +45,33 @@
  *  @param url url to advertise. May include prefix and suffix bytes, such as 0x03 for https://
  *  @param length length of URL to advertise. 
  *  @return Error code, 0 on success
+ *  TODO: Refactor static variables out
  */
 ret_code_t eddystone_prepare_url_advertisement(ble_advdata_t* advdata, char* url, size_t length)
 {
     if(length > 17) { return NRF_ERROR_INVALID_PARAM; }
-    ble_uuid_t    adv_uuids[] = {{EDDYSTONE_UUID, BLE_UUID_TYPE_BLE}};
+    static ble_uuid_t    adv_uuids[] = {{EDDYSTONE_UUID, BLE_UUID_TYPE_BLE}};
 
-    uint8_array_t eddystone_data_array;                             // Array for Service Data structure.
+    static uint8_array_t eddystone_data_array;                             // Array for Service Data structure.
     uint8_t rf_power[] = APP_CONFIG_CALIBRATED_RANGING_DATA;
 
-    char eddystone_url_data[21] = {0};
+    static char eddystone_url_data[21] = {0};
     eddystone_url_data[0] = ES_FRAME_TYPE_URL;                      // Eddystone URL frame type.
     eddystone_url_data[1] = rf_power[7];                            // RSSI value at 0 m. at 0 dbm transmit. TODO
-    for (int ii = 0; ii < length; ii++)
-    {
-       eddystone_url_data[2+ii] = url[ii];  // URL with a maximum length of 17 bytes. Last byte is suffix (".com", ".org", etc.)
-    }  
+    memcpy(eddystone_url_data+2, url, length);                      // URL with a maximum length of 17 bytes.  
 
     eddystone_data_array.p_data = (uint8_t *) eddystone_url_data;   // Pointer to the data to advertise.
-    eddystone_data_array.size = 3 + length;                         // Size of the data to advertise.
+    eddystone_data_array.size = 2 + length;                         // Size of the data to advertise.
 
 
-    ble_advdata_service_data_t service_data;                        // Structure to hold Service Data.
+    static ble_advdata_service_data_t service_data;                        // Structure to hold Service Data.
     service_data.service_uuid = EDDYSTONE_UUID;                     // Eddystone UUID to allow discoverability on iOS devices.
     service_data.data = eddystone_data_array;                       // Array for service advertisement data.
 
     // Build and set advertising data.
     memset(advdata, 0, sizeof(ble_advdata_t));
 
+    advdata->flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
     advdata->uuids_complete.uuid_cnt = sizeof(adv_uuids) / sizeof(adv_uuids[0]);
     advdata->uuids_complete.p_uuids  = adv_uuids;
     advdata->p_service_data_array    = &service_data;  // Pointer to Service Data structure.

@@ -150,10 +150,11 @@ static void power_manage(void)
 
 static void updateAdvertisement(void)
 {
-  if(highres){ bluetooth_set_manufacturer_data(data_buffer, sizeof(data_buffer)); }
-  else { bluetooth_set_eddystone_url(url_buffer, sizeof(url_buffer)); }
-  NRF_LOG_DEBUG("Applying configuration\r\n");
-  bluetooth_apply_configuration();
+  ret_code_t err_code = NRF_SUCCESS;
+  if(highres){ err_code |= bluetooth_set_manufacturer_data(data_buffer, sizeof(data_buffer)); }
+  else { err_code |= bluetooth_set_eddystone_url(url_buffer, sizeof(url_buffer)); }
+  NRF_LOG_INFO("Applying configuration, data status %d\r\n", err_code);
+  err_code |= bluetooth_apply_configuration();
 }
 
 

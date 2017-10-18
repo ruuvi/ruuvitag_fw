@@ -75,7 +75,7 @@ void encodeToSensorDataFormat(uint8_t* data_buffer, ruuvi_sensor_t* data)
 
 /**
  *  Encodes sensor data into given char* url. The base url must have the base of url written by caller.
- *  For example, url = {'r' 'u' 'u' '.' 'v' 'i' '/' '#' '0' '0' '0' '0' '0' '0' '0' '0' '0'}
+ *  For example, url = { 0x03, 'r' 'u' 'u' '.' 'v' 'i' '/' '#' '0' '0' '0' '0' '0' '0' '0' '0'}
  *  The URL may have a length of 18 bytes, 8 of which is consumed by payload. 
  *  
  *  @param url pointer to character array with max length of 18

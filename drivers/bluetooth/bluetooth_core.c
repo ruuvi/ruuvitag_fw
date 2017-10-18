@@ -209,7 +209,11 @@ void bluetooth_configure_advertisement_type(uint8_t type)
 
 uint32_t bluetooth_apply_configuration()
 {
-  return bluetooth_advertising_start();
+  ret_code_t err_code = NRF_SUCCESS;
+  err_code |= ble_advdata_set(&advdata, &scanresp);
+  err_code |= bluetooth_advertising_start();
+  if(err_code != NRF_SUCCESS) { NRF_LOG_ERROR("Failed to apply configuration: %d\r\n", err_code); }
+  return err_code;
 }
 
 /**@brief Function for the GAP initialization.
@@ -259,7 +263,7 @@ static void conn_params_init(void)
     //nrf_delay_ms(10);
     APP_ERROR_CHECK(err_code);
 }
-
+//TODO: Enable & differentiate slow / fast advertising
 static void advertising_init(void)
 {
     uint32_t err_code = NRF_SUCCESS;
@@ -425,7 +429,7 @@ uint32_t bluetooth_advertising_start(void)
     //Stop advertising before making adjustments
     if(advertising)
     {
-      err_code = sd_ble_gap_adv_stop();
+      err_code |= sd_ble_gap_adv_stop();
     }
 
     err_code |= sd_ble_gap_adv_start(&m_adv_params);
@@ -433,7 +437,7 @@ uint32_t bluetooth_advertising_start(void)
     {
         NRF_LOG_INFO("Advertisement fail: %d \r\n",err_code);
     }
-    advertising = true;
+    else { advertising = true; }
     return err_code;
 }
 
@@ -444,16 +448,14 @@ uint32_t bluetooth_advertising_start(void)
  */
 uint32_t bluetooth_advertising_stop(void)
 {
-
-    uint32_t err_code = NRF_SUCCESS;
-    //Stop advertising before making adjustments
-    if(advertising)
-    {
-      err_code = sd_ble_gap_adv_stop();
-    }
-
-    advertising = false;
-    return err_code;
+  uint32_t err_code = NRF_SUCCESS;
+  if(advertising)
+  {
+    err_code = sd_ble_gap_adv_stop();
+  }
+  if(NRF_SUCCESS != err_code) { NRF_LOG_INFO("Advertisement fail: %d \r\n",err_code); }
+  else { advertising = false; }
+  return err_code;
 }
 
 /**@brief Function for advertising data. 
@@ -469,19 +471,22 @@ uint32_t bluetooth_set_manufacturer_data(uint8_t* data, size_t length)
   uint32_t err_code = NRF_SUCCESS;
 
   //31 bytes - overhead - 2 bytes for manufacturer ID
-  if(24 > length)  { return NRF_ERROR_INVALID_PARAM; }
+  if(24 < length)  { return NRF_ERROR_INVALID_PARAM; }
   if(0 == length ) { advdata.p_manuf_specific_data = NULL; }
   else 
   {
-  static uint8_t data_array[24];
-  memset(data_array, 0, sizeof(data_array));
-  m_manufacturer_data.company_identifier = BLE_COMPANY_IDENTIFIER;
-  m_manufacturer_data.data.size = length;
-  m_manufacturer_data.data.p_data = data_array;
-
-  advdata.p_manuf_specific_data = &m_manufacturer_data;
+    // Configuration of manufacturer specific data
+    static uint8_t data_array[24];
+    memset(data_array, 0, sizeof(data_array));
+    memcpy(data_array, data, length);
+    m_manufacturer_data.company_identifier = BLE_COMPANY_IDENTIFIER;
+    m_manufacturer_data.data.size = length;
+    m_manufacturer_data.data.p_data = data_array;
+    
+    memset(&advdata, 0, sizeof(advdata));
+    advdata.p_manuf_specific_data = &m_manufacturer_data;
+    advdata.flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
   }
-  err_code |= ble_advdata_set(&advdata, &scanresp);
   NRF_LOG_DEBUG("ADV data status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
 
   return err_code;
