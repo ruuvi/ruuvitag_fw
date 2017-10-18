@@ -38,6 +38,7 @@
 #include "nrf_ble_escs.h"
 #include "nrf_ble_es.h"
 #include "fstorage.h"
+#include "nrf_delay.h"
 
 #include "event_handlers.h"
 
@@ -70,6 +71,7 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
  *
  * @param[in] p_ble_evt SoftDevice event.
  */
+static bool connected = false;
 static void on_ble_evt(ble_evt_t * p_ble_evt)
 {
     uint32_t err_code;
@@ -98,6 +100,7 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
         
         case BLE_GAP_EVT_DISCONNECTED:
             bsp_board_led_off(CONNECTED_LED_PIN);
+            connected = false;
             break;
         
 #if (NRF_SD_BLE_API_VERSION == 3)
@@ -139,6 +142,7 @@ static void ble_evt_dispatch(ble_evt_t * p_ble_evt)
  */
 static void power_manage(void)
 {
+    if(!connected){ bsp_indication_set(BSP_INDICATE_IDLE); }
     bsp_board_led_off(NON_CONNECTABLE_ADV_LED_PIN);
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
@@ -158,6 +162,7 @@ static void button_evt_handler(uint8_t pin_no, uint8_t button_action)
 {
     if (button_action == APP_BUTTON_PUSH && pin_no == BUTTON_1)
     {
+        connected = true;    
         nrf_ble_es_on_start_connectable_advertising();
     }
 }
@@ -210,20 +215,23 @@ int main(void)
     // Initialize.
     init_log(); //TODO: Check for errors
     
-    init_ble(); //TODO: Check for errors
-
+    err_code = init_ble(); //TODO: Check for errors
+    NRF_LOG_INFO("BLE init status: %d\r\n", err_code);
+    nrf_delay_ms(10);
+    
     // Subscribe for BLE events.
     err_code = softdevice_ble_evt_handler_set(ble_evt_dispatch);
-    APP_ERROR_CHECK(err_code);
+    NRF_LOG_INFO("Softdevice bluetooth handler setup status: %d\r\n", err_code);
+    nrf_delay_ms(10);
     
     // Subscribe for system events.
     err_code = softdevice_sys_evt_handler_set(sys_evt_dispatch);
-    APP_ERROR_CHECK(err_code);
+    NRF_LOG_INFO("Softdevice system handler setup status: %d\r\n", err_code);
+    nrf_delay_ms(10);
 
-    APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
-    APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, true);
     err_code = bsp_init(BSP_INIT_LED, APP_TIMER_TICKS(100, APP_TIMER_PRESCALER), NULL);
-    APP_ERROR_CHECK(err_code);
+    NRF_LOG_INFO("BSP setup status: %d\r\n", err_code);
+    nrf_delay_ms(10);
 
     button_init();
     gpio_init();
