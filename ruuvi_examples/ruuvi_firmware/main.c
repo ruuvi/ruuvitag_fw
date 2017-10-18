@@ -217,6 +217,7 @@ void main_timer_handler(void * p_context)
       encodeToUrlDataFromat(url_buffer, URL_BASE_LENGTH, &data);
     }
     updateAdvertisement();
+    watchdog_feed();
 }
 
 

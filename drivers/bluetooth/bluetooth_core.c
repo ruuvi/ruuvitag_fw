@@ -92,7 +92,7 @@ ble_advdata_t advdata =
 // BLE_ADVDATA_SHORT_NAME
 // BLE_ADVDATA_FULL_NAME
  .name_type = BLE_ADVDATA_NO_NAME, //scan response has full name
- .short_name_len = 4, //Name get truncated to 4 first letters if full name does not fit
+ .short_name_len = 0, // in scan resp.
  .include_appearance = false, // scan response has appearance
  .flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE, // Low energy, discoverable
  .p_tx_power_level        = NULL,
@@ -124,7 +124,7 @@ ble_advdata_t scanresp =
  .p_manuf_specific_data   = NULL,
  .p_service_data_array    = NULL,
  .service_data_count      = 0,
- .include_ble_device_addr = false, //included in advertisement
+ .include_ble_device_addr = false, // add for IOS users? 
  .le_role                 = BLE_ADVDATA_ROLE_NOT_PRESENT, //always when on BLE
  .p_tk_value              = NULL, //always when on BLE
  .p_sec_mgr_oob_flags     = NULL, //always when on BLE
