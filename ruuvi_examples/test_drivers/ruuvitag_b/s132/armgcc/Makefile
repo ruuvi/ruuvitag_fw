@@ -81,6 +81,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/rng/rng.c \
   $(PROJ_DIR)/../../drivers/rtc/rtc.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_watchdog/watchdog.c \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/ruuvi_endpoints.c \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/chain_channels.c \
   $(PROJ_DIR)/../../libraries/rust_allocator/rust_allocator.c \
@@ -207,6 +208,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../drivers/rng/ \
   $(PROJ_DIR)/../../drivers/rtc/ \
   $(PROJ_DIR)/../../drivers/spi/ \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_watchdog/ \
   $(PROJ_DIR)/../../libraries/data_structures/ \
   $(PROJ_DIR)/../../libraries/dsp/ \
   $(PROJ_DIR)/../../libraries/rust_allocator/ \
