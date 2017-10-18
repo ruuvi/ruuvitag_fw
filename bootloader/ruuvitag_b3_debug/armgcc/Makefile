@@ -81,7 +81,6 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/drivers_nrf/delay \
   $(SDK_ROOT)/components/ble/common \
   $(SDK_ROOT)/components/libraries/fifo \
-  $(SDK_ROOT)/components/libraries/bootloader/ble_dfu/includes \
   $(SDK_ROOT)/components/libraries/svc \
   $(SDK_ROOT)/components/libraries/log \
   $(SDK_ROOT)/components/libraries/hci \
