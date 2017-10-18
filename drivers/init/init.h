@@ -14,6 +14,7 @@
 #include "app_scheduler.h"
 #include "app_timer_appsh.h"
 #include "ruuvi_endpoints.h"
+#include "watchdog.h"
 
 //Timers
 /** PRESCALER: will be written to the RTC1 PRESCALER register. 
@@ -66,6 +67,14 @@ init_err_code_t init_log(void);
  *
  */
 init_err_code_t init_ble(void);
+
+/**
+ *  Initialize and enable watchdog. After calling this function
+ *  watchdog_feed() must be called at interval defined by sdk_config.
+ *  If NULL is given as a handler, default handler which prints error
+ *  log is used.
+ */
+init_err_code_t init_watchdog(watchdog_event_handler_t handler);
 
 /**
  * Initialize timers

@@ -28,6 +28,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/rng/rng.c \
   $(PROJ_DIR)/../../drivers/rtc/rtc.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_watchdog/watchdog.c \
   $(PROJ_DIR)/../../libraries/base64/base64.c \
   $(PROJ_DIR)/../../libraries/data_structures/ringbuffer.c \
   $(PROJ_DIR)/../../libraries/dsp/dsp.c \
@@ -66,6 +67,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/drivers_nrf/saadc/nrf_drv_saadc.c \
   $(SDK_ROOT)/components/drivers_nrf/hal/nrf_saadc.c \
   $(SDK_ROOT)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c \
+  $(SDK_ROOT)/components/drivers_nrf/wdt/nrf_drv_wdt.c \
   $(SDK_ROOT)/components/ble/ble_advertising/ble_advertising.c \
   $(SDK_ROOT)/components/libraries/fifo/app_fifo.c \
   $(SDK_ROOT)/components/libraries/fds/fds.c \
@@ -105,6 +107,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../drivers/rng/ \
   $(PROJ_DIR)/../../drivers/rtc/ \
   $(PROJ_DIR)/../../drivers/spi/ \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_watchdog/ \
   $(PROJ_DIR)/../../libraries/base64/ \
   $(PROJ_DIR)/../../libraries/data_structures/ \
   $(PROJ_DIR)/../../libraries/dsp/ \

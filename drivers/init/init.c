@@ -27,6 +27,7 @@
 #include "lis2dh12_acceleration_handler.h"
 #include "pin_interrupt.h"
 #include "pwm.h"
+#include "watchdog.h"
 
 //Libraries
 #include "ruuvi_endpoints.h"
@@ -227,10 +228,26 @@ init_err_code_t init_sensors(void)
 /**
  * Initialise PWM channels
  */
-init_err_code_t init_pwm()
+init_err_code_t init_pwm(void)
 {
   pwm_init(200, LED_RED, LED_GREEN, 0, 0);
   return INIT_SUCCESS;
+}
+
+/**
+ *  Initialize and enable watchdog. After calling this function
+ *  watchdog_feed() must be called at interval defined by sdk_config.
+ *  If NULL is given as a handler, default handler which prints error
+ *  log is used.
+ */
+init_err_code_t init_watchdog(watchdog_event_handler_t handler)
+{
+  if(NULL == handler) { handler = watchdog_default_handler; }
+  init_err_code_t err_code = INIT_SUCCESS;
+  err_code |= watchdog_init(handler);
+  watchdog_enable();
+  return err_code;
+  
 }
 
 /**

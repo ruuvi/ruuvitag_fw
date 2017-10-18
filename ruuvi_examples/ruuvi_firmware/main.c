@@ -283,7 +283,9 @@ int main(void)
   if(model_plus){bme280_set_mode(BME280_MODE_FORCED);}
   //delay for model plus, basic will not show green.
   if(model_plus) nrf_delay_ms(1000);
-
+  
+  //Init ok, start watchdog with default wdt event handler
+  init_watchdog(NULL);
 
   // Enter main loop.
   for (;; )
