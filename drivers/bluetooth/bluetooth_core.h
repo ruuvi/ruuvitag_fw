@@ -88,4 +88,14 @@ void bluetooth_configure_advertising_interval(uint16_t interval);
  * @return 0 if value was updated, 1 if value was outside acceptable range
  */
 uint32_t set_advertising_interval(uint16_t interval);
+
+/**
+ * Set Eddystone URL advertisement package in advdata. Must be applied with bluetooth_apply_configuration()
+ * 
+ * @param url_buffer character array containing new URL. May contain eddystone
+ *        shortcuts, such as 0x03: "https://"
+ * @param length length of URL to transmit. must be <18. Shortcut bytes are counted as one, i.e. https://ruu.vi is 7 bytes long
+ *        as long as https:// is written as 0x03
+ */
+ret_code_t bluetooth_set_eddystone_url(char* url_buffer, size_t length);
 #endif

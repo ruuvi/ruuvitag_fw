@@ -29,6 +29,7 @@
 #include "ble_event_handlers.h" 
 #include "bluetooth_config.h"
 #include "ble_bulk_transfer.h"
+#include "eddystone.h"
 #include "ruuvi_endpoints.h"
 
 #include "application_service_if.h"
@@ -486,5 +487,15 @@ uint32_t bluetooth_set_manufacturer_data(uint8_t* data, size_t length)
   return err_code;
 }
 
-
-
+/**
+ * Set Eddystone URL advertisement package in advdata. Must be applied with bluetooth_apply_configuration()
+ * 
+ * @param url_buffer character array containing new URL. May contain eddystone
+ *        shortcuts, such as 0x03: "https://"
+ * @param length length of URL to transmit. must be <18. Shortcut bytes are counted as one, i.e. https://ruu.vi is 7 bytes long
+ *        as long as https:// is written as 0x03
+ */
+ret_code_t bluetooth_set_eddystone_url(char* url_buffer, size_t length)
+{
+  return eddystone_prepare_url_advertisement(&advdata, url_buffer, length);
+}

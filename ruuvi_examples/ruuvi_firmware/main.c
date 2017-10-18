@@ -77,25 +77,21 @@ APP_TIMER_DEF(main_timer_id);                                             /** Cr
 #define MAIN_LOOP_INTERVAL_RAW 1000u
 
 //Payload requires 8 characters
-#define URL_BASE_LENGTH 8
-static char url_buffer[17] = {'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
+#define URL_BASE_LENGTH 9
+static char url_buffer[17] = {0x03, 'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
 static uint8_t data_buffer[18] = { 0 };
-bool model_plus = false; //Flag for sensors available
-bool highres    = true; //Flag for used mode
-bool debounce   = true;
+static bool model_plus = false; //Flag for sensors available
+static bool highres    = false; //Flag for used mode
+static bool debounce   = false; //Flag for avoiding double presses
 
 static ruuvi_sensor_t data;
 
-void main_timer_handler(void * p_context);
+static void main_timer_handler(void * p_context);
 
-
-/**@brief Function for handling bsp events.
- * Detects and handles button press
- */
-ret_code_t button_press_handler(const ruuvi_standard_message_t message)
+// Handler forbutton press. Called in scheduler, out of interrupt context
+void change_mode(void* data, uint16_t length)
 {
-  NRF_LOG_INFO("Button\r\n");
-  //Change mode on button press
+  if(debounce) { return; }
   highres = !highres;
   if(model_plus)
   {
@@ -114,8 +110,22 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
       bluetooth_configure_advertising_interval(MAIN_LOOP_INTERVAL_URL / 10); //Broadcast often to "hit" occasional background scans.
     }
   }
-  void *ptr = NULL;
-  main_timer_handler(ptr); //Call timer handler to update data. Will also apply updated advertisement interval
+  NRF_LOG_INFO("Updating in %d mode\r\n", (uint32_t) highres);
+  main_timer_handler(NULL);
+  debounce = true;
+}
+
+/**@brief Function for handling button events.
+ * Schedulers call to handler
+ */
+ret_code_t button_press_handler(const ruuvi_standard_message_t message)
+{
+  NRF_LOG_INFO("Button\r\n");
+  nrf_gpio_pin_clear(LED_RED);
+  nrf_gpio_pin_clear(LED_GREEN);
+  //Change mode on button press
+  //Use scheduler, do not use peripherals in interrupt conext (SPI write halts)
+  app_sched_event_put	(NULL, 0, change_mode);
 
   return ENDPOINT_SUCCESS;
 }
@@ -124,38 +134,26 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
  */
 static void power_manage(void)
 {
-  if(1 == nrf_gpio_pin_read(BUTTON_1)) //leave leds on button press
-  {
-    nrf_gpio_pin_set(LED_GREEN); 
-    nrf_gpio_pin_set(LED_RED);       //Clear both leds before sleep 
-    debounce = true;        
-  }
-      
+  //Clear both leds before sleep 
+  nrf_gpio_pin_set(LED_GREEN); 
+  nrf_gpio_pin_set(LED_RED);       
+
   uint32_t err_code = sd_app_evt_wait();
   APP_ERROR_CHECK(err_code);
 
-  if(highres)
-  {  //signal mode by led color
-    nrf_gpio_pin_clear(LED_RED); 
-  }
-  else 
-  {
-    nrf_gpio_pin_clear(LED_GREEN);
-  }
+  //signal mode by led color
+  if(highres){ nrf_gpio_pin_clear(LED_RED); }
+  else { nrf_gpio_pin_clear(LED_GREEN); }
+  //Reset debounce if button is not pressed
+  if(nrf_gpio_pin_read(BUTTON_1)){ debounce = false; }
 }
 
 static void updateAdvertisement(void)
 {
-  if(highres){
-    bluetooth_set_manufacturer_data(data_buffer, sizeof(data_buffer));
-    bluetooth_apply_configuration();
-  }
-  else 
-  {
-    eddystone_advertise_url(url_buffer, sizeof(url_buffer));
-    bluetooth_apply_configuration();
-    NRF_LOG_DEBUG("Updated eddystone URL\r\n");
-  }
+  if(highres){ bluetooth_set_manufacturer_data(data_buffer, sizeof(data_buffer)); }
+  else { bluetooth_set_eddystone_url(url_buffer, sizeof(url_buffer)); }
+  NRF_LOG_DEBUG("Applying configuration\r\n");
+  bluetooth_apply_configuration();
 }
 
 
@@ -241,7 +239,7 @@ int main(void)
   bluetooth_tx_power_set(BLE_TX_POWER);
     
   // Initialize the application timer module.
-  err_code |= init_timer(main_timer_id, MAIN_LOOP_INTERVAL_URL, main_timer_handler);
+  err_code |= init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler);
 
   // Initialize button
   //Start interrupts
@@ -268,6 +266,7 @@ int main(void)
     bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
     bme280_set_mode(BME280_MODE_FORCED);
     NRF_LOG_DEBUG("BME280 configuration done\r\n");
+    highres = true;
   }
         
   //Take another measurement to let BME 280 filters settle

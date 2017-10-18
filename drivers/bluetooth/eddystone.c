@@ -49,7 +49,6 @@
 ret_code_t eddystone_prepare_url_advertisement(ble_advdata_t* advdata, char* url, size_t length)
 {
     if(length > 17) { return NRF_ERROR_INVALID_PARAM; }
-    uint8_t       flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
     ble_uuid_t    adv_uuids[] = {{EDDYSTONE_UUID, BLE_UUID_TYPE_BLE}};
 
     uint8_array_t eddystone_data_array;                             // Array for Service Data structure.
