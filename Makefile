@@ -64,10 +64,11 @@ bootloader:
 
 clean:
 	@echo cleaning B build files…
+	git submodule update --init --recursive
 	$(MAKE) -C ruuvi_examples/ble_app_beacon/ruuvitag_b/s132/armgcc clean
 	$(MAKE) -C ruuvi_examples/eddystone/ruuvitag_b/s132/armgcc clean
 	$(MAKE) -C ruuvi_examples/test_drivers/ruuvitag_b/s132/armgcc clean
-	$(MAKE) -C ruuvi_examples/template_app/ruuvitag_b/s132/armgcc clean
+	$(MAKE) -C ruuvi_examples/ruuvi_firmware/ruuvitag_b/s132/armgcc
 	$(MAKE) -C bootloader/ruuvitag_b_debug/armgcc clean
 	$(MAKE) -C bootloader/ruuvitag_b_production/armgcc clean
 
