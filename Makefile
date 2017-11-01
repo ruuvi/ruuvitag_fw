@@ -50,6 +50,7 @@ $(SDK_DIR)/external/micro-ecc/micro-ecc:
 
 fw:
 	@echo build FW
+	git submodule update --init --recursive
 	$(MAKE) -C ruuvi_examples/ble_app_beacon/ruuvitag_b/s132/armgcc
 	$(MAKE) -C ruuvi_examples/eddystone/ruuvitag_b/s132/armgcc
 	$(MAKE) -C ruuvi_examples/test_drivers/ruuvitag_b/s132/armgcc
