@@ -65,7 +65,7 @@ void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32
  */
 void encodeToRawFormat5(uint8_t* data_buffer, bme280_data_t* environmental, acceleration_t* acceleration, uint16_t acceleration_events, uint16_t vbatt, int8_t tx_pwr)
 {
-    static uint16_t packet_counter = 0;
+    static uint32_t packet_counter = 0;
     data_buffer[0] = RAW_FORMAT_2;
     environmental->temperature *= 2; //Spec calls for 0.005 degree resolution, bme280 gives 0.01
     data_buffer[1] = (environmental->temperature)>>8;
