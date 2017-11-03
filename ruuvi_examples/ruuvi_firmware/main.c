@@ -295,7 +295,7 @@ int main(void)
     
     //Enable interrupt 2 on X-Y-Z HI/LO
     //INT2_CFG = 0x7F
-    ctrl[0] = LIS2DH12_HPIS2_MASK;
+    ctrl[0] = 0x7F;
     lis2dh12_write_register(LIS2DH12_INT2_CFG, ctrl, 1);    
     //Interrupt on 64 mg+ (highpassed, +/-)
     //INT2_THS= 0x04 // 4 LSB = 64 mg @2G scale
