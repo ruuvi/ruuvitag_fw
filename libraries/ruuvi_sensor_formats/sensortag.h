@@ -4,7 +4,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
+#include "bme280.h"
+#include "lis2dh12.h"
 
 /*
 0:   uint8_t     format;          // (0x03 = realtime sensor readings base64)
@@ -17,11 +18,13 @@
 12-13: int16_t   vbat;            // mv
 */
 #define SENSOR_TAG_DATA_FORMAT          0x03				  /**< raw binary, includes acceleration */
-#define SENSORTAG_ENCODED_DATA_LENGTH   14            /* 14 bytes  */
+#define SENSORTAG_ENCODED_DATA_LENGTH   14            /**< 14 bytes  */
+
+#define RAW_FORMAT_2                    0x05          /**< Proposal, please see https://f.ruuvi.com/t/proposed-next-high-precision-data-format/692 */
+#define RAW_2_ENCODED_DATA_LENGTH       24
 
 #define WEATHER_STATION_URL_FORMAT      0x02				  /**< Base64 */
 #define WEATHER_STATION_URL_ID_FORMAT   0x04				  /**< Base64, with ID byte */
-
 
 #define EDDYSTONE_URL_MAX_LENGTH 17
 #define URL_PAYLOAD_LENGTH 9
@@ -31,14 +34,14 @@
 // Sensor values
 typedef struct 
 {
-uint8_t     format;         // 0x03
-uint8_t     humidity;       // one lsb is 0.5%
-uint16_t    temperature;    // Signed 8.8 fixed-point notation.
-uint16_t    pressure;       // Pascals (pa)
-int16_t     accX;           // Milli-g (mg)
+uint8_t     format;              // 0x00 ... 0x09 for official Ruuvi applications
+uint8_t     humidity;            // one lsb is 0.5%
+uint16_t    temperature;         // Signed 8.8 fixed-point notation.
+uint16_t    pressure;            // Pascals (pa)
+int16_t     accX;                // Milli-g (mg)
 int16_t     accY;
 int16_t     accZ;
-uint16_t    vbat;           // mv
+uint16_t    vbat;                // mv
 }ruuvi_sensor_t;
 
 /**
@@ -50,12 +53,21 @@ uint16_t    vbat;           // mv
  */
 void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32_t raw_h, uint16_t vbat, int32_t acc[3]);
 
-
 /**
  *  Parses sensor values into RuuviTag format.
  *  @param char* data_buffer character array with length of 14 bytes
  */
 void encodeToSensorDataFormat(uint8_t* data_buffer, ruuvi_sensor_t* data);
+
+/**
+ *  Parses sensor values into propesed format. 
+ *  @param data_buffer uint8_t array with length of 24 bytes
+ *  @param environmental  Environmental data as data comes from BME280, i.e. uint32_t pressure, int32_t temperature, uint32_t humidity
+ *  @param acceleration 3 x int16_t having acceleration along X-Y-Z axes in MG. Low pass and last sample are allowed DSP operations
+ *  @param acceleration_events counter of acceleration events. Events are configured by application, "value exceeds 1.1 G" recommended.
+ *  @param vbatt Voltage of battery in millivolts
+ */
+void encodeToRawFormat5(uint8_t* data_buffer, bme280_data_t* environmental, acceleration_t* acceleration, uint16_t acceleration_events, uint16_t vbatt, int8_t tx_pwr);
 
 
 /**

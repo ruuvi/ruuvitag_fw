@@ -147,6 +147,13 @@ enum BME280_INTERVAL {
 	BME280_STANDBY_1000_MS = 0xA0
 };
 
+/** Structure containing sensor data from all 3 sensors */
+typedef struct {
+  int32_t  temperature;
+  uint32_t humidity;
+  uint32_t pressure;
+}bme280_data_t;
+
 /**
  *  Initialises BME280 in sleep mode, all sensors enabled
  */

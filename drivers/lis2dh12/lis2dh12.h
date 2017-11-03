@@ -162,10 +162,13 @@ lis2dh12_ret_t lis2dh12_get_fifo_sample_number(size_t* count);
 lis2dh12_ret_t lis2dh12_set_fifo_watermark(size_t count);
 
 /**
- *  Setup interrupt register. Check lis2dh_registers.h for possible interrupts.
- *  Returns error code from SPI write
+ *  Set interrupt on pin. Write "0" To disable interrupt on pin. 
+ *
+ *  @param interrupts interrupts, see registers.h
+ *  @param pin 1 or, others are invalid
+ *  @return LIS2DH12_RET_INVALID if pin was not valid, error code from SPI stack otherwise.
  */
-lis2dh12_ret_t lis2dh12_set_interrupts(uint8_t interrupts);
+lis2dh12_ret_t lis2dh12_set_interrupts(uint8_t interrupts, uint8_t pin);
 
 /**
  *  Internal functions for reading/writing registers. 

@@ -34,7 +34,7 @@
 #define LIS2DH12_INT1_SOURCE    0x31
 #define LIS2DH12_INT1_THS       0x32 /*rw */
 #define LIS2DH12_INT1_DURATION  0x33 /*rw */
-#define LIS2DH12_INT_CFG        0x34 /*rw */
+#define LIS2DH12_INT2_CFG       0x34 /*rw */
 #define LIS2DH12_INT2_SOURCE    0x35
 #define LIS2DH12_INT2_THS       0x36 /*rw */
 #define LIS2DH12_INT2_DURATION  0x37 /*rw */

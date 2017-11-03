@@ -289,11 +289,20 @@ lis2dh12_ret_t lis2dh12_set_fifo_watermark(size_t count)
     return err_code;
 }
 
-lis2dh12_ret_t lis2dh12_set_interrupts(uint8_t interrupts)
+/**
+ *  Set interrupt on pin. Write "0" To disable interrupt on pin. 
+ *
+ *  @param interrupts interrupts, see registers.h
+ *  @param pin 1 or, others are invalid
+ */
+lis2dh12_ret_t lis2dh12_set_interrupts(uint8_t interrupts, uint8_t pin)
 {
+  if(1 != pin && 2 != pin){ return LIS2DH12_RET_INVALID; }
   uint8_t ctrl[1]; 
   ctrl[0] = interrupts;
-  return lis2dh12_write_register(LIS2DH12_CTRL_REG3, ctrl, 1);
+  uint8_t target_reg = LIS2DH12_CTRL_REG3;
+  if( 2 == pin ) { target_reg = LIS2DH12_CTRL_REG6; }
+  return lis2dh12_write_register(target_reg, ctrl, 1);
 }
 
 /* INTERNAL FUNCTIONS *****************************************************************************/
