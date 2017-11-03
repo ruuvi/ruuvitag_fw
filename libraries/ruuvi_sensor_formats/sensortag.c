@@ -96,10 +96,13 @@ void encodeToRawFormat5(uint8_t* data_buffer, bme280_data_t* environmental, acce
     data_buffer[16] = packet_counter>>8;
     data_buffer[17] = packet_counter&0xFF;
     packet_counter++;
-    data_buffer[18] = ((NRF_FICR->DEVICEADDR[1]>>16)&0xFF) | 0xC0; //2 MSB of address are set to 11 by BLE Stack, see Bluetooth Core v4.0, Vol 3, Part C, chapter 10.8.1.
-    data_buffer[19] = ((NRF_FICR->DEVICEADDR[1]>>24)&0xFF);
-    const uint32_t address0 = NRF_FICR->DEVICEADDR[0]; //FICR is volatile and therefore incompatible with memcpy
-    memcpy(&(data_buffer[20]), &address0, 4);
+    data_buffer[18] = ((NRF_FICR->DEVICEADDR[1]>>8)&0xFF) | 0xC0; //2 MSB must be 11;
+    data_buffer[19] = ((NRF_FICR->DEVICEADDR[1]>>0)&0xFF);
+    data_buffer[20] = ((NRF_FICR->DEVICEADDR[0]>>24)&0xFF);
+    data_buffer[21] = ((NRF_FICR->DEVICEADDR[0]>>16)&0xFF);
+    data_buffer[22] = ((NRF_FICR->DEVICEADDR[0]>>8)&0xFF);
+    data_buffer[23] = ((NRF_FICR->DEVICEADDR[0]>>0)&0xFF);
+
 }
 
 /**

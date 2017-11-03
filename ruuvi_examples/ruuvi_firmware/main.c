@@ -211,7 +211,7 @@ void main_timer_handler(void * p_context)
       environmental.temperature = raw_t;
       environmental.humidity = raw_h;
       environmental.pressure = raw_p;
-      encodeToRawFormat5(data_buffer, &environmental, &buffer.sensor, 1, vbat, 4);
+      encodeToRawFormat5(data_buffer, &environmental, &buffer.sensor, acceleration_events, vbat, BLE_TX_POWER);
     } 
     else 
     {
