@@ -51,6 +51,7 @@
 #include "bluetooth_core.h"
 #include "eddystone.h"
 #include "pin_interrupt.h"
+#include "rtc.h"
 
 //Libraries
 #include "base64.h"
@@ -65,16 +66,14 @@
 //Constants
 #define DEAD_BEEF                       0xDEADBEEF                        /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
-//Timers
-#define APP_TIMER_PRESCALER             RUUVITAG_APP_TIMER_PRESCALER      /**< Value of the RTC1 PRESCALER register. */
-#define APP_TIMER_OP_QUEUE_SIZE         RUUVITAG_APP_TIMER_OP_QUEUE_SIZE  /**< Size of timer operation queues. */
-// Scheduler settings
+// ID for main loop timer
 APP_TIMER_DEF(main_timer_id);                                             /** Creates timer id for our program **/
 
 //milliseconds until main loop timer function is called. Other timers can bring
 //application out of sleep at higher (or lower) interval
 #define MAIN_LOOP_INTERVAL_URL 5000u 
 #define MAIN_LOOP_INTERVAL_RAW 1000u
+#define DEBOUNCE_THRESHOLD 250u
 
 //Payload requires 8 characters
 #define URL_BASE_LENGTH 9
@@ -82,17 +81,19 @@ static char url_buffer[17] = {0x03, 'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
 static uint8_t data_buffer[24] = { 0 };
 static bool model_plus = false; //Flag for sensors available
 static bool highres    = false; //Flag for used mode
-static bool debounce   = false; //Flag for avoiding double presses
+static uint64_t debounce   = false; //Flag for avoiding double presses
 static uint16_t acceleration_events = 0;
 
 static ruuvi_sensor_t data;
 
 static void main_timer_handler(void * p_context);
 
-// Handler forbutton press. Called in scheduler, out of interrupt context
+// Handler for button press. Called in scheduler, out of interrupt context
 void change_mode(void* data, uint16_t length)
 {
-  if(debounce) { return; }
+  //Avoid double presses
+  if((millis() - debounce) < DEBOUNCE_THRESHOLD) { return; }
+  debounce = millis();
   highres = !highres;
   if(model_plus)
   {
@@ -117,7 +118,7 @@ void change_mode(void* data, uint16_t length)
   }
   NRF_LOG_INFO("Updating in %d mode\r\n", (uint32_t) highres);
   main_timer_handler(NULL);
-  debounce = true;
+
 }
 
 /**@brief Function for handling button events.
@@ -143,14 +144,13 @@ static void power_manage(void)
   nrf_gpio_pin_set(LED_GREEN); 
   nrf_gpio_pin_set(LED_RED);       
 
+  
   uint32_t err_code = sd_app_evt_wait();
   APP_ERROR_CHECK(err_code);
 
   //signal mode by led color
   if(highres){ nrf_gpio_pin_clear(LED_RED); }
   else { nrf_gpio_pin_clear(LED_GREEN); }
-  //Reset debounce if button is not pressed
-  if(nrf_gpio_pin_read(BUTTON_1)){ debounce = false; }
 }
 
 static void updateAdvertisement(void)
@@ -179,6 +179,9 @@ void main_timer_handler(void * p_context)
       raw_t = bme280_get_temperature();
       raw_p = bme280_get_pressure();
       raw_h = bme280_get_humidity();
+      
+      // Start next measurement - causes up to URL_LOOP_INTERVAL latency in measurements
+      bme280_set_mode(BME280_MODE_FORCED);
 
       // Get accelerometer data
       lis2dh12_read_samples(&buffer, 1);  
@@ -186,13 +189,12 @@ void main_timer_handler(void * p_context)
       acc[1] = buffer.sensor.y;
       acc[2] = buffer.sensor.z;
     }
-
     // If only temperature sensor is present
     else 
     {
       int32_t temp;                                        // variable to hold temp reading
       (void)sd_temp_get(&temp);                            // get new temperature
-      temp *= 25;                                          // SD return temp * 4. Ruuvi format expects temp * 100. 4*25 = 100.
+      temp *= 25;                                          // SD returns temp * 4. Ruuvi format expects temp * 100. 4*25 = 100.
       raw_t = (int32_t) temp;
     }
 
@@ -217,6 +219,7 @@ void main_timer_handler(void * p_context)
     {
       encodeToUrlDataFromat(url_buffer, URL_BASE_LENGTH, &data);
     }
+
     updateAdvertisement();
     watchdog_feed();
 }
@@ -230,7 +233,7 @@ void main_timer_handler(void * p_context)
  **/
 ret_code_t lis2dh12_int2_handler(const ruuvi_standard_message_t message)
 {
-    NRF_LOG_INFO("Accelerometer interrupt to pin 2\r\n");
+    NRF_LOG_DEBUG("Accelerometer interrupt to pin 2\r\n");
     acceleration_events++;
     /*
     app_sched_event_put ((void*)(&message),
@@ -262,6 +265,9 @@ int main(void)
     
   // Initialize the application timer module.
   err_code |= init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler);
+  
+  // Initialize RTC
+  err_code |= init_rtc();
 
   // Initialize button
   //Start interrupts
@@ -313,7 +319,7 @@ int main(void)
     bme280_set_oversampling_temp(BME280_OVERSAMPLING_16);
     bme280_set_oversampling_press(BME280_OVERSAMPLING_16);
     bme280_set_iir(BME280_IIR_16);
-    bme280_set_mode(BME280_MODE_NORMAL);
+    bme280_set_mode(BME280_MODE_FORCED);
     NRF_LOG_DEBUG("BME280 configuration done\r\n");
     highres = true;
   }
