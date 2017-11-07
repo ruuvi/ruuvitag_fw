@@ -70,11 +70,12 @@ void encodeToRawFormat5(uint8_t* data_buffer, bme280_data_t* environmental, acce
     environmental->temperature *= 2; //Spec calls for 0.005 degree resolution, bme280 gives 0.01
     data_buffer[1] = (environmental->temperature)>>8;
     data_buffer[2] = (environmental->temperature)&0xFF;
-    //Convert humidity from 1/1024 to 1/400 - TODO check for overflows
-    environmental->humidity *= 1024;
-    environmental->humidity /= 400; 
-    data_buffer[3] = (environmental->humidity)>>8;
-    data_buffer[4] = (environmental->humidity)&0xFF;
+    uint32_t humidity = environmental->humidity;
+    humidity *= 400; 
+    humidity /= 1024;
+    data_buffer[3] = humidity>>8;
+    data_buffer[4] = humidity&0xFF;
+    NRF_LOG_DEBUG("Humidity is %d\r\n", humidity/400);
     environmental->pressure = (uint16_t)((environmental->pressure >> 8) - 50000); //Scale into pa, Shift by -50000 pa as per Ruu.vi interface.
     data_buffer[5] = (environmental->pressure)>>8;
     data_buffer[6] = (environmental->pressure)&0xFF;
