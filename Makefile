@@ -50,30 +50,33 @@ $(SDK_DIR)/external/micro-ecc/micro-ecc:
 
 fw:
 	@echo build FW
-	$(MAKE) -C ruuvi_examples/ble_app_beacon/ruuvitag_b3/s132/armgcc
-	$(MAKE) -C ruuvi_examples/eddystone/ruuvitag_b3/s132/armgcc
-	$(MAKE) -C ruuvi_examples/test_drivers/ruuvitag_b3/s132/armgcc
-	$(MAKE) -C ruuvi_examples/template_app/ruuvitag_b3/s132/armgcc
-	$(MAKE) -C ruuvi_examples/weather_station/ruuvitag_b3/s132/armgcc
+	git submodule sync
+	git submodule update --init --recursive
+	$(MAKE) -C ruuvi_examples/ble_app_beacon/ruuvitag_b/s132/armgcc
+	$(MAKE) -C ruuvi_examples/eddystone/ruuvitag_b/s132/armgcc
+	$(MAKE) -C ruuvi_examples/test_drivers/ruuvitag_b/s132/armgcc
+	$(MAKE) -C ruuvi_examples/ruuvi_firmware/ruuvitag_b/s132/armgcc
 
 
 bootloader:
 	@echo build bootloader
-	$(MAKE) -C bootloader/ruuvitag_b3_debug/armgcc
-	$(MAKE) -C bootloader/ruuvitag_b3_production/armgcc
+	$(MAKE) -C bootloader/ruuvitag_b_debug/armgcc
+	$(MAKE) -C bootloader/ruuvitag_b_production/armgcc
 
 clean:
-	@echo cleaning B3 build files…
-	$(MAKE) -C ruuvi_examples/ble_app_beacon/ruuvitag_b3/s132/armgcc clean
-	$(MAKE) -C ruuvi_examples/eddystone/ruuvitag_b3/s132/armgcc clean
-	$(MAKE) -C ruuvi_examples/test_drivers/ruuvitag_b3/s132/armgcc clean
-	$(MAKE) -C ruuvi_examples/template_app/ruuvitag_b3/s132/armgcc clean
-	$(MAKE) -C bootloader/ruuvitag_b3_debug/armgcc clean
-	$(MAKE) -C bootloader/ruuvitag_b3_production/armgcc clean
+	@echo cleaning B build files…
+	git submodule sync
+	git submodule update --init --recursive
+	$(MAKE) -C ruuvi_examples/ble_app_beacon/ruuvitag_b/s132/armgcc clean
+	$(MAKE) -C ruuvi_examples/eddystone/ruuvitag_b/s132/armgcc clean
+	$(MAKE) -C ruuvi_examples/test_drivers/ruuvitag_b/s132/armgcc clean
+	$(MAKE) -C ruuvi_examples/ruuvi_firmware/ruuvitag_b/s132/armgcc
+	$(MAKE) -C bootloader/ruuvitag_b_debug/armgcc clean
+	$(MAKE) -C bootloader/ruuvitag_b_production/armgcc clean
 
 distro:
 	@echo Prepare distribution…
-	rm -rf builds/distribution_packages/sdk12/weather_station-test.zip
+	rm -rf builds/distribution_packages/sdk12/ruuvitag_firmware-test.zip
 	nrfutil pkg generate --debug-mode --application ruuvi_examples/weather_station/ruuvitag_b3/s132/armgcc/_build/weather_station.hex --key-file keys/ruuvi_open_private.pem builds/distribution_packages/sdk12/weather_station-test.zip
 	@echo Uploading $(FILEID) …
 	gdrive update $(FILEID) builds/distribution_packages/sdk12/weather_station-test.zip

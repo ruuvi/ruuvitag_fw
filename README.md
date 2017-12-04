@@ -27,6 +27,9 @@ This repository is structured as follows:
 +-- drivers
 |   +-- bme280
 |   +-- lis2dh12
+|   +-- etc
+|   +-- init
+|   |   +-- common_configuration
 +-- libraries
 |   +-- acceleration
 |   +-- base64
@@ -35,16 +38,19 @@ This repository is structured as follows:
 |   +-- ruuvi_open_private.pem
 +-- ruuvi_examples
 |   +-- APPLICATION
+|   |   +-- application_sdk_configuration
+|   |   +-- application_bsp_configuration
+|   |   +-- application_bluetooth_configuration
+|   |   +-- ble_services
 |   |   +-- ruuvitag_HW
 |   |   |   +-- s132
 |   |   |   |   +-- armgcc
 |   |   |   |   |   +-- Makefile
 |   |   |   |   |   +-- Linkerscript
 |   |   |   |   +-- config
-|   |   |   |   |   +-- sdk_configuration
-|   |   |   |   |   +-- bsp_configuration
-|   |   |   |   |   +-- bluetooth_configuration
-|   |   |   |   |   +-- custom_configuration
+|   |   |   |   |   +-- board_sdk_configuration
+|   |   |   |   |   +-- board_bsp_configuration
+|   |   |   |   |   +-- board_bluetooth_configuration
 |   |   +-- application files
 +-- Makefile
 +-- README.md
@@ -70,14 +76,14 @@ Drivers folder contains the peripheral drivers such as a driver for SPI as well 
 
 ### Libraries
 Libraries contain software routines which may not have hardware dependencies, i.e. they should run on your pc as well as on RuuviTag.
-TODO: refactor Bluetooth library into drivers 
 
 ### Ruuvi Examples
 Ruuvi examples has example firmware projects which can be used as a basis for your own application. 
-The top-level folder of application contains application code, and there is a subfolder for
+The top-level folder of application contains application code and configuration, and there is a subfolder for
 each hardware which can run the application. If the application requires softdevice,
 create a folder with softdevice name "s132" to let the users know that a softdevice is required.
-Configuration folder sets up peripherals and armgcc folder contains makefile and linker script.
+Configuration folder sets up board specific configuratuin, such as pins.
+Armgcc folder contains makefile and linker script.
 
 ### SDK
 The SDK folder contains Nordic Software development kit which is used to provide various 
@@ -86,7 +92,8 @@ size of repository, our makefile downloads and unzips the SDK if it is not prese
 
 ### Licenses
 Please note that these examples inherit a lot of code from various sources and pay careful attention to 
-license and origin of each application.
+license and origin of each application. Most importantly, the code will be statically linked against
+Nordic Softdevice, for which the source code is not available. Therefore the code is not GPL-compatible.
 
 ## Developing Ruuvi Firmware
 
