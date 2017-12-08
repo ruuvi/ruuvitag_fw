@@ -1,6 +1,10 @@
 #ifndef TEST_LIS2DH12_H
 #define TEST_LIS2DH12_H
-/** Creates a MAM message. Parsing MAM message is not possible on nRF52832 due to memory requirements **/
+/** 
+ *  Test lis2dh12 functions 
+ *  Requires RTC and pin interrupts initialized.
+ *
+**/
 void test_lis2dh12(void);
 void test_read_samples(void);
 #endif
