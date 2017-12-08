@@ -141,11 +141,8 @@ init_err_code_t init_leds(void)
 /**
  * Initialize buttons
  *
- * This function initializes GPIO for buttons
- * TODO: event / interrupt driven button reading 
- * TODO: Generalise
+ * This function initializes GPIO for buttons, setting pull-up and sensing hi-to-low transition.
  *
- * XXX
  */
 init_err_code_t init_buttons(void)
 {
@@ -164,6 +161,8 @@ init_err_code_t init_lis2dh12(void)
     {
         NRF_LOG_DEBUG("LIS2DH12 init Done\r\n");
         set_acceleration_handler(lis2dh12_acceleration_handler);
+        // Interrupt handler is defined in lis2dh12_acceleration_handler.c, reads the buffer and passes the data onwards to application as configured.
+        // Try using PROPRIETARY as a target of accelerometer to implement your own logic.
         err_code |= pin_interrupt_enable(INT_ACC1_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int1_handler);
     }
     else
