@@ -169,11 +169,16 @@ int main(void)
 
   NRF_LOG_INFO("Interrupt init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
 
-  //XXX Leaves some setup on
-  test_lis2dh12();
-  /*
   NRF_LOG_INFO("Starting automated test.\r\n");    
   uint32_t test_start = millis();
+
+  //XXX Leaves some setup on
+  test_lis2dh12();
+  lis2dh12_reset();
+  //Wait for reboot
+  nrf_delay_ms(10);
+  lis2dh12_enable();
+
   test_rtc();
   test_rng();
   test_led();
@@ -182,10 +187,10 @@ int main(void)
   test_byte_tryte_conversion();
   uint32_t test_end = millis();
   NRF_LOG_INFO("Automated test completed in %d milliseconds\r\n", test_end - test_start);
-  */
   
-  /*for(int ii = 0; ii < 10; ii++)
-  {
+  /* //Test for mem leaks
+  for(int ii = 0; ii < 10; ii++)
+  { 
   test_mam();
   NRF_LOG_INFO("MAM %d\r\n", (uint32_t) ii);
   }*/
