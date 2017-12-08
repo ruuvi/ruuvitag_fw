@@ -66,11 +66,10 @@ void test_environmental(void)
   bme280_set_oversampling_press(BME280_OVERSAMPLING_16);
   NRF_LOG_INFO("Checking status register reading..\r\n");
   err_code |= bme280_set_mode(BME280_MODE_FORCED);
+  nrf_delay_ms(1);
   int  active = bme280_is_measuring();
-  NRF_LOG_INFO("BME280 is taking sample? %d\r\n", (uint32_t)active);
-  err_code |= bme280_set_mode(BME280_MODE_FORCED);
-  active = bme280_is_measuring();
-  NRF_LOG_INFO("BME280 is taking sample? %d\r\n", (uint32_t)active);
+  NRF_LOG_INFO("BME280 is taking sample? Should be 1: %d\r\n", (uint32_t)active);
+  while(bme280_is_measuring());
   err_code |= bme280_set_mode(BME280_MODE_NORMAL);
   NRF_LOG_INFO("Ok, applied oversampling, status %s. Noise should be decreased. Place bme280 to fan exhaust to see the effect.\r\n", (uint32_t)ERR_TO_STR(err_code));
   for(int ii = 0; ii < 15; ii++)
