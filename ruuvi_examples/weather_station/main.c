@@ -84,7 +84,7 @@ APP_TIMER_DEF(main_timer_id);                                             /** Cr
 static char url_buffer[17] = {'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
 static uint8_t data_buffer[18] = { 0 };
 bool model_plus = false; //Flag for sensors available
-bool highres    = false; //Flag for used mode
+bool highres    = true; //Flag for used mode
 bool debounce   = true;
 
 static ruuvi_sensor_t data;
@@ -258,6 +258,8 @@ int main(void)
       model_plus = true;
       //init accelerometer if present
       LIS2DH12_init(LIS2DH12_POWER_DOWN, LIS2DH12_SCALE2G, NULL);
+      //Start accelerometer if program starts in highres mode
+      if(highres) { LIS2DH12_setPowerMode(LIS2DH12_POWER_LOW); }
       
       //setup BME280 if present
       bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
