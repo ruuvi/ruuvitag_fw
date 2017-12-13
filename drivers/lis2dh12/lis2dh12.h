@@ -162,10 +162,52 @@ lis2dh12_ret_t lis2dh12_get_fifo_sample_number(size_t* count);
 lis2dh12_ret_t lis2dh12_set_fifo_watermark(size_t count);
 
 /**
- *  Setup interrupt register. Check lis2dh_registers.h for possible interrupts.
- *  Returns error code from SPI write
+ *  Set interrupt on pin. Write "0" To disable interrupt on pin. 
+ *
+ *  @param interrupts interrupts, see registers.h
+ *  @param pin 1 or, others are invalid
+ *  @return LIS2DH12_RET_INVALID if pin was not valid, error code from SPI stack otherwise.
  */
-lis2dh12_ret_t lis2dh12_set_interrupts(uint8_t interrupts);
+lis2dh12_ret_t lis2dh12_set_interrupts(uint8_t interrupts, uint8_t pin);
+
+/**
+ * Setup interrupt configuration: AND/OR of events, X-Y-Z Hi/Lo, 6-direction detection
+ *
+ * @param cfg, configuration. See registers.h for description
+ * @param function number of interrupt, 1 or 2. Others are invalid
+ *
+ * @return error code from SPI write or LIS2DH12_RET_INVALID if pin was invalid. 0 on success.
+ */
+lis2dh12_ret_t lis2dh12_set_interrupt_configuration(uint8_t cfg, uint8_t function);
+
+/**
+ * Setup high-pass functions of lis2dh12. Select mode, cutoff frequency, filter data, click, interrputs.
+ *
+ * @param highpass byte to write to filter, resets previous settings.
+ * @return error code from SPI write. 
+ */
+lis2dh12_ret_t lis2dh12_set_highpass(uint8_t highpass);
+
+/**
+ *  Setup number of LSBs needed to trigger AOI interrupt function. 
+ *  Note: this targets function 1 or 2, not pin. 
+ *
+ *  @param bits number of LSBs required to trigger the interrupt
+ *  @param function 1 or 2, others are invalid
+ *
+ *  @return error code from stack
+ */
+lis2dh12_ret_t lis2dh12_set_threshold(uint8_t bits, uint8_t pin);
+
+/**
+ *  Setup number of LSBs needed to trigger activity interrupt.
+ *  Note: this targets only pin 2, and only if activity interrupt is enabled.
+ *
+ *  @param bits number of LSBs required to trigger the interrupt
+ *
+ *  @return error code from stack
+ */
+lis2dh12_ret_t lis2dh12_set_activity_threshold(uint8_t bits);
 
 /**
  *  Internal functions for reading/writing registers. 

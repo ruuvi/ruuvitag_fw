@@ -34,7 +34,7 @@
 #define LIS2DH12_INT1_SOURCE    0x31
 #define LIS2DH12_INT1_THS       0x32 /*rw */
 #define LIS2DH12_INT1_DURATION  0x33 /*rw */
-#define LIS2DH12_INT_CFG        0x34 /*rw */
+#define LIS2DH12_INT2_CFG       0x34 /*rw */
 #define LIS2DH12_INT2_SOURCE    0x35
 #define LIS2DH12_INT2_THS       0x36 /*rw */
 #define LIS2DH12_INT2_DURATION  0x37 /*rw */
@@ -87,10 +87,9 @@
 
 // CTRL_REG3 masks
 #define LIS2DH12_I1_CLICK          0x80
-#define LIS2DH12_I1_AOI            0x60
-#define LIS2DH12_I1_DRDY           0x18
-#define LIS2DH12_I1_DRDY1          0x08
-#define LIS2DH12_I1_DRDY2          0x10
+#define LIS2DH12_I1_IA1            0x40
+#define LIS2DH12_I1_IA2            0x20
+#define LIS2DH12_I1_DRDY           0x10
 #define LIS2DH12_I1_WTM            0x04
 #define LIS2DH12_I1_OVERRUN        0x02
 

@@ -53,12 +53,12 @@ static ret_code_t set_transmission_rate(uint8_t transmission_rate)
   switch(transmission_rate)
   {
     case TRANSMISSION_RATE_STOP:
-        err_code |= lis2dh12_set_interrupts(LIS2DH12_NO_INTERRUPTS);        
+        err_code |= lis2dh12_set_interrupts(LIS2DH12_NO_INTERRUPTS, 1);        
         break;
     case TRANSMISSION_RATE_SAMPLERATE:
         NRF_LOG_DEBUG("Enabling LIS interrupts\r\n");
         err_code |= lis2dh12_set_fifo_watermark(30);
-        err_code |= lis2dh12_set_interrupts(LIS2DH12_I1_WTM);
+        err_code |= lis2dh12_set_interrupts(LIS2DH12_I1_WTM, 1);
         break;
 
     case TRANSMISSION_RATE_DSPRATE:

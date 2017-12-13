@@ -90,11 +90,32 @@ lis2dh12_ret_t lis2dh12_init(void)
 /** Reboots memory to default settings **/
 lis2dh12_ret_t lis2dh12_reset(void)
 {
-    lis2dh12_ret_t err_code = LIS2DH12_RET_OK;
-    uint8_t ctrl[1] = {0};    
-    ctrl[0] = LIS2DH12_BOOT_MASK;
-    err_code |= lis2dh12_write_register(LIS2DH12_CTRL_REG5, ctrl, 1);
-    return err_code;
+  lis2dh12_ret_t err_code = LIS2DH12_RET_OK;
+  uint8_t ctrl[3] = {0x10, 0x00, 0x07}; //Default values, only first and third are non-zero
+  err_code |= lis2dh12_write_register(0x1E, &ctrl[0], 1);
+  err_code |= lis2dh12_write_register(0x1F, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x20, &ctrl[2], 1);
+  err_code |= lis2dh12_write_register(0x21, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x22, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x23, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x24, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x25, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x26, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x2E, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x30, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x32, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x33, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x34, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x36, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x37, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x38, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x3A, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x3B, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x3C, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x3D, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x3E, &ctrl[1], 1);
+  err_code |= lis2dh12_write_register(0x3F, &ctrl[1], 1);
+ return err_code;
 }
 
 /**
@@ -289,11 +310,85 @@ lis2dh12_ret_t lis2dh12_set_fifo_watermark(size_t count)
     return err_code;
 }
 
-lis2dh12_ret_t lis2dh12_set_interrupts(uint8_t interrupts)
+/**
+ *  Set interrupt on pin. Write "0" To disable interrupt on pin. 
+ *  NOTE: pin 1 and pin 2 DO NOT support identical configurations.
+ *
+ *  @param interrupts interrupts, see registers.h
+ *  @param function 1 or 2, others are invalid
+ */
+lis2dh12_ret_t lis2dh12_set_interrupts(uint8_t interrupts, uint8_t function)
 {
+  if(1 != function && 2 != function){ return LIS2DH12_RET_INVALID; }
   uint8_t ctrl[1]; 
   ctrl[0] = interrupts;
-  return lis2dh12_write_register(LIS2DH12_CTRL_REG3, ctrl, 1);
+  uint8_t target_reg = LIS2DH12_CTRL_REG3;
+  if( 2 == function ) { target_reg = LIS2DH12_CTRL_REG6; }
+  return lis2dh12_write_register(target_reg, ctrl, 1);
+}
+
+/**
+ * Setup interrupt configuration: AND/OR of events, X-Y-Z Hi/Lo, 6-direction detection
+ *
+ * @param cfg, configuration. See registers.h for description
+ * @param function number of interrupt, 1 or 2. Others are invalid
+ *
+ * @return error code from SPI write or LIS2DH12_RET_INVALID if pin was invalid. 0 on success.
+ */
+lis2dh12_ret_t lis2dh12_set_interrupt_configuration(uint8_t cfg, uint8_t function)
+{
+  if(1 != function && 2 != function){ return LIS2DH12_RET_INVALID; }
+  uint8_t ctrl[1]; 
+  ctrl[0] = cfg;
+  uint8_t target_reg = LIS2DH12_INT1_CFG;
+  if( 2 == function ) { target_reg = LIS2DH12_INT2_CFG; }
+  return lis2dh12_write_register(target_reg, ctrl, 1);
+}
+
+/**
+ *  Setup number of LSBs needed to trigger activity interrupt.
+ *  Note: this targets only pin 2, and only if activity interrupt is enabled.
+ *
+ *  @param bits number of LSBs required to trigger the interrupt, max 0x7F
+ *
+ *  @return error code from stack
+ */
+lis2dh12_ret_t lis2dh12_set_activity_threshold(uint8_t bits)
+{
+  uint8_t ctrl[1];
+  ctrl[0] = bits;
+  return lis2dh12_write_register(LIS2DH12_ACT_THS, ctrl, 1);
+}
+
+/**
+ * Setup high-pass functions of lis2dh12. Select mode, cutoff frequency, filter data, click, interrputs.
+ *
+ * @param highpass byte to write to filter, resets previous settings.
+ * @return error code from SPI write. 
+ */
+lis2dh12_ret_t lis2dh12_set_highpass(uint8_t highpass)
+{
+    uint8_t ctrl[1];
+    ctrl[0] = highpass;
+    return lis2dh12_write_register(LIS2DH12_CTRL_REG2, ctrl, 1);
+}
+
+/**
+ *  Setup number of LSBs needed to trigger activity interrupt. 
+ *
+ *  @param bits number of LSBs required to trigger the interrupt
+ *  @param pin 1 or 2, others are invalid
+ *
+ *  @return error code from stack
+ */
+lis2dh12_ret_t lis2dh12_set_threshold(uint8_t bits, uint8_t pin)
+{
+  if(1 != pin && 2 != pin){ return LIS2DH12_RET_INVALID; }
+  uint8_t ctrl[1];
+  ctrl[0] = bits;
+  uint8_t target_reg = LIS2DH12_INT1_THS;
+  if(2 == pin) { target_reg = LIS2DH12_INT2_THS;} 
+  return lis2dh12_write_register(target_reg, ctrl, 1);
 }
 
 /* INTERNAL FUNCTIONS *****************************************************************************/

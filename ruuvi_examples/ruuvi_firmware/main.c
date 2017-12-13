@@ -51,6 +51,7 @@
 #include "bluetooth_core.h"
 #include "eddystone.h"
 #include "pin_interrupt.h"
+#include "rtc.h"
 
 //Libraries
 #include "base64.h"
@@ -65,46 +66,51 @@
 //Constants
 #define DEAD_BEEF                       0xDEADBEEF                        /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
-//Timers
-#define APP_TIMER_PRESCALER             RUUVITAG_APP_TIMER_PRESCALER      /**< Value of the RTC1 PRESCALER register. */
-#define APP_TIMER_OP_QUEUE_SIZE         RUUVITAG_APP_TIMER_OP_QUEUE_SIZE  /**< Size of timer operation queues. */
-// Scheduler settings
+// ID for main loop timer
 APP_TIMER_DEF(main_timer_id);                                             /** Creates timer id for our program **/
 
 //milliseconds until main loop timer function is called. Other timers can bring
 //application out of sleep at higher (or lower) interval
 #define MAIN_LOOP_INTERVAL_URL 5000u 
 #define MAIN_LOOP_INTERVAL_RAW 1000u
+#define DEBOUNCE_THRESHOLD 250u
 
 //Payload requires 8 characters
 #define URL_BASE_LENGTH 9
 static char url_buffer[17] = {0x03, 'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
-static uint8_t data_buffer[18] = { 0 };
+static uint8_t data_buffer[24] = { 0 };
 static bool model_plus = false; //Flag for sensors available
 static bool highres    = false; //Flag for used mode
-static bool debounce   = false; //Flag for avoiding double presses
+static uint64_t debounce   = false; //Flag for avoiding double presses
+static uint16_t acceleration_events = 0;
 
 static ruuvi_sensor_t data;
 
 static void main_timer_handler(void * p_context);
 
-// Handler forbutton press. Called in scheduler, out of interrupt context
+// Handler for button press. Called in scheduler, out of interrupt context
 void change_mode(void* data, uint16_t length)
 {
-  if(debounce) { return; }
+  //Avoid double presses
+  if((millis() - debounce) < DEBOUNCE_THRESHOLD) { return; }
+  debounce = millis();
   highres = !highres;
   if(model_plus)
   {
     if(highres)
     {
-      lis2dh12_set_sample_rate(LIS2DH12_RATE_1);
+      //TODO: #define sample rate for application
+      lis2dh12_set_sample_rate(LIS2DH12_RATE_10);
+      //Reconfigure application sample rate for RAW mode
       app_timer_stop(main_timer_id);
       app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 1000 ms
       bluetooth_configure_advertising_interval(MAIN_LOOP_INTERVAL_RAW); //Broadcast only updated data, assuming there is an active receiver nearby.
     }
     else
     {
+      //Stop accelerometer as it's not useful on URL mode
       lis2dh12_set_sample_rate(LIS2DH12_RATE_0);
+      //Reconfigure application sample rate for URL mode
       app_timer_stop(main_timer_id);
       app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_URL, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 5000 ms
       bluetooth_configure_advertising_interval(MAIN_LOOP_INTERVAL_URL / 10); //Broadcast often to "hit" occasional background scans.
@@ -112,7 +118,7 @@ void change_mode(void* data, uint16_t length)
   }
   NRF_LOG_INFO("Updating in %d mode\r\n", (uint32_t) highres);
   main_timer_handler(NULL);
-  debounce = true;
+
 }
 
 /**@brief Function for handling button events.
@@ -138,14 +144,13 @@ static void power_manage(void)
   nrf_gpio_pin_set(LED_GREEN); 
   nrf_gpio_pin_set(LED_RED);       
 
+  
   uint32_t err_code = sd_app_evt_wait();
   APP_ERROR_CHECK(err_code);
 
   //signal mode by led color
   if(highres){ nrf_gpio_pin_clear(LED_RED); }
   else { nrf_gpio_pin_clear(LED_GREEN); }
-  //Reset debounce if button is not pressed
-  if(nrf_gpio_pin_read(BUTTON_1)){ debounce = false; }
 }
 
 static void updateAdvertisement(void)
@@ -153,7 +158,7 @@ static void updateAdvertisement(void)
   ret_code_t err_code = NRF_SUCCESS;
   if(highres){ err_code |= bluetooth_set_manufacturer_data(data_buffer, sizeof(data_buffer)); }
   else { err_code |= bluetooth_set_eddystone_url(url_buffer, sizeof(url_buffer)); }
-  NRF_LOG_INFO("Applying configuration, data status %d\r\n", err_code);
+  NRF_LOG_DEBUG("Applying configuration, data status %d\r\n", err_code);
   err_code |= bluetooth_apply_configuration();
 }
 
@@ -161,7 +166,6 @@ static void updateAdvertisement(void)
 // Timeout handler for the repeated timer
 void main_timer_handler(void * p_context)
 {
-
     static int32_t  raw_t  = 0;
     static uint32_t raw_p = 0;
     static uint32_t raw_h = 0;
@@ -170,31 +174,27 @@ void main_timer_handler(void * p_context)
 
     //If we have all the sensors
     if(model_plus)
-    {
-      
+    {      
       // Get raw environmental data
       raw_t = bme280_get_temperature();
       raw_p = bme280_get_pressure();
       raw_h = bme280_get_humidity();
       
-      //Start sensor read for next pass
+      // Start next measurement - causes up to URL_LOOP_INTERVAL latency in measurements
       bme280_set_mode(BME280_MODE_FORCED);
-   
-      //NRF_LOG_INFO("temperature: %d, pressure: %d, humidity: %d\r\n", raw_t, raw_p, raw_h);
-    
+
       // Get accelerometer data
       lis2dh12_read_samples(&buffer, 1);  
       acc[0] = buffer.sensor.x;
       acc[1] = buffer.sensor.y;
       acc[2] = buffer.sensor.z;
     }
-    
     // If only temperature sensor is present
     else 
     {
       int32_t temp;                                        // variable to hold temp reading
       (void)sd_temp_get(&temp);                            // get new temperature
-      temp *= 25;                                          // SD return temp * 4. Ruuvi format expects temp * 100. 4*25 = 100.
+      temp *= 25;                                          // SD returns temp * 4. Ruuvi format expects temp * 100. 4*25 = 100.
       raw_t = (int32_t) temp;
     }
 
@@ -209,14 +209,38 @@ void main_timer_handler(void * p_context)
     if(highres)
     {
       //Prepare bytearray to broadcast
-      encodeToSensorDataFormat(data_buffer, &data);
+      bme280_data_t environmental;
+      environmental.temperature = raw_t;
+      environmental.humidity = raw_h;
+      environmental.pressure = raw_p;
+      encodeToRawFormat5(data_buffer, &environmental, &buffer.sensor, acceleration_events, vbat, BLE_TX_POWER);
     } 
     else 
     {
       encodeToUrlDataFromat(url_buffer, URL_BASE_LENGTH, &data);
     }
+
     updateAdvertisement();
     watchdog_feed();
+}
+
+/** 
+ *  Handle interrupt from lis2dh12
+ *  Never do long actions, such as sensor reads in interrupt context.
+ *  Using peripherals in interrupt is also risky, as peripherals might require interrupts for their function.
+ *
+ *  @param message Ruuvi message, with source, destination, type and 8 byte payload. Ignore for now. 
+ **/
+ret_code_t lis2dh12_int2_handler(const ruuvi_standard_message_t message)
+{
+    NRF_LOG_DEBUG("Accelerometer interrupt to pin 2\r\n");
+    acceleration_events++;
+    /*
+    app_sched_event_put ((void*)(&message),
+                         sizeof(message),
+                         lis2dh12_scheduler_event_handler);
+    */
+    return NRF_SUCCESS;
 }
 
 
@@ -241,37 +265,64 @@ int main(void)
     
   // Initialize the application timer module.
   err_code |= init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler);
+  
+  // Initialize RTC
+  err_code |= init_rtc();
 
   // Initialize button
   //Start interrupts
   err_code |= pin_interrupt_init();
-  err_code |= pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler);    
+  err_code |= pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler);
 
   //Initialize BME 280 and lis2dh12. Requires timer running.
   if(NRF_SUCCESS == init_sensors())
   {
     model_plus = true;
-    //init accelerometer if present
-    lis2dh12_init();
+
+    //Clear memory
     lis2dh12_reset();
+    //Wait for reboot
     nrf_delay_ms(10);
+    //Enable XYZ axes
     lis2dh12_enable();
     lis2dh12_set_scale(LIS2DH12_SCALE2G);
-    lis2dh12_set_sample_rate(LIS2DH12_RATE_1);
+    //Sample rate 10 for activity detection
+    lis2dh12_set_sample_rate(LIS2DH12_RATE_10);
     lis2dh12_set_resolution(LIS2DH12_RES10BIT);
-      
-    //setup BME280 while LIS2DH12 is rebooting
-    bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
 
-    bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
-    bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
+    //XXX If you read this, I'm sorry about line below.
+    #include "lis2dh12_registers.h"
+    //Configure activity interrupt - TODO: Implement in driver, add tests.
+    uint8_t ctrl[1];
+    //Enable high-pass for Interrupt function 2
+    //CTRLREG2 = 0x02
+    ctrl[0] = LIS2DH12_HPIS2_MASK;
+    lis2dh12_write_register(LIS2DH12_CTRL_REG2, ctrl, 1);
+    
+    //Enable interrupt 2 on X-Y-Z HI/LO
+    //INT2_CFG = 0x7F
+    ctrl[0] = 0x7F;
+    lis2dh12_write_register(LIS2DH12_INT2_CFG, ctrl, 1);    
+    //Interrupt on 64 mg+ (highpassed, +/-)
+    //INT2_THS= 0x04 // 4 LSB = 64 mg @2G scale
+    ctrl[0] = 0x04;
+    lis2dh12_write_register(LIS2DH12_INT2_THS, ctrl, 1);
+        
+    //Enable LOTOHI interrupt on nRF52    
+    err_code |= pin_interrupt_enable(INT_ACC2_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int2_handler);
+    
+    //Enable Interrupt function 2 on LIS interrupt pin 2 (stays high for 1/ODR)
+    lis2dh12_set_interrupts(LIS2DH12_I2C_INT2_MASK, 2);
+
+    //setup BME280 - oversampling must be set for each used sensor.
+    bme280_set_oversampling_hum(BME280_OVERSAMPLING_16);
+    bme280_set_oversampling_temp(BME280_OVERSAMPLING_16);
+    bme280_set_oversampling_press(BME280_OVERSAMPLING_16);
+    bme280_set_iir(BME280_IIR_16);
     bme280_set_mode(BME280_MODE_FORCED);
     NRF_LOG_DEBUG("BME280 configuration done\r\n");
     highres = true;
   }
-        
-  //Take another measurement to let BME 280 filters settle
-  if(model_plus){bme280_set_mode(BME280_MODE_FORCED);}        
 
   //Visually display init status. Hangs if there was an error, waits 3 seconds on success
   init_blink_status(err_code);
@@ -280,12 +331,11 @@ int main(void)
   //Turn green led on to signal model +
   //LED will be turned off in power_manage
   nrf_gpio_pin_clear(LED_GREEN); 
-    
-  if(model_plus){bme280_set_mode(BME280_MODE_FORCED);}
+
   //delay for model plus, basic will not show green.
   if(model_plus) nrf_delay_ms(1000);
-  
-  //Init ok, start watchdog with default wdt event handler
+
+  //Init ok, start watchdog with default wdt event handler (reset)
   init_watchdog(NULL);
 
   // Enter main loop.
@@ -294,6 +344,5 @@ int main(void)
     //if(NRF_LOG_PROCESS() == false){
     app_sched_execute();
     power_manage();
-  
   }
 }
