@@ -17,9 +17,6 @@ SRC_FILES += \
   $(PROJ_DIR)/../../bsp/bsp_btn_ble.c \
   $(PROJ_DIR)/../../bsp/bsp_nfc.c \
   $(PROJ_DIR)/../../bsp/boards.c \
-  $(PROJ_DIR)/../../drivers/bme280/bme280.c \
-  $(PROJ_DIR)/../../drivers/LIS2DH12/LIS2DH12.c \
-  $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../libraries/bluetooth/bluetooth_core.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \

@@ -201,10 +201,10 @@ static void conn_params_init(void)
  */
 static void power_manage(void)
 {
-    bsp_board_led_off(NON_CONNECTABLE_ADV_LED_PIN);
+    //bsp_board_led_off(NON_CONNECTABLE_ADV_LED_PIN);
     uint32_t err_code = sd_app_evt_wait();
     APP_ERROR_CHECK(err_code);
-    bsp_board_led_on(NON_CONNECTABLE_ADV_LED_PIN);
+    //bsp_board_led_on(NON_CONNECTABLE_ADV_LED_PIN);
 }
 
 
