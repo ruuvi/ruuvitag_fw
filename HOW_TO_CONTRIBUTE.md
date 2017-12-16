@@ -44,5 +44,5 @@ Once we've reviewed your code, it will be merged into Ruuvi's main branch. Once 
 we'll do our best to maintain the compatibility in future work of Ruuvi's software, so you do not have to worry some library change obsoleting your application.
 
 ## Contributing other services, examples, integrations
-Aside from code that runs in RuuviTag, there's a lot of applications which use something that RuuviTag produces, for example weather logging services, tracking services etc. Contact us through email at [info@ruuvi.com](mailto:info@ruuvi.com) or through slack and we'll se how we can support your work.
+Aside from code that runs in RuuviTag, there's a lot of applications which use something that RuuviTag produces, for example weather logging services, tracking services etc. Contact us through email at [info@ruuvi.com](mailto:info@ruuvi.com) or through slack and we'll see how we can support your work.
 
