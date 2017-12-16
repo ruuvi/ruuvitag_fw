@@ -22,7 +22,7 @@ nrf_ble_qwr_t                            m_qwr;                                 
 /** Return true if connected **/
 bool is_ble_connected()
 {
-  return !BLE_CONN_HANDLE_INVALID == m_conn_handle;
+  return !(BLE_CONN_HANDLE_INVALID == m_conn_handle);
 }
 
 /**@brief Function for dispatching a system event to interested modules.
