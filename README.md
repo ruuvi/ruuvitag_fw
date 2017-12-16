@@ -2,7 +2,7 @@
 [![RuuviTag](http://ruuvitag.com/assets/images/fb_ruuvitag.jpg)](http://ruuvitag.com)
 
 
-##Repository structure
+## Repository structure
 This repository is structured as follows:
 
 ```
