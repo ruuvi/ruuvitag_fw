@@ -1,6 +1,4 @@
-#Binary builds of Ruuvitag programs
+# Binary builds of RuuviTag programs
 
-These binaries are builds of programs in the repository.
-For added convenience of user, the DFU-ready distribution packages
-are provided.
-
+These binaries are builds of programs in the repository,
+provided as DFU-ready distribution packages.
