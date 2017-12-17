@@ -103,21 +103,31 @@ We also host some ready binaries so it's not necessary to setup a development en
 
 ### Prerequisites (to compile):
 
-* Download and install [GCC](https://launchpad.net/gcc-arm-embedded/+download)
+The project currently uses the Nordic nRF52 SDK version 12.3.0 (downloaded in the `make` process)
+and thus requires the GNU ARM Embedded Toolchain version 4.9 Q3 2015 (aka 4.9.3) for compiling:
 
-Extract the GCC tarball. Other destinations are also ok, but this one is used often:
-`sudo mkdir -p /usr/local && cd /usr/local && sudo tar xjf ~/Downloads/gcc-arm-none-eabi-4_xxxxxxxx.tar.bz2`
+* Download and install [GNU ARM Embedded Toolchain 4.9](https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q3-update)
 
-* Or alternatively on Ubuntu you can use the official GNU ARM Embedded PPA:
-  * Step1: Inside Ubuntu, open a terminal and input
-    * `sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa`
-  * Step2: Continue to input
-    * `sudo apt-get update`
-  * Step3: Continue to input to install toolchain
-    * `sudo apt-get install gcc-arm-embedded`
+For example on Xubuntu 16.04.3 using:
 
-Toolchain path is defined in SDK Makefile, so adding the gcc-arm-none-eabi binaries to path is unnecessary.
-*Please remember to adjust the makefile in SDK/components/toolchain/gcc to point at your toolchain install location. On Ubuntu this will be /usr if you used the PPA.* 
+```bash
+cd ~/Downloads/
+wget https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q3-update/+download/gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar.bz2
+sudo tar xvfj gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar.bz2 -C /usr/local
+sudo apt-get install -y lib32ncurses5 lib32z1
+echo 'PATH="/usr/local/gcc-arm-none-eabi-4_9-2015q3/bin:$PATH"' >> $HOME/.profile
+source $HOME/.profile
+# check version, expecting: 4.9.3 20150529 (release)
+arm-none-eabi-gcc --version
+```
+
+Changing the PATH might not be needed as the toolchain will use the path defined in the SDK Makefile.
+Adjust the GNU_INSTALL_ROOT inside your Makefile in the `$SDK/components/toolchain/gcc/` folder
+when using another destination than the `/usr/local` shown above.
+
+Note that the nRF52 SDK will be downloaded in `make`, so only after this will
+the `$SDK/components/toolchain/gcc/` folder exist in the project (typically
+as the `nRF5_SDK_12.3.0_d7731ad/components/toolchain/gcc/` folder).
 
 ### Prerequisites (to create DFU distribution .zip packages)
 
