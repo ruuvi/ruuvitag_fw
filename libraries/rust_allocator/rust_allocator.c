@@ -26,6 +26,6 @@ void* unexec_realloc(void* ptr, size_t new_size)
 
 void rust_begin_unwind(void* args, char** file_slice, uint32_t line) 
 {
-  NRF_LOG_INFO("Rust stack unwind. Excessive memory usege? Invalid paramters to Rust?\r\n");
+  NRF_LOG_INFO("Rust stack unwind. Excessive memory usage? Invalid parameters to Rust?\r\n");
   //Add your own crash handler here
 }
