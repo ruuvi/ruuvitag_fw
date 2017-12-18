@@ -186,11 +186,6 @@ LDFLAGS += -Wl,--gc-sections
 LDFLAGS += --specs=nano.specs -lc -lnosys
 
 
-
-
-
-
-
 .PHONY: $(TARGETS) default all clean help flash 
 # Default target - first one defined
 default: ruuvitag_b_bootloader
@@ -211,4 +206,3 @@ flash: $(OUTPUT_DIRECTORY)/nrf52832_xxaa_s132.hex
 	@echo Flashing: $<
 	nrfjprog --program $< -f nrf52 --chiperase
 	nrfjprog --reset -f nrf52
-
