@@ -3,7 +3,7 @@
 
 #include "sdk_common.h"
 
-//maximum DSP states for one endpoint
+// maximum DSP states for one endpoint
 // 4 supports int16, but not int8.
 #define MAX_DSP_STATES 4
 #include "dsp.h"
@@ -23,7 +23,7 @@ typedef enum{
   GYROSCOPE               = 0x42,
   MOVEMENT_DETECTOR       = 0x43, 
   // endpoints 0x50 ... 0x5F are reserved for chain handlers, however they're not enumerated but rather called dynamically
-  MAM                     = 0xE0  //Masked Authethentication Messaging
+  MAM                     = 0xE0  // Masked Authenticated Messaging
 }ruuvi_endpoint_t;
 
 typedef enum{
@@ -140,7 +140,7 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
   uint8_t upstream_endpoint;
   uint8_t transmission_rate; // Stop chained transmissions if TRANSMISSION_RATE_0
-  uint8_t reserved0; //Scale, resolution are defined by master
+  uint8_t reserved0; // Scale, resolution are defined by master
   uint8_t reserved1;
   uint8_t dsp_function;
   uint8_t dsp_parameter;
@@ -171,7 +171,7 @@ typedef struct {
 
 /** Chain downstream **/
   message_handler p_chain_handler;
-  uint8_t downstream_endpoint; //Use UINT8_t to allow dynamic endpoint selection
+  uint8_t downstream_endpoint; // Use UINT8_t to allow dynamic endpoint selection
 
 /** State variables **/
   ruuvi_sensor_configuration_t configuration;
@@ -181,18 +181,18 @@ typedef struct {
 
 void ble_gatt_scheduler_event_handler(void *p_event_data, uint16_t event_size);
 
-//pass structs by value, as they might be copied to tx buffer somewhere.
+// pass structs by value, as they might be copied to tx buffer somewhere.
 void route_message(const ruuvi_standard_message_t message);
 
 ret_code_t unknown_handler(const ruuvi_standard_message_t message);
 
-//Peripheral handlers
+// Peripheral handlers
 void set_temperature_handler(message_handler handler);
 void set_acceleration_handler(message_handler handler);
 void set_mam_handler(message_handler handler);
 void set_unknown_handler(message_handler handler);
 
-//Data transmission handlers
+// Data transmission handlers
 void set_ble_adv_handler(message_handler handler);
 void set_ble_gatt_handler(message_handler handler);
 void set_proprietary_handler(message_handler handler);
