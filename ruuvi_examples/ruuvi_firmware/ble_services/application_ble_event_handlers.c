@@ -8,12 +8,11 @@
 
 /**@brief Function for handling the Application's BLE Stack events.
  *
- * @details Handles all events from the BLE stack of interest to all Bluetooth Developer Studio generated Services.
+ * @details Handles all events from the BLE stack of interest
+ * to all Bluetooth Developer Studio generated Services.
  *
  * @param[in]   p_ble_evt  Event received from the BLE stack.
  */
 void application_on_ble_evt(ble_evt_t * p_ble_evt)
 { 
 }
-
-

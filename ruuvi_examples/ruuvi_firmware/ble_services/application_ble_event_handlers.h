@@ -1,7 +1,6 @@
 #ifndef APPLICATION_BLE_EVENT_HANDLERS_H
 #define APPLICATION_BLE_EVENT_HANDLERS_H
 
-
 #include "ble.h"
 #include "ble_hci.h"
 #include "ble_srv_common.h"
