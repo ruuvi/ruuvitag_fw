@@ -110,7 +110,7 @@ and thus requires the GNU ARM Embedded Toolchain version 4.9 Q3 2015 (aka 4.9.3)
 
 For example on Xubuntu 16.04.3 using:
 
-```bash
+```
 cd ~/Downloads/
 wget https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q3-update/+download/gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar.bz2
 sudo tar xvfj gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar.bz2 -C /usr/local
@@ -135,33 +135,39 @@ Instructions how to install (on OS X, Ubuntu):
 
 Install pip:
 
-`curl -O https://bootstrap.pypa.io/get-pip.py`
-
-`sudo python get-pip.py`
+```
+curl -O https://bootstrap.pypa.io/get-pip.py
+sudo python get-pip.py
+```
 
 (Option 1) Install latest nrfutil from pip:
 
-`sudo pip install nrfutil`
-
+```
+sudo pip install nrfutil
+# check version, expecting: 3.4.0 (or newer)
+nrfutil version
+```
 
 (Option 2) Install nrfutil from source:
 
-`git clone https://github.com/NordicSemiconductor/pc-nrfutil.git`
 
-`cd pc-nrfutil`
-
-`sudo pip install -r requirements.txt`
-
-`sudo python setup.py install`
-
-`nrfutil version`
-`> nrfutil version 1.5.5`
+```
+git clone https://github.com/NordicSemiconductor/pc-nrfutil.git
+cd pc-nrfutil
+sudo pip install -r requirements.txt
+sudo python setup.py install
+# check version, expecting: 3.4.0 (or newer)
+nrfutil version
+```
 
 To get started you can try:
 
-`nrfutil pkg generate --debug-mode --application app.hex --key-file key.pem app_dfu_package.zip`
+```
+nrfutil pkg generate --debug-mode --application app.hex --key-file key.pem app_dfu_package.zip
+```
+
 Debug mode skips various version checks which is useful for development. Packages have to be signed,
-RuuviTag ship with bootloader that accepts packages signed with _keys/ruuvi\_open\_private.pem_.
+RuuviTag ship with bootloader that accepts packages signed with the `keys/ruuvi_open_private.pem` key.
 
 More examples and details can be found at [nrfutil repository](https://github.com/NordicSemiconductor/pc-nrfutil).
 
