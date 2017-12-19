@@ -23,5 +23,3 @@
 uint32_t application_services_init(void);
 
 #endif
-
-
