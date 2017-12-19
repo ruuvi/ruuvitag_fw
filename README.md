@@ -62,7 +62,7 @@ More details on signing and keys are explained on DFU package creation section.
 BSP folder contains "Board Service Packages" which provide abstraction and portability between different boards. If you're interested in creating a custom board, create a custom board header file such as "ruuvitag\_b3.h" and add your board header file to "custom\_boards.h".
 
 ### Builds
-Builds are in Github releases. The released packages are generally tested, but you should rely on [RuuviLab](https://lab.ruuvi.com/dfu/) if you're end-user rather
+Builds are in the Github [project releases](https://github.com/ruuvi/ruuvitag_fw/releases). The released packages are generally tested, but you should rely on [RuuviLab](https://lab.ruuvi.com/dfu/) if you're end-user rather
 than developer.
 
 ### Drivers
