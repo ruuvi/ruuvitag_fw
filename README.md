@@ -17,13 +17,6 @@ This repository is structured as follows:
 |   |   +-- bootloader_files
 +-- bsp
 |   +-- BSP files
-+-- builds
-|   +-- distribution_packages
-|   |   +-- sdk11
-|   |   +-- sdk12
-|   +-- hex
-|   |   +-- sdk12
-|   +-- README.md
 +-- drivers
 |   +-- bme280
 |   +-- lis2dh12
@@ -69,7 +62,8 @@ More details on signing and keys are explained on DFU package creation section.
 BSP folder contains "Board Service Packages" which provide abstraction and portability between different boards. If you're interested in creating a custom board, create a custom board header file such as "ruuvitag\_b3.h" and add your board header file to "custom\_boards.h".
 
 ### Builds
-Builds folder contains compiled hexes of applications and bootloader, as well as distribution packages signed with Ruuvi's open private key. Builds are sorted by SDK, SDK11 uses softdevice 2 and SDK12 uses softdevice 3. README tells what those packages are expected to do. 
+Builds are in Github releases. The released packages are generally tested, but you should rely on [RuuviLab](https://lab.ruuvi.com/dfu/) if you're end-user rather
+than developer.
 
 ### Drivers
 Drivers folder contains the peripheral drivers such as a driver for SPI as well as drives for sensors on PCB. 
