@@ -10,14 +10,9 @@
  *
  */
 
-/** @file
- *
- * @defgroup ble_sdk_app_beacon_main main.c
- * @{
- * @ingroup ble_sdk_app_beacon
- * @brief Beacon Transmitter Sample Application main file.
- *
- * This file contains the source code for an Beacon transmitter sample application.
+/**
+ * Example application: Bluetooth Low Energy (BLE) Beacon for RuuviTag.
+ * Based on the ble_sdk_app_beacon example in the nRF5 SDK.
  */
 
 #include <stdbool.h>
@@ -233,8 +228,3 @@ int main(void)
         }
     }
 }
-
-
-/**
- * @}
- */

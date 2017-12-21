@@ -10,15 +10,9 @@
  *
  */
 
-/** @file
- *
- * @defgroup nrf5_sdk_for_eddystone main.c
- * @{
- * @ingroup nrf5_sdk_for_eddystone
- * @brief Eddystone Beacon GATT Configuration Service + EID/eTLM sample application main file.
- *
- * This file contains the source code for an Eddystone
- * Beacon GATT Configuration Service + EID/eTLM sample application.
+/**
+ * Example application: Eddystone Beacon for RuuviTag.
+ * Based on /examples/ble_peripheral/ble_app_eddystone in the nRF SDK .
  */
 
 #include <stdbool.h>
@@ -247,8 +241,3 @@ int main(void)
         }
     }
 }
-
-
-/**
- * @}
- */

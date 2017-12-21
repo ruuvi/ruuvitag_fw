@@ -10,15 +10,11 @@
  *
  */
 
-/** @file
+/**
+ * Test cases for the RuuviTag drivers.
  *
- * @defgroup test_drivers
- * @{
- * @ingroup test_drivers
- * @brief Test Cases for Ruuvitag drivers.
- *
- * This file contains some tests to ensure the Ruuvitag drivers are working correct. The output is transmitted via
- * the J-Link RTT.
+ * This file contains some tests to ensure the RuuviTag drivers are
+ * working correctly. The output is transmitted via the J-Link RTT.
  */
 
 /** STDLIB **/
@@ -210,8 +206,3 @@ int main(void)
     power_manage();
   }
 }
-
-
-/**
- * @}
- */

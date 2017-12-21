@@ -10,14 +10,8 @@
  *
  */
 
-/** @file
- *
- * @defgroup experimental_ble_sdk_app_eddystone_main main.c
- * @{
- * @ingroup experimental_ble_sdk_app_eddystone
- * @brief Eddystone Beacon UID Transmitter sample application main file.
- *
- * This file contains the source code for an Eddystone beacon transmitter sample application.
+/**
+ * Firmware for the RuuviTag B with weather-station functionality.
  */
 
 // STDLIB
