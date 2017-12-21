@@ -1,6 +1,4 @@
-#
-#
-#
+# Main makefile of ruuvi/ruuvitag_fw
 
 ifeq ($(OS),Windows_NT)
 	TOP := %cd%
@@ -22,7 +20,6 @@ ifeq ($(OS),Windows_NT)
 else
 	DOWNLOAD_CMD ?= curl -o
 	UNZIP_CMD ?= unzip -q
-	#UNZIP_CMD ?= unzip -q -d
 endif
 
 export $(SDK_HOME)
@@ -46,17 +43,14 @@ $(SDK_DIR)/external/micro-ecc/micro-ecc:
 	git clone https://github.com/kmackay/micro-ecc.git $(SDK_DIR)/external/micro-ecc/micro-ecc
 	$(MAKE) -C $(SDK_DIR)/external/micro-ecc/nrf52_armgcc/armgcc
 
-
-
 fw:
 	@echo build FW
 	git submodule sync
 	git submodule update --init --recursive
 	$(MAKE) -C ruuvi_examples/ble_app_beacon/ruuvitag_b/s132/armgcc
 	$(MAKE) -C ruuvi_examples/eddystone/ruuvitag_b/s132/armgcc
-	$(MAKE) -C ruuvi_examples/test_drivers/ruuvitag_b/s132/armgcc
 	$(MAKE) -C ruuvi_examples/ruuvi_firmware/ruuvitag_b/s132/armgcc
-
+	$(MAKE) -C ruuvi_examples/test_drivers/ruuvitag_b/s132/armgcc
 
 bootloader:
 	@echo build bootloader
@@ -69,8 +63,8 @@ clean:
 	git submodule update --init --recursive
 	$(MAKE) -C ruuvi_examples/ble_app_beacon/ruuvitag_b/s132/armgcc clean
 	$(MAKE) -C ruuvi_examples/eddystone/ruuvitag_b/s132/armgcc clean
-	$(MAKE) -C ruuvi_examples/test_drivers/ruuvitag_b/s132/armgcc clean
 	$(MAKE) -C ruuvi_examples/ruuvi_firmware/ruuvitag_b/s132/armgcc clean
+	$(MAKE) -C ruuvi_examples/test_drivers/ruuvitag_b/s132/armgcc clean
 	$(MAKE) -C bootloader/ruuvitag_b_debug/armgcc clean
 	$(MAKE) -C bootloader/ruuvitag_b_production/armgcc clean
 

@@ -7,6 +7,7 @@ PROJ_DIR := $(abspath ../..)
 
 $(OUTPUT_DIRECTORY)/ruuvitag_b_bootloader.out: \
   LINKER_SCRIPT := secure_dfu_gcc_nrf52_debug.ld
+
 # Source files common to all targets
 SRC_FILES += \
   $(PROJ_DIR)/dfu_public_key.c \
@@ -183,15 +184,15 @@ LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs -lc -lnosys
 
+.PHONY: $(TARGETS) default all clean help flash
 
-.PHONY: $(TARGETS) default all clean help flash 
 # Default target - first one defined
 default: ruuvitag_b_bootloader
 
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo ruuvitag_b_bootloader
+	@echo   ruuvitag_b_bootloader
 
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
 

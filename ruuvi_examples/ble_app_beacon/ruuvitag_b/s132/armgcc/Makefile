@@ -6,7 +6,8 @@ SDK_ROOT := ../../../../../nRF5_SDK_12.3.0_d7731ad
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
-  LINKER_SCRIPT  := ble_app_beacon_gcc_nrf52.ld
+  LINKER_SCRIPT := ble_app_beacon_gcc_nrf52.ld
+
 # Source files common to all targets
 SRC_FILES += \
   $(PROJ_DIR)/main.c \
@@ -208,20 +209,15 @@ LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs -lc -lnosys
 
+.PHONY: $(TARGETS) default all clean help flash flash_softdevice
 
-
-
-
-
-
-.PHONY: $(TARGETS) default all clean help flash  flash_softdevice
 # Default target - first one defined
 default: nrf52832_xxaa
 
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo 	nrf52832_xxaa
+	@echo   nrf52832_xxaa
 
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
 

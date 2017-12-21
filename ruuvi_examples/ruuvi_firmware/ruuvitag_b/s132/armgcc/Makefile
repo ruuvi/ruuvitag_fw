@@ -6,7 +6,8 @@ SDK_ROOT := ../../../../../nRF5_SDK_12.3.0_d7731ad
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/ruuvi_firmware.out: \
-  LINKER_SCRIPT  := ruuvi_firmware.ld
+  LINKER_SCRIPT := ruuvi_firmware.ld
+
 # Source files common to all targets
 SRC_FILES += \
   $(PROJ_DIR)/../../bsp/bsp.c \
@@ -208,7 +209,6 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/toolchain/gcc \
   $(SDK_ROOT)/external/segger_rtt \
 
-
 # Libraries common to all targets
 LIB_FILES += \
 
@@ -286,20 +286,15 @@ LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs -lc -lnosys
 
-
-
-
-
-
-
 .PHONY: $(TARGETS) default all clean help
+
 # Default target - first one defined
 default: ruuvi_firmware
 
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo ruuvi_firmware
+	@echo   ruuvi_firmware
 
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
 
