@@ -63,7 +63,7 @@
 
 // Payload URL.
 static const uint8_t m_url[] =
-  { 't', 'a', 'g', '.', 'r', 'u', 'u', 'v', 'i', '.', 'c', 'o', 'm' };
+  { 'r', 'u', 'u', 'v', 'i', '.', 'c', 'o', 'm' };
 
 uint8_t m_ndef_msg_buf[256];
 
