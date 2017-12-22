@@ -14,6 +14,6 @@
  *
  * @param[in] p_ble_evt Event received from the BLE stack.
  */
-void application_on_ble_evt(ble_evt_t * p_ble_evt)
+void application_on_ble_evt(ble_evt_t* p_ble_evt)
 { 
 }

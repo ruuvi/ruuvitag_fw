@@ -10,4 +10,3 @@
 #define CONNECTABLE_ADV_LED_PIN     BSP_BOARD_LED_0  //!< Is on when device is advertising connectable advertisements.
 
 #endif
-
