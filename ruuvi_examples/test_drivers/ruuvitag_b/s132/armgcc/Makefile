@@ -7,7 +7,8 @@ IOTA_ROOT := ../../../../../iota.lib.c
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/test_drivers.out: \
-  LINKER_SCRIPT  := test_drivers.ld
+  LINKER_SCRIPT := test_drivers.ld
+
 # Source files common to all targets
 SRC_FILES += \
   $(SDK_ROOT)/components/ble/common/ble_advdata.c \
@@ -294,18 +295,18 @@ LDFLAGS += -Wl,--gc-sections
 LDFLAGS += --specs=nano.specs -lc -lnosys
 
 .PHONY: $(TARGETS) default all clean help
+
 # Default target - first one defined
 default: test_drivers
 
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo 	test_drivers
-	@echo 	flash_softdevice
+	@echo   test_drivers
+	@echo   flash_softdevice
 
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
 
 include $(TEMPLATE_PATH)/Makefile.common
 $(foreach target, $(TARGETS), $(call define_target, $(target)))
 -include $(foreach target, $(TARGETS), $($(target)_dependencies))
-

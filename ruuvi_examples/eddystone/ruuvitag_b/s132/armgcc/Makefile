@@ -6,7 +6,7 @@ SDK_ROOT := ../../../../../nRF5_SDK_12.3.0_d7731ad
 PROJ_DIR := ../../..
 
 $(OUTPUT_DIRECTORY)/eddystone.out: \
-  LINKER_SCRIPT  := eddystone.ld
+  LINKER_SCRIPT := eddystone.ld
 
 # Source files common to all targets
 SRC_FILES += \
@@ -305,7 +305,6 @@ LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs -lc -lnosys
 
-
 .PHONY: $(TARGETS) default all clean
 
 # Default target - first one defined
@@ -314,10 +313,9 @@ default: eddystone
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo 	eddystone
+	@echo   eddystone
 
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
 
 include $(TEMPLATE_PATH)/Makefile.common
-
 $(foreach target, $(TARGETS), $(call define_target, $(target)))
