@@ -250,6 +250,9 @@ int main(void)
     err_code = bsp_init(BSP_INIT_BUTTONS,
                         APP_TIMER_TICKS(100, RUUVITAG_APP_TIMER_PRESCALER),
                         bsp_evt_handler);
+
+    err_code = init_nfc();
+
     APP_ERROR_CHECK(err_code);
     
 

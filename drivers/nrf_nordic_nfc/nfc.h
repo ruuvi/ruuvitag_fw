@@ -13,10 +13,10 @@
  *
  * ID message is uniques_id in UTF-8 numbers string, i.e. "032523523"
  *
- * w@return error  code from NFC init, 0 on success
+ * @return error  code from NFC init, 0 on success
  *
  */
-void init_nfc(void);
+uint32_t nfc_init(void);
 
 /**
  * @brief Function for encoding the initial message.

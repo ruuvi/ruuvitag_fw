@@ -55,7 +55,7 @@ void initial_msg_encode(uint8_t * p_buffer, uint32_t * p_len)
     /** @snippet [NFC text usage_2] */
 }
 
-void nfc_init(void)
+uint32_t nfc_init(void)
 {
     uint32_t  len = sizeof(m_ndef_msg_buf);
     uint32_t  err_code;
@@ -74,6 +74,8 @@ void nfc_init(void)
     /* Start sensing NFC field */
     err_code = nfc_t2t_emulation_start();
     APP_ERROR_CHECK(err_code);
+
+    return err_code;
 }
 
 /**
