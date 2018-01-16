@@ -15,6 +15,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/battery/battery_voltage_saadc.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
   $(PROJ_DIR)/../../drivers/LIS2DH12/LIS2DH12.c \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_nfc/nfc.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../libraries/base91/base91.c \
   $(PROJ_DIR)/../../libraries/base64/base64.c \
@@ -54,6 +55,10 @@ SRC_FILES += \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
   $(SDK_ROOT)/components/toolchain/gcc/gcc_startup_nrf52.S \
   $(SDK_ROOT)/components/toolchain/system_nrf52.c \
+  $(SDK_ROOT)/components/nfc/t2t_lib/hal_t2t/hal_nfc_t2t.c \
+  $(SDK_ROOT)/components/nfc/ndef/generic/message/nfc_ndef_msg.c \
+  $(SDK_ROOT)/components/nfc/ndef/generic/record/nfc_ndef_record.c \
+  $(SDK_ROOT)/components/nfc/ndef/text/nfc_text_rec.c \
   $(SDK_ROOT)/external/segger_rtt/RTT_Syscalls_GCC.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
@@ -65,6 +70,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../bsp \
   $(PROJ_DIR)/../../drivers/bme280 \
   $(PROJ_DIR)/../../drivers/LIS2DH12 \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_nfc \
   $(PROJ_DIR)/../../drivers/spi/ \
   $(PROJ_DIR)/../../drivers/battery/ \
   $(PROJ_DIR)/../../libraries/base91 \
@@ -154,6 +160,12 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/twi \
   $(SDK_ROOT)/components/libraries/uart \
   $(SDK_ROOT)/components/libraries/util \
+  $(SDK_ROOT)/components/nfc/t2t_lib/hal_t2t \
+  $(SDK_ROOT)/components/nfc/ndef/text \
+  $(SDK_ROOT)/components/nfc/ndef/generic/message \
+  $(SDK_ROOT)/components/nfc/ndef/generic/record \
+  $(SDK_ROOT)/components/nfc/t2t_lib \
+  $(SDK_ROOT)/components/nfc/ndef/text \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler \
   $(SDK_ROOT)/components/softdevice/s132/headers \
   $(SDK_ROOT)/components/softdevice/s132/headers/nrf52 \
@@ -165,6 +177,7 @@ INC_FOLDERS += \
 
 # Libraries common to all targets
 LIB_FILES += \
+  $(SDK_ROOT)/components/nfc/t2t_lib/nfc_t2t_lib_gcc.a \
 
 # C flags common to all targets
 CFLAGS += -DNRF52
@@ -239,12 +252,6 @@ LDFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs -lc -lnosys
-
-
-
-
-
-
 
 .PHONY: $(TARGETS) default all clean help flash  flash_softdevice
 # Default target - first one defined
