@@ -4,6 +4,7 @@
 #include "nfc_t2t_lib.h"
 #include "nfc_ndef_msg.h"
 #include "nfc_text_rec.h"
+//#include "nfc_uri_msg.h" for URLs, remember to adjust makefile
 #include "boards.h"
 #include "app_error.h"
 
@@ -84,19 +85,23 @@ uint32_t nfc_init(void)
 void id_record_add(nfc_ndef_msg_desc_t * p_ndef_msg_desc)
 {
     /** @snippet [NFC text usage_1] */
-    uint32_t             err_code;
-    static const uint8_t en_payload[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8'}; //TODO: Add logic for Board ID. 
+    uint32_t err_code = NRF_SUCCESS;
+    unsigned int mac0 =  NRF_FICR->DEVICEID[0];
+    unsigned int mac1 = NRF_FICR->DEVICEID[1];
+    //8 hex chars
+    char name[8] = { 0 };
+    sprintf(name, "%x%x", mac0, mac1);
+    uint8_t* name_bytes = (void*)&name;
     static const uint8_t en_code[] = {'e', 'n'};
 
-    NFC_NDEF_TEXT_RECORD_DESC_DEF(en_text_rec,
+    NFC_NDEF_TEXT_RECORD_DESC_DEF(id_text_rec,
                                   UTF_8,
                                   en_code,
                                   sizeof(en_code),
-                                  en_payload,
-                                  sizeof(en_payload));
+                                  name_bytes,
+                                  sizeof(name));
    /** @snippet [NFC text usage_1] */
-
     err_code = nfc_ndef_msg_record_add(p_ndef_msg_desc,
-                                       &NFC_NDEF_TEXT_RECORD_DESC(en_text_rec));
+                                       &NFC_NDEF_TEXT_RECORD_DESC(id_text_rec));
     APP_ERROR_CHECK(err_code);
 }
