@@ -250,6 +250,9 @@ int main(void)
     err_code = bsp_init(BSP_INIT_BUTTONS,
                         APP_TIMER_TICKS(100, RUUVITAG_APP_TIMER_PRESCALER),
                         bsp_evt_handler);
+
+    err_code = init_nfc();
+
     APP_ERROR_CHECK(err_code);
     
 
@@ -267,6 +270,9 @@ int main(void)
       //NRF_LOG_DEBUG("CONFIG: %x\r\n", conf);
       bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
       bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
+
+      //Slow response, less noise.
+      bme280_set_iir(BME280_IIR_16);
       //conf = bme280_read_reg(BME280REG_CTRL_MEAS);
       //NRF_LOG_DEBUG("CONFIG: %x\r\n", conf);
       bme280_set_mode(BME280_MODE_FORCED);

@@ -1,5 +1,7 @@
 #include "init.h"
 
+#include "nfc.h"
+
 #define NRF_LOG_MODULE_NAME "INIT"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -48,9 +50,28 @@ uint8_t init_ble(void)
     err_code =  ble_stack_init();
     APP_ERROR_CHECK(err_code);
 
-    
-       
     NRF_LOG_INFO("BLE Stack init\r\n");
+    return (NRF_SUCCESS == err_code) ? 0 : 1;
+}
+
+/**
+ * Initialize NFC driver
+ *  
+ * Puts NFC on standby, ready to transmit ID of the tag.
+ * 
+ * @return 0          Operation successful
+ * @retval 1          Something went wrong
+ *
+ */
+uint8_t init_nfc(void)
+{
+    uint32_t err_code;
+
+    //Enable BLE STACK
+    err_code = nfc_init();
+    APP_ERROR_CHECK(err_code);
+
+    NRF_LOG_INFO("NFC init\r\n");
     return (NRF_SUCCESS == err_code) ? 0 : 1;
 }
 
@@ -194,4 +215,3 @@ void init_blink_status(uint8_t init_status)
     }while(init_status);
     nrf_gpio_pin_set(LED_RED);
 }
-

@@ -70,6 +70,17 @@ uint8_t init_log(void);
 uint8_t init_ble(void);
 
 /**
+ * Initialize NFC driver
+ *  
+ * Puts NFC on standby, ready to transmit ID of the tag.
+ * 
+ * @return 0          Operation successful
+ * @retval 1          Something went wrong
+ *
+ */
+uint8_t init_nfc(void);
+
+/**
  * Initialize timers
  *
  * This function initializes timers used by main application.
