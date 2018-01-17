@@ -32,16 +32,19 @@
  */
 
 /*
- * Changelog
- * 2016-11-17 Otso Jousimaa (otso@ruuvi.com): Port function calls to use Ruuvi SPI driver 
- * 2016-11-18 Otso Jousimaa (otso@ruuvi.com): Add timer to poll data 
- *
+ *  Changelog
+ *  2016-11-17 Otso Jousimaa (otso@ruuvi.com): Port function calls to use Ruuvi SPI driver 
+ *  2016-11-18 Otso Jousimaa (otso@ruuvi.com): Add timer to poll data 
+ *  2017-01-28 Otso Jousimaa Add comments.
+ *  2017-04-06: Add t_sb register value. 
+ *  2017-08-12 Otso Jousimaa (otso@ruuvi.com): Add Error checking, IIR filtering
  */
 
 #include <stdint.h>
 #include <stdbool.h>
 
 #include "bme280.h"
+#include "init.h" //Timer ticks - todo: refactor
 
 #define NRF_LOG_MODULE_NAME "BME280"
 #include "nrf_log.h"
@@ -51,36 +54,41 @@
 struct bme280_driver bme280; /* global instance */
 // Scheduler settings
 APP_TIMER_DEF(bme280_timer_id);                                             /** Creates timer id for our program **/
-#define SCHED_MAX_EVENT_DATA_SIZE       MAX(APP_TIMER_SCHED_EVT_SIZE, sizeof(nrf_drv_gpiote_pin_t))
-#define SCHED_QUEUE_SIZE                10
 
 /* Prototypes */
 void timer_bme280_event_handler(void* p_context);
 
+/** state variable **/
+static uint8_t current_mode = BME280_MODE_SLEEP;
+static uint8_t current_interval = BME280_STANDBY_1000_MS;
+
 BME280_Ret bme280_init()
 {
-
-        /* Initialize SPI */
-        if (!spi_isInitialized())
-        {
-            spi_init();
-        }
-        ret_code_t err_code = 0;
+  //Return error if not in sleep
+  if(BME280_MODE_SLEEP != current_mode){ return BME280_RET_ILLEGAL; }
+  /* Initialize SPI */
+  if (!spi_isInitialized())
+  {
+    spi_init();
+  }
+  
+  ret_code_t err_code = 0;
 	uint8_t reg = bme280_read_reg(BME280REG_ID);
-        bme280.sensor_available = false;
+  bme280.sensor_available = false;
 
-	if (reg == 0x60)
-        {
-		bme280.sensor_available = true;
-        }
+	if (BME280_ID_VALUE == reg)
+  {
+	  bme280.sensor_available = true;
+  }
 	else
-        {
-		return BME280_RET_ERROR_SELFTEST;
-        }
-        err_code = app_timer_create(&bme280_timer_id,
-                                APP_TIMER_MODE_REPEATED,
-                                timer_bme280_event_handler);
-        APP_ERROR_CHECK(err_code);
+  {
+    //Assume that 0x00 means no response. Other values are self-test errors (invalid who-am-i).
+		return (0x00 == reg) ? BME280_RET_ERROR : BME280_RET_ERROR_SELFTEST;
+  }
+  err_code = app_timer_create(&bme280_timer_id,
+                              APP_TIMER_MODE_REPEATED,
+                              timer_bme280_event_handler);
+  APP_ERROR_CHECK(err_code);
 
 	// load calibration data...
 	bme280.cp.dig_T1  = bme280_read_reg(BME280REG_CALIB_00);
@@ -122,18 +130,21 @@ BME280_Ret bme280_init()
 
 	bme280.cp.dig_H6  = bme280_read_reg(0xE7);
  
-        return BME280_RET_OK;
-
+  return BME280_RET_OK;
 }
 
 
 /*
  *  TODO: Adjust timer frequency by BME280 sampling speed.
+ *  TODO: return APP_ERROR_CHECK values?
  */
 BME280_Ret bme280_set_mode(enum BME280_MODE mode)
 {
+  NRF_LOG_DEBUG("Setting BME mode: %x\r\n", mode);
+  if(!bme280.sensor_available) { return BME280_RET_ERROR;  }
 	uint8_t conf, reg;
   uint32_t err_code = 0;
+  
   BME280_Ret status = BME280_RET_ERROR;
   reg = bme280_read_reg(BME280REG_CTRL_HUM);
   conf = bme280_read_reg(BME280REG_CTRL_MEAS);
@@ -155,6 +166,8 @@ BME280_Ret bme280_set_mode(enum BME280_MODE mode)
             break;
 
         case BME280_MODE_FORCED:
+            err_code = app_timer_stop(bme280_timer_id);
+            APP_ERROR_CHECK(err_code);        
             bme280_read_measurements(); //read previous data
             status = bme280_write_reg(BME280REG_CTRL_MEAS, conf); //start new measurement
             break;
@@ -169,6 +182,7 @@ BME280_Ret bme280_set_mode(enum BME280_MODE mode)
             break;
         }
 
+  if(BME280_RET_OK == status) {current_mode = mode;}
   return status;
 }
 
@@ -177,6 +191,7 @@ BME280_Ret bme280_set_mode(enum BME280_MODE mode)
  */
 BME280_Ret bme280_set_interval(enum BME280_INTERVAL interval)
 {
+  if(BME280_MODE_SLEEP != current_mode){ return BME280_RET_ILLEGAL; }
 	uint8_t conf;
   BME280_Ret status = BME280_RET_ERROR;
 
@@ -184,8 +199,15 @@ BME280_Ret bme280_set_interval(enum BME280_INTERVAL interval)
 	conf   = conf &~ BME280_INTERVAL_MASK;
 	conf  |= interval;      
   status = bme280_write_reg(BME280REG_CONFIG, conf);
+  
+  if(NRF_SUCCESS == status) { current_interval = interval; }
 
   return status;
+}
+
+enum BME280_INTERVAL bme280_get_interval(void)
+{
+  return current_interval;
 }
 
 
@@ -207,7 +229,7 @@ int bme280_is_measuring(void)
 
 BME280_Ret bme280_set_oversampling_hum(uint8_t os)
 {
-
+  if(BME280_MODE_SLEEP != current_mode){ return BME280_RET_ILLEGAL; }
 	uint8_t meas;
   meas = bme280_read_reg(BME280REG_CTRL_MEAS);
 	bme280_write_reg(BME280REG_CTRL_HUM, os);
@@ -217,6 +239,7 @@ BME280_Ret bme280_set_oversampling_hum(uint8_t os)
 
 BME280_Ret bme280_set_oversampling_temp(uint8_t os)
 {
+  if(BME280_MODE_SLEEP != current_mode){ return BME280_RET_ILLEGAL; }
 	uint8_t humi, meas;
   humi = bme280_read_reg(BME280REG_CTRL_HUM);
   meas = bme280_read_reg(BME280REG_CTRL_MEAS);
@@ -229,6 +252,7 @@ BME280_Ret bme280_set_oversampling_temp(uint8_t os)
 
 BME280_Ret bme280_set_oversampling_press(uint8_t os)
 {
+  if(BME280_MODE_SLEEP != current_mode){ return BME280_RET_ILLEGAL; }
 	uint8_t humi, meas;
   humi = bme280_read_reg(BME280REG_CTRL_HUM);
   meas = bme280_read_reg(BME280REG_CTRL_MEAS);
@@ -236,32 +260,43 @@ BME280_Ret bme280_set_oversampling_press(uint8_t os)
   meas &= 0b11100011;
 	meas |= (os<<2);
 	return bme280_write_reg(BME280REG_CTRL_MEAS, meas);
-	}
-
+}
+	
+BME280_Ret bme280_set_iir(uint8_t iir)
+{
+   if(BME280_MODE_SLEEP != current_mode){ return BME280_RET_ILLEGAL; }
+   uint8_t conf = bme280_read_reg(BME280REG_CONFIG);
+   conf &= ~BME280_IIR_MASK;
+   conf |= BME280_IIR_MASK & iir;
+   NRF_LOG_DEBUG("Writing %d to %d\r\n", conf, BME280REG_CONFIG);
+   return bme280_write_reg(BME280REG_CONFIG, conf);
+}
 
 /**
  * @brief Read new raw values.
  */
 BME280_Ret bme280_read_measurements()
 {
-    uint8_t data[8];
 
-    /* TODO use burst read */
-    for (int i=0; i < 8; i++) {
-        data[i] = bme280_read_reg(BME280REG_PRESS_MSB + i);
-    }
+  if(!bme280.sensor_available) { return BME280_RET_ERROR;  }
+  uint8_t data[8];
 
-    bme280.adc_h = data[7] + ((uint32_t)data[6] << 8);
+  /* TODO use burst read */
+  for (int i=0; i < 8; i++) {
+      data[i] = bme280_read_reg(BME280REG_PRESS_MSB + i);
+  }
 
-    bme280.adc_t  = (uint32_t) data[5] >> 4;
-    bme280.adc_t |= (uint32_t) data[4] << 4;
-    bme280.adc_t |= (uint32_t) data[3] << 12;
+  bme280.adc_h = data[7] + ((uint32_t)data[6] << 8);
 
-    bme280.adc_p  = (uint32_t) data[2] >> 4;
-    bme280.adc_p |= (uint32_t) data[1] << 4;
-    bme280.adc_p |= (uint32_t) data[0] << 12;
+  bme280.adc_t  = (uint32_t) data[5] >> 4;
+  bme280.adc_t |= (uint32_t) data[4] << 4;
+  bme280.adc_t |= (uint32_t) data[3] << 12;
 
-    return BME280_RET_OK;
+  bme280.adc_p  = (uint32_t) data[2] >> 4;
+  bme280.adc_p |= (uint32_t) data[1] << 4;
+  bme280.adc_p |= (uint32_t) data[0] << 12;
+
+  return BME280_RET_OK;
 }
 
 
@@ -385,10 +420,10 @@ BME280_Ret bme280_write_reg(uint8_t reg, uint8_t value)
 /**
  * Event Handler that is called by the timer to read the sensor values.
  *
- * @param [in] pContext Timer Context
+ * @param [in] p_context Timer Context
  */
 void timer_bme280_event_handler(void* p_context)
 {
-    //NRF_LOG_INFO("BME\r\n");
+    NRF_LOG_DEBUG("BME280 event \r\n");
     bme280_read_measurements(); //read previous data
 }
