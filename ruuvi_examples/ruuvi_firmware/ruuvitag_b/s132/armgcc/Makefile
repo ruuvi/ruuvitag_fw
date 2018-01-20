@@ -40,6 +40,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../sdk_overrides/app_button.c \
   $(PROJ_DIR)/ble_services/application_ble_event_handlers.c \
   $(PROJ_DIR)/ble_services/application_service_if.c \
+  $(PROJ_DIR)/ble_services/nrf_dfu_flash_buttonless.c \
   $(PROJ_DIR)/main.c \
   $(SDK_ROOT)/components/ble/common/ble_advdata.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_params.c \
@@ -58,6 +59,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/ble/peer_manager/pm_mutex.c \
   $(SDK_ROOT)/components/ble/peer_manager/security_dispatcher.c \
   $(SDK_ROOT)/components/ble/peer_manager/security_manager.c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_dfu/ble_dfu.c \
   $(SDK_ROOT)/components/ble/ble_services/ble_nus/ble_nus.c \
   $(SDK_ROOT)/components/drivers_nrf/clock/nrf_drv_clock.c \
   $(SDK_ROOT)/components/drivers_nrf/clock/nrf_drv_clock.c \
@@ -72,6 +74,9 @@ SRC_FILES += \
   $(SDK_ROOT)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c \
   $(SDK_ROOT)/components/drivers_nrf/wdt/nrf_drv_wdt.c \
   $(SDK_ROOT)/components/ble/ble_advertising/ble_advertising.c \
+  $(SDK_ROOT)/components/libraries/bootloader/dfu/nrf_dfu_settings.c \
+  $(SDK_ROOT)/components/libraries/crc16/crc16.c \
+  $(SDK_ROOT)/components/libraries/crc32/crc32.c \
   $(SDK_ROOT)/components/libraries/fifo/app_fifo.c \
   $(SDK_ROOT)/components/libraries/fds/fds.c \
   $(SDK_ROOT)/components/libraries/fstorage/fstorage.c \
@@ -174,6 +179,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/drivers_nrf/twis_slave \
   $(SDK_ROOT)/components/drivers_nrf/uart \
   $(SDK_ROOT)/components/drivers_nrf/wdt \
+  $(SDK_ROOT)/components/libraries/bootloader/dfu/ \
   $(SDK_ROOT)/components/libraries/button \
   $(SDK_ROOT)/components/libraries/crc16 \
   $(SDK_ROOT)/components/libraries/crc32 \
@@ -217,6 +223,7 @@ LIB_FILES += \
 CFLAGS += -DNRF52
 CFLAGS += -DBOARD_CUSTOM
 CFLAGS += -DBOARD_RUUVITAG_B
+CFLAGS += -DNRF_DFU_SETTINGS_VERSION=1
 CFLAGS += -DNRF52832
 CFLAGS += -DNRF52_PAN_64
 CFLAGS += -DNRF52_PAN_12
@@ -256,6 +263,7 @@ ASMFLAGS += -x assembler-with-cpp
 ASMFLAGS += -DNRF52
 ASMFLAGS += -DBOARD_CUSTOM
 ASMFLAGS += -DBOARD_RUUVITAG_B
+ASMFLAGS += -DNRF_DFU_SETTINGS_VERSION=1
 ASMFLAGS += -DNRF52832
 ASMFLAGS += -DNRF52_PAN_64
 ASMFLAGS += -DNRF52_PAN_12
