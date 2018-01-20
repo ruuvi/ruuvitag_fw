@@ -89,7 +89,7 @@ void id_record_add(nfc_ndef_msg_desc_t * p_ndef_msg_desc)
     unsigned int mac0 =  NRF_FICR->DEVICEID[0];
     unsigned int mac1 = NRF_FICR->DEVICEID[1];
     //8 hex chars
-    char name[8] = { 0 };
+    char name[17] = { 0 };
     sprintf(name, "%x%x", mac0, mac1);
     uint8_t* name_bytes = (void*)&name;
     static const uint8_t en_code[] = {'e', 'n'};

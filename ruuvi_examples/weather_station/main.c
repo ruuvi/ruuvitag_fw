@@ -236,6 +236,9 @@ int main(void)
     
     init_status += init_leds(); //INIT leds first and turn RED on
     nrf_gpio_pin_clear(LED_RED);//If INIT fails at later stage, RED will stay lit.
+
+
+    init_status += init_nfc();
     
     //Initialize BLE Stack. Required in all applications for timer operation
     init_status += init_ble();
@@ -243,18 +246,11 @@ int main(void)
     
     // Initialize the application timer module.
     init_status += init_timer(main_timer_id, MAIN_LOOP_INTERVAL_URL, main_timer_handler);
-    
-    uint32_t err_code;
 
     // Initialize buttons
-    err_code = bsp_init(BSP_INIT_BUTTONS,
+    init_status += bsp_init(BSP_INIT_BUTTONS,
                         APP_TIMER_TICKS(100, RUUVITAG_APP_TIMER_PRESCALER),
                         bsp_evt_handler);
-
-    err_code = init_nfc();
-
-    APP_ERROR_CHECK(err_code);
-    
 
     //Initialize BME 280 and lis2dh12. Requires timer running.
     if(!init_sensors()){
