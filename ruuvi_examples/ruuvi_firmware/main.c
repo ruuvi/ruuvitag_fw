@@ -259,6 +259,8 @@ int main(void)
   err_code |= init_leds();      // INIT leds first and turn RED on.
   nrf_gpio_pin_clear(LED_RED);  // If INIT fails at later stage, RED will stay lit.
 
+  err_code |= init_nfc();
+
   // Initialize BLE Stack. Required in all applications for timer operation.
   err_code |= init_ble();
   bluetooth_tx_power_set(BLE_TX_POWER);

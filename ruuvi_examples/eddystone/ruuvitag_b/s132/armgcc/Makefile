@@ -27,6 +27,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/lis2dh12/lis2dh12.c \
   $(PROJ_DIR)/../../drivers/pwm/pwm.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_nfc/nfc.c \
   $(PROJ_DIR)/../../drivers/nrf_nordic_watchdog/watchdog.c \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/ruuvi_endpoints.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
@@ -104,6 +105,10 @@ SRC_FILES += \
   $(SDK_ROOT)/components/toolchain/gcc/gcc_startup_nrf52.S \
   $(SDK_ROOT)/components/toolchain/system_nrf52.c \
   $(SDK_ROOT)/components/ble/ble_services/ble_escs/nrf_ble_escs.c \
+  $(SDK_ROOT)/components/nfc/t2t_lib/hal_t2t/hal_nfc_t2t.c \
+  $(SDK_ROOT)/components/nfc/ndef/generic/message/nfc_ndef_msg.c \
+  $(SDK_ROOT)/components/nfc/ndef/generic/record/nfc_ndef_record.c \
+  $(SDK_ROOT)/components/nfc/ndef/text/nfc_text_rec.c
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -116,6 +121,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../drivers/lis2dh12 \
   $(PROJ_DIR)/../../drivers/spi/ \
   $(PROJ_DIR)/../../drivers/init/ \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_nfc/ \
   $(PROJ_DIR)/../../drivers/nrf_nordic_pininterrupt/ \
   $(PROJ_DIR)/../../drivers/pwm/ \
   $(PROJ_DIR)/../../drivers/nrf_nordic_watchdog/ \
@@ -232,10 +238,17 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler \
   $(SDK_ROOT)/components/ble/ble_services/ble_hrs \
   $(SDK_ROOT)/components/libraries/log/src \
+  $(SDK_ROOT)/components/nfc/t2t_lib/hal_t2t \
+  $(SDK_ROOT)/components/nfc/ndef/text \
+  $(SDK_ROOT)/components/nfc/ndef/generic/message \
+  $(SDK_ROOT)/components/nfc/ndef/generic/record \
+  $(SDK_ROOT)/components/nfc/t2t_lib \
+  $(SDK_ROOT)/components/nfc/ndef/text \
 
 # Libraries common to all targets
 LIB_FILES += \
   $(PROJ_DIR)/occ/occ_lib_nrf52.a \
+  $(SDK_ROOT)/components/nfc/t2t_lib/nfc_t2t_lib_gcc.a 
 
 # C flags common to all targets
 CFLAGS += -DNRF52
