@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include "app_scheduler.h"
+#include "nrf_delay.h"
 
 #include "ble_nus.h"
 #include "ble_dfu.h"
@@ -71,6 +72,9 @@ uint32_t application_services_init(void)
     nus_init.data_handler = nus_data_handler;
 
     err_code |= ble_nus_init(&m_nus, &nus_init);
+
+    NRF_LOG_INFO("NUS Init status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));
+    nrf_delay_ms(10);
     
     // Initialize the Device Firmware Update Service.
     ble_dfu_init_t dfus_init;
@@ -80,8 +84,9 @@ uint32_t application_services_init(void)
     dfus_init.ctrl_point_security_req_write_perm        = SEC_SIGNED;
     dfus_init.ctrl_point_security_req_cccd_write_perm   = SEC_SIGNED;
 
-    err_code = ble_dfu_init(&m_dfus, &dfus_init);
-    APP_ERROR_CHECK(err_code);
+    err_code |= ble_dfu_init(&m_dfus, &dfus_init);
+    NRF_LOG_INFO("DFU Init status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));
+    nrf_delay_ms(10);
   
     return err_code;
 }
@@ -90,4 +95,10 @@ uint32_t application_services_init(void)
 ble_nus_t* get_nus(void)
 {
   return &m_nus;
+}
+
+/** Return pointer to BLE dfu service **/
+ble_dfu_t* get_dfu(void)
+{
+  return &m_dfus;
 }
