@@ -24,7 +24,7 @@
 #include "ble_nus.h"
 #include "peer_manager.h"
 #include "sdk_errors.h"
-//#include "nrf_delay.h"
+#include "nrf_delay.h"
 
 #include "ble_event_handlers.h" 
 #include "bluetooth_config.h"
@@ -35,6 +35,7 @@
 #include "application_service_if.h"
 
 #define NRF_LOG_MODULE_NAME "BLE_CORE"
+#define NRF_LOG__DEFAULT_LEVEL 4
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
@@ -277,7 +278,7 @@ static void advertising_init(void)
 
 uint32_t bluetooth_stack_init(void)
 {
-    uint32_t err_code;
+    uint32_t err_code = NRF_SUCCESS;
 
     nrf_clock_lf_cfg_t clock_lf_cfg = NRF_CLOCK_LFCLKSRC;
     NRF_LOG_DEBUG("Softdevice handler init start\r\n");
@@ -290,7 +291,7 @@ uint32_t bluetooth_stack_init(void)
     NRF_LOG_FLUSH();
 
     ble_enable_params_t ble_enable_params;
-    err_code = softdevice_enable_get_default_config(CENTRAL_LINK_COUNT,
+    err_code |= softdevice_enable_get_default_config(CENTRAL_LINK_COUNT,
                                                     PERIPHERAL_LINK_COUNT,
                                                     &ble_enable_params);
     
@@ -309,8 +310,8 @@ uint32_t bluetooth_stack_init(void)
     ble_enable_params.common_enable_params.vs_uuid_count = BLE_UUID_COUNT;
     #endif
     NRF_LOG_INFO("Softdevice configuration ready, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));       
-    //nrf_delay_ms(10);
-    APP_ERROR_CHECK(err_code);
+    nrf_delay_ms(10);
+    //APP_ERROR_CHECK(err_code);
 
     //Check the ram settings against the used number of links
     CHECK_RAM_START_ADDR(CENTRAL_LINK_COUNT,PERIPHERAL_LINK_COUNT);
@@ -320,6 +321,9 @@ uint32_t bluetooth_stack_init(void)
       ble_enable_params.gatt_enable_params.att_mtu = NRF_BLE_MAX_MTU_SIZE;
     #endif
 
+    //Init filesystem
+    err_code |= fs_init();
+
     // Subscribe for BLE events.
     err_code |= softdevice_ble_evt_handler_set(ble_evt_dispatch);
     NRF_LOG_INFO("BLE event handler set, status %d\r\n", err_code);
@@ -328,21 +332,21 @@ uint32_t bluetooth_stack_init(void)
     // Register with the SoftDevice handler module for BLE events.
     err_code |= softdevice_sys_evt_handler_set(sys_evt_dispatch);
     NRF_LOG_INFO("System event handler set, status %d\r\n", err_code);
-    //nrf_delay_ms(10);
+    nrf_delay_ms(10);
 
     // Enable BLE stack.
     err_code = softdevice_enable(&ble_enable_params);
     NRF_LOG_INFO("Softdevice enabled, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));
-    //nrf_delay_ms(10);
+    nrf_delay_ms(10);
 
     //Enable peer manager, erase bonds
     peer_manager_init(true);
     NRF_LOG_INFO("Peer manager init \r\n");
-    //nrf_delay_ms(10);
+    nrf_delay_ms(10);
 
     err_code |= application_services_init();
     NRF_LOG_INFO("Services init status %d\r\n", err_code);
-    //nrf_delay_ms(10);
+    nrf_delay_ms(10);
     
     gap_params_init();
     NRF_LOG_INFO("GAP params init\r\n");
@@ -354,7 +358,7 @@ uint32_t bluetooth_stack_init(void)
 
     advertising_init();    
     NRF_LOG_INFO("Advertising init, status\r\n");
-    //nrf_delay_ms(10);
+    nrf_delay_ms(10);
 
     return err_code;
 }
@@ -411,7 +415,7 @@ void peer_manager_init(bool erase_bonds)
 uint32_t bluetooth_tx_power_set(int8_t power)
 {
     uint32_t err_code = sd_ble_gap_tx_power_set(power);
-    APP_ERROR_CHECK(err_code);
+    //APP_ERROR_CHECK(err_code);
     tx_power = power;
     return err_code;
 }
