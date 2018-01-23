@@ -53,6 +53,7 @@
 
 /** Application tests **/
 #include  "test_led.h"
+#include  "test_nfc.h"
 #include  "test_rng.h"
 #include  "test_rtc.h"
 #include  "test_environmental.h"
@@ -178,6 +179,7 @@ int main(void)
   test_rtc();
   test_rng();
   test_led();
+  test_nfc();
   test_environmental();
   
   test_byte_tryte_conversion();
