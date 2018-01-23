@@ -17,9 +17,10 @@
 #define NRF_LOG_ENABLED 1
 
 // WDT_CONFIG_RELOAD_VALUE - Reload value  <15-4294967295> (ms)
-// 11000 as maximum advertisement interval is 10000 + some margin
+// Watchdog cannot be stopped even when entering bootloader, 
+// so use 6 minutes to allow DFU process to complete.
 #ifndef WDT_CONFIG_RELOAD_VALUE
-#define WDT_CONFIG_RELOAD_VALUE 11000 
+#define WDT_CONFIG_RELOAD_VALUE 360000 
 #endif
 
 #endif
