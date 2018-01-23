@@ -99,6 +99,7 @@ SRC_FILES += \
   $(PROJ_DIR)/tests/test_led.c \
   $(PROJ_DIR)/tests/test_lis2dh12.c \
   $(PROJ_DIR)/tests/test_mam.c \
+  $(PROJ_DIR)/tests/test_nfc.c \
   $(PROJ_DIR)/tests/test_rng.c \
   $(PROJ_DIR)/tests/test_rtc.c \
   $(PROJ_DIR)/main.c \
