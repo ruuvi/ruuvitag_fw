@@ -16,6 +16,7 @@
 #define CRC16_ENABLED   1
 #define CRC32_ENABLED   1
 #define NRF_LOG_ENABLED 1
+#define BLE_DIS_ENABLED 1
 
 // WDT_CONFIG_RELOAD_VALUE - Reload value  <15-4294967295> (ms)
 // Watchdog cannot be stopped even when entering bootloader, 

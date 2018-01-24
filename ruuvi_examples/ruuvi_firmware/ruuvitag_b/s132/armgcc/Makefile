@@ -61,6 +61,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/ble/peer_manager/security_manager.c \
   $(SDK_ROOT)/components/ble/ble_services/ble_dfu/ble_dfu.c \
   $(SDK_ROOT)/components/ble/ble_services/ble_nus/ble_nus.c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_dis/ble_dis.c \
   $(SDK_ROOT)/components/drivers_nrf/clock/nrf_drv_clock.c \
   $(SDK_ROOT)/components/drivers_nrf/clock/nrf_drv_clock.c \
   $(SDK_ROOT)/components/drivers_nrf/common/nrf_drv_common.c \

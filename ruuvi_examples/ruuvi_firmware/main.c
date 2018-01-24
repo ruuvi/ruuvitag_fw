@@ -180,7 +180,7 @@ void main_timer_handler(void * p_context)
       raw_h = bme280_get_humidity();
       
       // Start next measurement - causes up to URL_LOOP_INTERVAL latency in measurements.
-      bme280_set_mode(BME280_MODE_FORCED);
+      //bme280_set_mode(BME280_MODE_FORCED);
 
       // Get accelerometer data.
       lis2dh12_read_samples(&buffer, 1);  
@@ -189,7 +189,7 @@ void main_timer_handler(void * p_context)
       acc[2] = buffer.sensor.z;
     }
     // If only temperature sensor is present.
-    else 
+    else
     {
       int32_t temp;                                        // variable to hold temp reading
       (void)sd_temp_get(&temp);                            // get new temperature
@@ -197,9 +197,10 @@ void main_timer_handler(void * p_context)
       raw_t = (int32_t) temp;
     }
 
-    // Get battery voltage.
+    // Get battery voltage every 30.th cycle
+    static uint32_t vbat_update_counter;
     static uint16_t vbat = 0;
-    vbat = getBattery();
+    if(!(vbat_update_counter++%30)) { vbat = getBattery(); }
     //NRF_LOG_INFO("temperature: , pressure: , humidity: ");
     // Embed data into structure for parsing.
     parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
@@ -269,7 +270,7 @@ int main(void)
   err_code |= init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler);
 
   // Initialize RTC.
-  err_code |= init_rtc();
+  //err_code |= init_rtc();
 
   // Start interrupts.
   err_code |= pin_interrupt_init();
@@ -317,11 +318,12 @@ int main(void)
     lis2dh12_set_interrupts(LIS2DH12_I2C_INT2_MASK, 2);
 
     // Setup BME280 - oversampling must be set for each used sensor.
-    bme280_set_oversampling_hum(BME280_OVERSAMPLING_16);
-    bme280_set_oversampling_temp(BME280_OVERSAMPLING_16);
-    bme280_set_oversampling_press(BME280_OVERSAMPLING_16);
+    bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
+    bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
+    bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
     bme280_set_iir(BME280_IIR_16);
-    bme280_set_mode(BME280_MODE_FORCED);
+    bme280_set_interval(BME280_STANDBY_1000_MS);
+    bme280_set_mode(BME280_MODE_NORMAL);
     NRF_LOG_DEBUG("BME280 configuration done\r\n");
     highres = true;
   }

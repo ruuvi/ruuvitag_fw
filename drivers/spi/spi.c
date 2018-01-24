@@ -102,7 +102,6 @@ extern SPI_Ret spi_transfer_bme280(uint8_t* const p_toWrite, uint8_t count, uint
             //Requires initialized softdevice
             uint32_t err_code = sd_app_evt_wait();
             NRF_LOG_DEBUG("SPI status %d\r\n", err_code);
-            APP_ERROR_CHECK(err_code);
         }
         nrf_gpio_pin_set(SPIM0_SS_HUMI_PIN);
         retVal = SPI_RET_OK;
@@ -133,8 +132,7 @@ extern SPI_Ret spi_transfer_lis2dh12(uint8_t* const p_toWrite, uint8_t count, ui
         while (!spi_xfer_done)
         {
             //Requires initialized softdevice - TODO
-            uint32_t err_code = sd_app_evt_wait();
-            APP_ERROR_CHECK(err_code);
+            sd_app_evt_wait();
             //__WFE(); 
         }
         nrf_gpio_pin_set(SPIM0_SS_ACC_PIN);
