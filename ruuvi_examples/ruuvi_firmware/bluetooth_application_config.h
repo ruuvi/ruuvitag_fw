@@ -5,5 +5,7 @@
 #define APPLICATION_DEVICE_NAME_LENGTH  5                               /**< number of characters in above string, excluding null */
 #define APP_DEVICE_NAME                 APPLICATION_DEVICE_NAME         /**< TODO: Refactoring **/
 #define APP_DEVICE_NAME_LENGTH          APPLICATION_DEVICE_NAME_LENGTH
+#define APPLICATION_ADV_INTERVAL        1000                            /**< ms **/
+#define APP_TX_POWER                    4                               /**< dBm **/
 
 #endif
