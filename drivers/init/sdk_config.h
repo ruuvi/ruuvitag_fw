@@ -42,7 +42,7 @@
  
 
 #ifndef PEER_MANAGER_ENABLED
-#define PEER_MANAGER_ENABLED 1
+#define PEER_MANAGER_ENABLED 0
 #endif
 
 // </h> 
@@ -188,7 +188,7 @@
  
 
 #ifndef BLE_NUS_ENABLED
-#define BLE_NUS_ENABLED 1
+#define BLE_NUS_ENABLED 0
 #endif
 
 // <q> BLE_RSCS_C_ENABLED  - ble_rscs_c - Running Speed and Cadence Client
@@ -2345,7 +2345,7 @@
 // <e> RTC_ENABLED - nrf_drv_rtc - RTC peripheral driver
 //==========================================================
 #ifndef RTC_ENABLED
-#define RTC_ENABLED 1
+#define RTC_ENABLED 0
 #endif
 #if  RTC_ENABLED
 // <o> RTC_DEFAULT_CONFIG_FREQUENCY - Frequency  <16-32768> 

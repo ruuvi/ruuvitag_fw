@@ -9,7 +9,7 @@
 #define INIT_MANUFACTURER                   "Ruuvi Innovations Ltd"
 #define INIT_MODEL                          "RuuviTag"
 #define INIT_HWREV                          "B"
-#define INIT_FWREV                          "2.1.0-alpha"                                 /**< Github tag **/
-#define INIT_SWREV                          "2.X.Y"                                       /**< compatible library revisions should use this version **/
+#define INIT_FWREV                          "Ruuvi 1.2.0-alpha"                                 /**< Github tag **/
+#define INIT_SWREV                          "1.X.Y"                                       /**< compatible library revisions should use this version **/
 
 #endif
