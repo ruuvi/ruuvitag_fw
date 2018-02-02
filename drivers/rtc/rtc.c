@@ -15,6 +15,8 @@
 
 const nrf_drv_rtc_t rtc = NRF_DRV_RTC_INSTANCE(APP_RTC_INSTANCE); /**< Declaring an instance of nrf_drv_rtc for RTC2. */
 
+static uint64_t overflows = 0;
+
 static void rtc_handler(nrf_drv_rtc_int_type_t int_type)
 {
     if (int_type == NRF_DRV_RTC_INT_COMPARE0)
@@ -24,6 +26,10 @@ static void rtc_handler(nrf_drv_rtc_int_type_t int_type)
     else if (int_type == NRF_DRV_RTC_INT_TICK)
     {
       NRF_LOG_DEBUG("Tick\r\n");
+    }
+    else if (int_type == NRF_DRV_RTC_INT_OVERFLOW)
+    {
+      overflows++;
     }
 }
 
@@ -50,11 +56,12 @@ uint32_t init_rtc(void)
   return err_code;
 }
 
-uint32_t millis(void)
+uint64_t millis(void)
 {
   uint64_t ms = nrf_drv_rtc_counter_get(&rtc);
+  ms += overflows<<24;
   //Compensate tick roundoff
   ms*=32000;
   ms/=32768;
-  return (uint32_t)ms;
+  return ms;
 }
