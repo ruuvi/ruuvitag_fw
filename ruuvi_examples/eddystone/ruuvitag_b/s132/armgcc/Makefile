@@ -15,6 +15,7 @@ SRC_FILES += \
   $(PROJ_DIR)/ble_services/application_ble_event_handlers.c \
   $(PROJ_DIR)/ble_services/application_service_if.c \
   $(PROJ_DIR)/../../sdk_overrides/es_battery_voltage_saadc.c \
+  $(PROJ_DIR)/ble_services/nrf_dfu_flash_buttonless.c \
   $(PROJ_DIR)/../../bsp/bsp.c \
   $(PROJ_DIR)/../../bsp/bsp_btn_ble.c \
   $(PROJ_DIR)/../../bsp/bsp_nfc.c \
@@ -45,6 +46,7 @@ SRC_FILES += \
   $(SDK_ROOT)/external/cifra_AES128-EAX/cmac.c \
   $(SDK_ROOT)/components/libraries/crc16/crc16.c \
   $(SDK_ROOT)/external/cifra_AES128-EAX/eax.c \
+  $(SDK_ROOT)/components/libraries/bootloader/dfu/nrf_dfu_settings.c \
   $(SDK_ROOT)/components/libraries/crc16/crc16.c \
   $(SDK_ROOT)/components/libraries/crc32/crc32.c \
   $(SDK_ROOT)/components/libraries/eddystone/es_adv.c \
@@ -85,6 +87,8 @@ SRC_FILES += \
   $(SDK_ROOT)/components/drivers_nrf/hal/nrf_saadc.c \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
   $(SDK_ROOT)/components/ble/ble_advertising/ble_advertising.c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_dfu/ble_dfu.c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_dis/ble_dis.c \
   $(SDK_ROOT)/components/ble/common/ble_advdata.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_params.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_state.c \
@@ -131,7 +135,6 @@ INC_FOLDERS += \
   $(PROJ_DIR)/ruuvitag_b/s132/config \
   $(PROJ_DIR)/occ/occ/OberonHAPCryptoP256 \
   $(PROJ_DIR)/ruuvitag_b/s132/ \
-  $(PROJ_DIR)/ruuvitag_b/s132/config \
   $(PROJ_DIR)/occ/occ/OberonHAPCrypto \
   $(PROJ_DIR)/occ/occ/OberonHAPCrypto/include \
   $(PROJ_DIR)/occ/occ/OberonHAPCryptoP256/include \
@@ -142,6 +145,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/pwm \
   $(SDK_ROOT)/external/tiny-AES128 \
   $(SDK_ROOT)/components/softdevice/s132/headers/nrf52 \
+  $(SDK_ROOT)/components/libraries/bootloader/dfu/ \
   $(SDK_ROOT)/components/libraries/usbd/class/cdc/acm \
   $(SDK_ROOT)/components/libraries/usbd/class/hid/generic \
   $(SDK_ROOT)/components/libraries/usbd/class/msc \
@@ -187,6 +191,8 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/scheduler \
   $(SDK_ROOT)/components/ble/ble_services/ble_lbs \
   $(SDK_ROOT)/components/ble/ble_services/ble_hts \
+  $(SDK_ROOT)/components/ble/ble_services/ble_dfu \
+  $(SDK_ROOT)/components/ble/ble_services/ble_dis \
   $(SDK_ROOT)/components/drivers_nrf/delay \
   $(SDK_ROOT)/components/libraries/crc16 \
   $(SDK_ROOT)/components/drivers_nrf/timer \
@@ -258,6 +264,7 @@ CFLAGS += -DBOARD_CUSTOM
 CFLAGS += -DBOARD_RUUVITAG_B
 CFLAGS += -DNRF52832
 CFLAGS += -DNRF_LOG_USES_RTT=1
+CFLAGS += -DNRF_DFU_SETTINGS_VERSION=1
 CFLAGS += -DNRF52_PAN_58
 CFLAGS += -DNRF52_PAN_54
 CFLAGS += -DNRF52_PAN_31
@@ -293,6 +300,7 @@ ASMFLAGS += -DSOFTDEVICE_PRESENT
 ASMFLAGS += -DBOARD_PCA10040
 ASMFLAGS += -DNRF52832
 ASMFLAGS += -DNRF_LOG_USES_RTT=1
+ASMFLAGS += -DNRF_DFU_SETTINGS_VERSION=1
 ASMFLAGS += -DNRF52_PAN_58
 ASMFLAGS += -DNRF52_PAN_54
 ASMFLAGS += -DNRF52_PAN_31
