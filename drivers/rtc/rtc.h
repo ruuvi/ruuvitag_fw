@@ -5,6 +5,6 @@
 
 uint32_t init_rtc(void);
 
-uint32_t millis(void);
+uint64_t millis(void);
 
 #endif
