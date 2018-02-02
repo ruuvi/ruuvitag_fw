@@ -264,7 +264,9 @@ int main(void)
 
   // Initialize BLE Stack. Required in all applications for timer operation.
   err_code |= init_ble();
-  bluetooth_tx_power_set(BLE_TX_POWER);
+  //Start advertising only after sensors have valid data
+  err_code |= bluetooth_advertising_stop();
+  err_code |= bluetooth_tx_power_set(BLE_TX_POWER);
 
   // Initialize the application timer module.
   err_code |= init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler);
@@ -325,7 +327,7 @@ int main(void)
     bme280_set_interval(BME280_STANDBY_1000_MS);
     bme280_set_mode(BME280_MODE_NORMAL);
     NRF_LOG_DEBUG("BME280 configuration done\r\n");
-    highres = true;
+    app_sched_event_put (NULL, 0, change_mode);
   }
 
   // Visually display init status. Hangs if there was an error, waits 3 seconds on success.
@@ -334,15 +336,16 @@ int main(void)
   nrf_gpio_pin_set(LED_RED);  // Turn RED led off.
   // Turn green led on to signal model +
   // LED will be turned off in power_manage.
-  nrf_gpio_pin_clear(LED_GREEN); 
+  if (model_plus) { nrf_gpio_pin_clear(LED_GREEN); }
 
-  // Delay for model plus, basic will not show green.
-  if (model_plus) nrf_delay_ms(1000);
+  // Delay before advertising so we get valid data on first packet
+  nrf_delay_ms(MAIN_LOOP_INTERVAL_RAW + 100);
 
   // Init ok, start watchdog with default wdt event handler (reset).
   init_watchdog(NULL);
 
   // Enter main loop.
+  bluetooth_advertising_start();
   for (;;)
   {
     app_sched_execute();
