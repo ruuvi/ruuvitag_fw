@@ -40,6 +40,7 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
     NVIC_SystemReset();
 }
 
+
 void app_error_handler_bare(uint32_t error_code)
 {
     (void)error_code;
@@ -68,8 +69,9 @@ static void buttons_init(void)
                              NRF_GPIO_PIN_SENSE_LOW);
 }
 
+
 /**@brief Function for configuring sensor GPIO to save power.
-    this can be safely run on boards with no sensors too.
+    This can be safely run on boards with no sensors too.
  */
 static void sensors_init(void)
 {
@@ -78,6 +80,8 @@ static void sensors_init(void)
     nrf_gpio_cfg_output(SPIM0_SS_ACC_PIN);
     nrf_gpio_pin_set(SPIM0_SS_ACC_PIN);
 }
+
+
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -95,8 +99,9 @@ int main(void)
     ret_val = nrf_bootloader_init();
     APP_ERROR_CHECK(ret_val);
 
-    // Either there was no DFU functionality enabled in this project or the DFU module detected
-    // no ongoing DFU operation and found a valid main application.
+    // Either there was no DFU functionality enabled in this project
+    // or the DFU module detected no ongoing DFU operation
+    // and found a valid main application.
     // Boot the main application.
     nrf_bootloader_app_start(MAIN_APPLICATION_START_ADDR);
 

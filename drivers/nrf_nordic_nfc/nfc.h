@@ -9,26 +9,35 @@
 #define MAX_REC_COUNT      3     /**< Maximum records count. */
 
 /**
- * Initializes NFC with ID message.
+ * Initializes NFC with ID , address and data message.
  *
  * ID message is uniques_id in UTF-8 numbers string, i.e. "032523523"
  *
  * @return error  code from NFC init, 0 on success
  *
  */
-uint32_t nfc_init(void);
+uint32_t nfc_init(uint8_t* data, uint32_t data_length);
 
 /**
- * @brief Function for encoding the initial message.
+ * @brief Function for encoding the NFC message.
  */
-void initial_msg_encode(uint8_t * p_buffer, uint32_t * p_len);
+void nfc_msg_encode(nfc_ndef_msg_desc_t* nfc_msg, uint8_t * p_buffer, uint32_t * p_len);
 
 /**
- * @brief Creates UTF-8 string record of device ID.
- *
- * @param p_ndef_mmmmmsg_desc pointer to array containing text records.
+ * @brief Function for creating a record.
  */
-void id_record_add(nfc_ndef_msg_desc_t * p_ndef_msg_desc);
+void id_record_add(nfc_ndef_msg_desc_t* nfc_msg);
+
+/**
+ * @brief Function for creating a record.
+ */
+void address_record_add(nfc_ndef_msg_desc_t* nfc_msg);
+
+/**
+ * Update NFC payload with given data. Data is converted to hex and printed as a string.
+ * https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.0.0%2Fnfc_ndef_format_dox.html
+ */
+void data_record_add(nfc_ndef_msg_desc_t* nfc_msg, uint8_t* data, uint32_t data_length);
 
 /**
  * @brief Callback function for handling NFC events.

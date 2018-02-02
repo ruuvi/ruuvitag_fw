@@ -2,6 +2,8 @@
 
 
 #include <stdint.h>
+#include "nrf52.h"
+#include "nrf52_bitfields.h"
 
 #include "base64.h"
 
@@ -49,38 +51,69 @@ void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32
 }
 
 /**
- *  Parses sensor values into RuuviTag format.
- *  @param char* data_buffer character array with length of 14 bytes
+ *  Parses sensor values into propesed format. 
+ *  Note: calling this function has side effect of incrementing packet counter
+ *  Changes values in "environmental" as they're paresed to ruuvi format
+ *
+ *  @param data_buffer uint8_t array with length of 24 bytes
+ *  @param environmental  Environmental data as data comes from BME280, i.e. uint32_t pressure, int32_t temperature, uint32_t humidity
+ *  @param acceleration 3 x int16_t having acceleration along X-Y-Z axes in MG. Low pass and last sample are allowed DSP operations
+ *  @param acceleration_events counter of acceleration events. Events are configured by application, "value exceeds 1.1 G" recommended.
+ *  @param vbatt Voltage of battery in millivolts
+ *  @param tx_pwr power in dBm, -40 ... 16
+ *
  */
-
-void encodeToSensorDataFormat(uint8_t* data_buffer, ruuvi_sensor_t* data)
-
+void encodeToRawFormat5(uint8_t* data_buffer, bme280_data_t* environmental, acceleration_t* acceleration, uint16_t acceleration_events, uint16_t vbatt, int8_t tx_pwr)
 {
-    //serialize values into a string
-    data_buffer[0] = SENSOR_TAG_DATA_FORMAT;
-    data_buffer[1] = data->humidity;
-    data_buffer[2] = (data->temperature)>>8;
-    data_buffer[3] = (data->temperature)&0xFF;
-    data_buffer[4] = (data->pressure)>>8;
-    data_buffer[5] = (data->pressure)&0xFF;
-    data_buffer[6] = (data->accX)>>8;
-    data_buffer[7] = (data->accX)&0xFF;
-    data_buffer[8] = (data->accY)>>8;
-    data_buffer[9] = (data->accY)&0xFF;
-    data_buffer[10] = (data->accZ)>>8;
-    data_buffer[11] = (data->accZ)&0xFF;
-    data_buffer[12] = (data->vbat)>>8;
-    data_buffer[13] = (data->vbat)&0xFF;
+    static uint32_t packet_counter = 0;
+    data_buffer[0] = RAW_FORMAT_2;
+    environmental->temperature *= 2; //Spec calls for 0.005 degree resolution, bme280 gives 0.01
+    data_buffer[1] = (environmental->temperature)>>8;
+    data_buffer[2] = (environmental->temperature)&0xFF;
+    uint32_t humidity = environmental->humidity;
+    humidity *= 400; 
+    humidity /= 1024;
+    data_buffer[3] = humidity>>8;
+    data_buffer[4] = humidity&0xFF;
+    NRF_LOG_DEBUG("Humidity is %d\r\n", humidity/400);
+    environmental->pressure = (uint16_t)((environmental->pressure >> 8) - 50000); //Scale into pa, Shift by -50000 pa as per Ruu.vi interface.
+    data_buffer[5] = (environmental->pressure)>>8;
+    data_buffer[6] = (environmental->pressure)&0xFF;
+    data_buffer[7] = (acceleration->x)>>8;
+    data_buffer[8] = (acceleration->x)&0xFF;
+    data_buffer[9] = (acceleration->y)>>8;
+    data_buffer[10] = (acceleration->y)&0xFF;
+    data_buffer[11] = (acceleration->z)>>8;
+    data_buffer[12] = (acceleration->z)&0xFF;
+    //Bit-shift vbatt by 4 to fit TX PWR in
+    vbatt -= 1600; //Bias by 1600 mV
+    vbatt <<= 5;   //Shift by 5 to fit TX PWR in
+    data_buffer[13] = (vbatt)>>8;
+    data_buffer[14] = (vbatt)&0xFF; //Zeroes tx-pwr bits
+    tx_pwr += 40;
+    tx_pwr /= 2;
+    data_buffer[14] |= (tx_pwr)&0x1F; //5 lowest bits for TX pwr
+    data_buffer[15] = acceleration_events % 256;
+    data_buffer[16] = packet_counter>>8;
+    data_buffer[17] = packet_counter&0xFF;
+    packet_counter++;
+    data_buffer[18] = ((NRF_FICR->DEVICEADDR[1]>>8)&0xFF) | 0xC0; //2 MSB must be 11;
+    data_buffer[19] = ((NRF_FICR->DEVICEADDR[1]>>0)&0xFF);
+    data_buffer[20] = ((NRF_FICR->DEVICEADDR[0]>>24)&0xFF);
+    data_buffer[21] = ((NRF_FICR->DEVICEADDR[0]>>16)&0xFF);
+    data_buffer[22] = ((NRF_FICR->DEVICEADDR[0]>>8)&0xFF);
+    data_buffer[23] = ((NRF_FICR->DEVICEADDR[0]>>0)&0xFF);
+
 }
 
 /**
  *  Encodes sensor data into given char* url. The base url must have the base of url written by caller.
- *  For example, url = {'r' 'u' 'u' '.' 'v' 'i' '/' '#' '0' '0' '0' '0' '0' '0' '0' '0' '0'}
+ *  For example, url = { 0x03, 'r' 'u' 'u' '.' 'v' 'i' '/' '#' '0' '0' '0' '0' '0' '0' '0' '0'}
  *  The URL may have a length of 18 bytes, 8 of which is consumed by payload. 
  *  
  *  @param url pointer to character array with max length of 18
  *  @param base_length length of base url. The payload will be written starting at index at base length
- *  @
+ *  @data pointer to data to encode into URL
  */
 void encodeToUrlDataFromat(char* url, uint8_t base_length, ruuvi_sensor_t* data)
 {
