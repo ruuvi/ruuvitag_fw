@@ -115,7 +115,7 @@ uint32_t application_services_init(void)
     ble_dis_init_t    dis_init;
     memset(&dis_init, 0, sizeof(dis_init));
 
-    // Create pseudo-unique name. Note: This should be disabled 
+    // Create pseudo-unique name. Note: This should be refactored into drivers
     unsigned int mac0 =  NRF_FICR->DEVICEID[0];
     unsigned int mac1 =  NRF_FICR->DEVICEID[1];
     char serial[SERIAL_LENGTH];
