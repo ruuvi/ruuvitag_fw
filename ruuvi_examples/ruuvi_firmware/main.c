@@ -46,6 +46,7 @@
 #include "eddystone.h"
 #include "pin_interrupt.h"
 #include "rtc.h"
+#include "bluetooth_core.h"
 
 // Libraries
 #include "base64.h"
@@ -72,7 +73,7 @@ APP_TIMER_DEF(main_timer_id);                 // Creates timer id for our progra
 // Payload requires 8 characters
 #define URL_BASE_LENGTH 9
 static char url_buffer[17] = {0x03, 'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
-static uint8_t data_buffer[24] = { 0 };
+static uint8_t data_buffer[14] = { 0 };
 static bool model_plus = false;     // Flag for sensors available
 static bool highres = false;        // Flag for used mode
 static uint64_t debounce = false;   // Flag for avoiding double presses
@@ -240,6 +241,7 @@ int main(void)
   //Start advertising only after sensors have valid data
   err_code |= bluetooth_advertising_stop();
   err_code |= bluetooth_tx_power_set(BLE_TX_POWER);
+  err_code |= bluetooth_configure_advertisement_type(BLE_GAP_ADV_TYPE_ADV_NONCONN_IND);
 
   // Initialize the application timer module.
   err_code |= init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler);
