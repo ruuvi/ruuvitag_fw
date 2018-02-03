@@ -1,0 +1,1 @@
+/usr/local/gcc-arm-none-eabi-4_9-2015q3/bin/arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -mabi=aapcs -Wall -Werror -O3 -g3 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin --short-enums -c allocator_stub-c -o allocator_stub.o

@@ -1,8 +1,8 @@
 # RuuviTag nRF52 Bootloader & Example firmware projects
-[![RuuviTag](http://ruuvitag.com/assets/images/fb_ruuvitag.jpg)](http://ruuvitag.com)
+[![RuuviTag](https://tag.ruuvi.com/assets/images/fb_ruuvitag.jpg)](https://tag.ruuvitag.com)
 
 
-##Repository structure
+## Repository structure
 This repository is structured as follows:
 
 ```
@@ -17,16 +17,12 @@ This repository is structured as follows:
 |   |   +-- bootloader_files
 +-- bsp
 |   +-- BSP files
-+-- builds
-|   +-- distribution_packages
-|   |   +-- sdk11
-|   |   +-- sdk12
-|   +-- hex
-|   |   +-- sdk12
-|   +-- README.md
 +-- drivers
 |   +-- bme280
 |   +-- lis2dh12
+|   +-- etc
+|   +-- init
+|   |   +-- common_configuration
 +-- libraries
 |   +-- acceleration
 |   +-- base64
@@ -35,16 +31,19 @@ This repository is structured as follows:
 |   +-- ruuvi_open_private.pem
 +-- ruuvi_examples
 |   +-- APPLICATION
+|   |   +-- application_sdk_configuration
+|   |   +-- application_bsp_configuration
+|   |   +-- application_bluetooth_configuration
+|   |   +-- ble_services
 |   |   +-- ruuvitag_HW
 |   |   |   +-- s132
 |   |   |   |   +-- armgcc
 |   |   |   |   |   +-- Makefile
 |   |   |   |   |   +-- Linkerscript
 |   |   |   |   +-- config
-|   |   |   |   |   +-- sdk_configuration
-|   |   |   |   |   +-- bsp_configuration
-|   |   |   |   |   +-- bluetooth_configuration
-|   |   |   |   |   +-- custom_configuration
+|   |   |   |   |   +-- board_sdk_configuration
+|   |   |   |   |   +-- board_bsp_configuration
+|   |   |   |   |   +-- board_bluetooth_configuration
 |   |   +-- application files
 +-- Makefile
 +-- README.md
@@ -63,21 +62,22 @@ More details on signing and keys are explained on DFU package creation section.
 BSP folder contains "Board Service Packages" which provide abstraction and portability between different boards. If you're interested in creating a custom board, create a custom board header file such as "ruuvitag\_b3.h" and add your board header file to "custom\_boards.h".
 
 ### Builds
-Builds folder contains compiled hexes of applications and bootloader, as well as distribution packages signed with Ruuvi's open private key. Builds are sorted by SDK, SDK11 uses softdevice 2 and SDK12 uses softdevice 3. README tells what those packages are expected to do. 
+Builds are in the Github [project releases](https://github.com/ruuvi/ruuvitag_fw/releases). The released packages are generally tested, but you should rely on [RuuviLab](https://lab.ruuvi.com/dfu/) if you're end-user rather
+than developer.
 
 ### Drivers
 Drivers folder contains the peripheral drivers such as a driver for SPI as well as drives for sensors on PCB. 
 
 ### Libraries
 Libraries contain software routines which may not have hardware dependencies, i.e. they should run on your pc as well as on RuuviTag.
-TODO: refactor Bluetooth library into drivers 
 
 ### Ruuvi Examples
 Ruuvi examples has example firmware projects which can be used as a basis for your own application. 
-The top-level folder of application contains application code, and there is a subfolder for
+The top-level folder of application contains application code and configuration, and there is a subfolder for
 each hardware which can run the application. If the application requires softdevice,
 create a folder with softdevice name "s132" to let the users know that a softdevice is required.
-Configuration folder sets up peripherals and armgcc folder contains makefile and linker script.
+Configuration folder sets up board specific configuratuin, such as pins.
+Armgcc folder contains makefile and linker script.
 
 ### SDK
 The SDK folder contains Nordic Software development kit which is used to provide various 
@@ -86,7 +86,8 @@ size of repository, our makefile downloads and unzips the SDK if it is not prese
 
 ### Licenses
 Please note that these examples inherit a lot of code from various sources and pay careful attention to 
-license and origin of each application.
+license and origin of each application. Most importantly, the code will be statically linked against
+Nordic Softdevice, for which the source code is not available. Therefore the code is not GPL-compatible.
 
 ## Developing Ruuvi Firmware
 
@@ -96,21 +97,31 @@ We also host some ready binaries so it's not necessary to setup a development en
 
 ### Prerequisites (to compile):
 
-* Download and install [GCC](https://launchpad.net/gcc-arm-embedded/+download)
+The project currently uses the Nordic nRF52 SDK version 12.3.0 (downloaded in the `make` process)
+and thus requires the GNU ARM Embedded Toolchain version 4.9 Q3 2015 (aka 4.9.3) for compiling:
 
-Extract the GCC tarball. Other destinations are also ok, but this one is used often:
-`sudo mkdir -p /usr/local && cd /usr/local && sudo tar xjf ~/Downloads/gcc-arm-none-eabi-4_xxxxxxxx.tar.bz2`
+* Download and install [GNU ARM Embedded Toolchain 4.9](https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q3-update)
 
-* Or alternatively on Ubuntu you can use the official GNU ARM Embedded PPA:
-  * Step1: Inside Ubuntu, open a terminal and input
-    * `sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa`
-  * Step2: Continue to input
-    * `sudo apt-get update`
-  * Step3: Continue to input to install toolchain
-    * `sudo apt-get install gcc-arm-embedded`
+For example on Xubuntu 16.04.3 using:
 
-Toolchain path is defined in SDK Makefile, so adding the gcc-arm-none-eabi binaries to path is unnecessary.
-*Please remember to adjust the makefile in SDK/components/toolchain/gcc to point at your toolchain install location. On Ubuntu this will be /usr if you used the PPA.* 
+```
+cd ~/Downloads/
+wget https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q3-update/+download/gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar.bz2
+sudo tar xvfj gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar.bz2 -C /usr/local
+sudo apt-get install -y lib32ncurses5 lib32z1
+echo 'PATH="/usr/local/gcc-arm-none-eabi-4_9-2015q3/bin:$PATH"' >> $HOME/.profile
+source $HOME/.profile
+# check version, expecting: 4.9.3 20150529 (release)
+arm-none-eabi-gcc --version
+```
+
+Changing the PATH might not be needed as the toolchain will use the path defined in the SDK Makefile.
+Adjust the GNU_INSTALL_ROOT inside your Makefile in the `$SDK/components/toolchain/gcc/` folder
+when using another destination than the `/usr/local` shown above.
+
+Note that the nRF52 SDK will be downloaded in `make`, so only after this will
+the `$SDK/components/toolchain/gcc/` folder exist in the project (typically
+as the `nRF5_SDK_12.3.0_d7731ad/components/toolchain/gcc/` folder).
 
 ### Prerequisites (to create DFU distribution .zip packages)
 
@@ -118,33 +129,39 @@ Instructions how to install (on OS X, Ubuntu):
 
 Install pip:
 
-`curl -O https://bootstrap.pypa.io/get-pip.py`
-
-`sudo python get-pip.py`
+```
+curl -O https://bootstrap.pypa.io/get-pip.py
+sudo python get-pip.py
+```
 
 (Option 1) Install latest nrfutil from pip:
 
-`sudo pip install nrfutil`
-
+```
+sudo pip install nrfutil
+# check version, expecting: 3.4.0 (or newer)
+nrfutil version
+```
 
 (Option 2) Install nrfutil from source:
 
-`git clone https://github.com/NordicSemiconductor/pc-nrfutil.git`
 
-`cd pc-nrfutil`
-
-`sudo pip install -r requirements.txt`
-
-`sudo python setup.py install`
-
-`nrfutil version`
-`> nrfutil version 1.5.5`
+```
+git clone https://github.com/NordicSemiconductor/pc-nrfutil.git
+cd pc-nrfutil
+sudo pip install -r requirements.txt
+sudo python setup.py install
+# check version, expecting: 3.4.0 (or newer)
+nrfutil version
+```
 
 To get started you can try:
 
-`nrfutil pkg generate --debug-mode --application app.hex --key-file key.pem app_dfu_package.zip`
+```
+nrfutil pkg generate --debug-mode --application app.hex --key-file key.pem app_dfu_package.zip
+```
+
 Debug mode skips various version checks which is useful for development. Packages have to be signed,
-RuuviTag ship with bootloader that accepts packages signed with _keys/ruuvi\_open\_private.pem_.
+RuuviTag ship with bootloader that accepts packages signed with the `keys/ruuvi_open_private.pem` key.
 
 More examples and details can be found at [nrfutil repository](https://github.com/NordicSemiconductor/pc-nrfutil).
 
