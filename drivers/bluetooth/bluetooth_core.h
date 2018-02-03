@@ -20,7 +20,7 @@
  * @details Initializes the SoftDevice and the BLE event interrupt.
  * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
  */
-uint32_t bluetooth_stack_init(void);
+ret_code_t bluetooth_stack_init(void);
 
 /**@brief Function for the Peer Manager initialization.
  *
@@ -29,18 +29,18 @@ uint32_t bluetooth_stack_init(void);
  */
 void peer_manager_init(bool erase_bonds);
 
-uint32_t bluetooth_set_name(const char* name_base, size_t name_length);
+ret_code_t bluetooth_set_name(const char* name_base, size_t name_length);
 
 /**
  *  Starts advertising with previously setup data and parameters.
  *  Can be called again while advertising to update parameters
  *
  */
-uint32_t bluetooth_advertising_start(void);
+ret_code_t bluetooth_advertising_start(void);
 
 /**
  */
-uint32_t bluetooth_advertising_stop(void);
+ret_code_t bluetooth_advertising_stop(void);
 
 /**
  * @brief Function to setsBLE transmission power
@@ -49,7 +49,7 @@ uint32_t bluetooth_advertising_stop(void);
  * @param int8_t power power in dBm, must be one of -40, -30, -20, -16, -12, -8, -4, 0, 4
  * @return error code, 0 if operation was success.
  */
-uint32_t bluetooth_tx_power_set(int8_t power);
+ret_code_t bluetooth_tx_power_set(int8_t power);
 
 /**@brief Function for advertising ḿanufacturer specific data. 
  *
@@ -62,32 +62,22 @@ uint32_t bluetooth_tx_power_set(int8_t power);
  *
  * @return error code from BLE stack, NRF_SUCCESS if operation was ok
  */
-uint32_t bluetooth_set_manufacturer_data(uint8_t* data, size_t length);
+ret_code_t bluetooth_set_manufacturer_data(uint8_t* data, size_t length);
 
 /**
  *  Updates bluetooth configuration
  */
-uint32_t bluetooth_apply_configuration();
+ret_code_t bluetooth_apply_configuration();
 
  /**
  * @brief Function adjusting advertising interval. 
- * @details Sets the advertising interval in program.    
+ * @details Sets the advertising interval in program. takes effect after calling bluetooth_apply_configuration();
  * @param interval advertisement interval in milliseconds, 100 - 10 000 
+ *
+ * @return NRF_SUCCESS on valid interval
  */
-void bluetooth_configure_advertising_interval(uint16_t interval);
+ret_code_t bluetooth_configure_advertising_interval(uint16_t interval);
 
-/**@brief Function adjusting advertising interval. 
- *
- * @details Sets the advertising interval in program.
- *          Does not have any effect until the next call to
- *          bluetooth_advertise_data (TODO). Default interval is used if
- *          this has not been called before 
- *
- * @param interval advertisement interval in milliseconds, 100 - 10 000 
- *
- * @return 0 if value was updated, 1 if value was outside acceptable range
- */
-uint32_t set_advertising_interval(uint16_t interval);
 
 /**
  * Set Eddystone URL advertisement package in advdata. Must be applied with bluetooth_apply_configuration()
