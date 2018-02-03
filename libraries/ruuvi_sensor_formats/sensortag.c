@@ -107,6 +107,30 @@ void encodeToRawFormat5(uint8_t* data_buffer, bme280_data_t* environmental, acce
 }
 
 /**
+ *  Parses sensor values into RuuviTag Raw format v1.
+ *  @param char* data_buffer character array with length of 14 bytes
+ */
+void encodeToSensorDataFormat(uint8_t* data_buffer, ruuvi_sensor_t* data)
+
+{
+    //serialize values into a string
+    data_buffer[0] = SENSOR_TAG_DATA_FORMAT;
+    data_buffer[1] = data->humidity;
+    data_buffer[2] = (data->temperature)>>8;
+    data_buffer[3] = (data->temperature)&0xFF;
+    data_buffer[4] = (data->pressure)>>8;
+    data_buffer[5] = (data->pressure)&0xFF;
+    data_buffer[6] = (data->accX)>>8;
+    data_buffer[7] = (data->accX)&0xFF;
+    data_buffer[8] = (data->accY)>>8;
+    data_buffer[9] = (data->accY)&0xFF;
+    data_buffer[10] = (data->accZ)>>8;
+    data_buffer[11] = (data->accZ)&0xFF;
+    data_buffer[12] = (data->vbat)>>8;
+    data_buffer[13] = (data->vbat)&0xFF;
+}
+
+/**
  *  Encodes sensor data into given char* url. The base url must have the base of url written by caller.
  *  For example, url = { 0x03, 'r' 'u' 'u' '.' 'v' 'i' '/' '#' '0' '0' '0' '0' '0' '0' '0' '0'}
  *  The URL may have a length of 18 bytes, 8 of which is consumed by payload. 
