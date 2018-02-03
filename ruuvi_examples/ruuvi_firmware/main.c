@@ -76,7 +76,6 @@ static uint8_t data_buffer[24] = { 0 };
 static bool model_plus = false;     // Flag for sensors available
 static bool highres = false;        // Flag for used mode
 static uint64_t debounce = false;   // Flag for avoiding double presses
-static uint16_t acceleration_events = 0;
 
 static ruuvi_sensor_t data;
 
@@ -97,7 +96,7 @@ void change_mode(void* data, uint16_t length)
     if (highres)
     {
       //TODO: #define sample rate for application
-      lis2dh12_set_sample_rate(LIS2DH12_RATE_10);
+      lis2dh12_set_sample_rate(LIS2DH12_RATE_1);
       // Reconfigure application sample rate for RAW mode
       app_timer_stop(main_timer_id);
       app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 1000 ms
@@ -178,9 +177,6 @@ void main_timer_handler(void * p_context)
       raw_t = bme280_get_temperature();
       raw_p = bme280_get_pressure();
       raw_h = bme280_get_humidity();
-      
-      // Start next measurement - causes up to URL_LOOP_INTERVAL latency in measurements.
-      //bme280_set_mode(BME280_MODE_FORCED);
 
       // Get accelerometer data.
       lis2dh12_read_samples(&buffer, 1);  
@@ -209,11 +205,7 @@ void main_timer_handler(void * p_context)
     if (highres)
     {
       // Prepare bytearray to broadcast.
-      bme280_data_t environmental;
-      environmental.temperature = raw_t;
-      environmental.humidity = raw_h;
-      environmental.pressure = raw_p;
-      encodeToRawFormat5(data_buffer, &environmental, &buffer.sensor, acceleration_events, vbat, BLE_TX_POWER);
+      encodeToSensorDataFormat(data_buffer, &data);
     } 
     else 
     {
@@ -222,27 +214,6 @@ void main_timer_handler(void * p_context)
 
     updateAdvertisement();
     watchdog_feed();
-}
-
-
-/**
- * @brief Handle interrupt from lis2dh12.
- * Never do long actions, such as sensor reads in interrupt context.
- * Using peripherals in interrupt is also risky,
- * as peripherals might require interrupts for their function.
- *
- *  @param message Ruuvi message, with source, destination, type and 8 byte payload. Ignore for now.
- **/
-ret_code_t lis2dh12_int2_handler(const ruuvi_standard_message_t message)
-{
-    NRF_LOG_DEBUG("Accelerometer interrupt to pin 2\r\n");
-    acceleration_events++;
-    /*
-    app_sched_event_put ((void*)(&message),
-                         sizeof(message),
-                         lis2dh12_scheduler_event_handler);
-    */
-    return NRF_SUCCESS;
 }
 
 
@@ -261,6 +232,8 @@ int main(void)
   nrf_gpio_pin_clear(LED_RED);  // If INIT fails at later stage, RED will stay lit.
 
   err_code |= init_nfc();
+
+  err_code |= init_rtc();
 
   // Initialize BLE Stack. Required in all applications for timer operation.
   err_code |= init_ble();
@@ -292,32 +265,8 @@ int main(void)
     lis2dh12_enable();
     lis2dh12_set_scale(LIS2DH12_SCALE2G);
     // Sample rate 10 for activity detection.
-    lis2dh12_set_sample_rate(LIS2DH12_RATE_10);
-    lis2dh12_set_resolution(LIS2DH12_RES10BIT);
-
-    //XXX If you read this, I'm sorry about line below.
-    #include "lis2dh12_registers.h"
-    // Configure activity interrupt - TODO: Implement in driver, add tests.
-    uint8_t ctrl[1];
-    // Enable high-pass for Interrupt function 2.
-    //CTRLREG2 = 0x02
-    ctrl[0] = LIS2DH12_HPIS2_MASK;
-    lis2dh12_write_register(LIS2DH12_CTRL_REG2, ctrl, 1);
-    
-    // Enable interrupt 2 on X-Y-Z HI/LO.
-    //INT2_CFG = 0x7F
-    ctrl[0] = 0x7F;
-    lis2dh12_write_register(LIS2DH12_INT2_CFG, ctrl, 1);    
-    // Interrupt on 64 mg+ (highpassed, +/-).
-    //INT2_THS= 0x04 // 4 LSB = 64 mg @2G scale
-    ctrl[0] = 0x04;
-    lis2dh12_write_register(LIS2DH12_INT2_THS, ctrl, 1);
-        
-    // Enable LOTOHI interrupt on nRF52.
-    err_code |= pin_interrupt_enable(INT_ACC2_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int2_handler);
-    
-    // Enable Interrupt function 2 on LIS interrupt pin 2 (stays high for 1/ODR).
-    lis2dh12_set_interrupts(LIS2DH12_I2C_INT2_MASK, 2);
+    lis2dh12_set_sample_rate(LIS2DH12_RATE_1);
+    lis2dh12_set_resolution(LIS2DH12_RES12BIT);
 
     // Setup BME280 - oversampling must be set for each used sensor.
     bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
