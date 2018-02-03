@@ -78,6 +78,15 @@ ret_code_t bluetooth_apply_configuration();
  */
 ret_code_t bluetooth_configure_advertising_interval(uint16_t interval);
 
+ /**
+ * @brief Function for configuring advertisement type
+ * @details https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s132.api.v3.0.0%2Fgroup___b_l_e___g_a_p___a_d_v___t_y_p_e_s.html
+ * @param type Advertisement type, 0 ... 3
+ *
+ * @return NRF_SUCCESS on valid interval
+ */
+ret_code_t bluetooth_configure_advertisement_type(uint8_t type);
+
 
 /**
  * Set Eddystone URL advertisement package in advdata. Must be applied with bluetooth_apply_configuration()
