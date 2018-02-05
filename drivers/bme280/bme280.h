@@ -105,40 +105,44 @@ typedef enum
     BME280_RET_ERROR = 32               /**< Not otherwise specified error */
 } BME280_Ret;
 
-#define BME280REG_CALIB_00   (0x88)
-#define BME280REG_ID         (0xD0)
-#define BME280REG_RESET      (0xE0)
-#define BME280REG_CALIB_26   (0xE1)
-#define BME280REG_CTRL_HUM   (0xF2)
-#define BME280REG_STATUS     (0xF3)
-#define BME280REG_CTRL_MEAS  (0xF4)
-#define BME280REG_CONFIG     (0xF5)
-#define BME280REG_PRESS_MSB  (0xF7)
-#define BME280REG_PRESS_LSB  (0xF8)
-#define BME280REG_PRESS_XLSB (0xF9)
-#define BME280REG_TEMP_MSB	 (0xFA)
-#define BME280REG_TEMP_LSB	 (0xFB)
-#define BME280REG_TEMP_XLSB	 (0xFC)
-#define BME280REG_HUM_MSB	   (0xFD)
-#define BME280REG_HUM_LSB	   (0xFE)
+#define BME280REG_CALIB_00       (0x88)
+#define BME280REG_ID             (0xD0)
+#define BME280REG_RESET          (0xE0)
+#define BME280REG_CALIB_26       (0xE1)
+#define BME280REG_CTRL_HUM       (0xF2)
+#define BME280REG_STATUS         (0xF3)
+#define BME280REG_CTRL_MEAS      (0xF4)
+#define BME280REG_CONFIG         (0xF5)
+#define BME280REG_PRESS_MSB      (0xF7)
+#define BME280REG_PRESS_LSB      (0xF8)
+#define BME280REG_PRESS_XLSB     (0xF9)
+#define BME280REG_TEMP_MSB       (0xFA)
+#define BME280REG_TEMP_LSB       (0xFB)
+#define BME280REG_TEMP_XLSB      (0xFC)
+#define BME280REG_HUM_MSB        (0xFD)
+#define BME280REG_HUM_LSB        (0xFE)
 
-#define BME280_ID_VALUE      (0x60)
+#define BME280_ID_VALUE          (0x60)
 
 #define BME280_OVERSAMPLING_SKIP (0x00)
-#define BME280_OVERSAMPLING_1	   (0x01)
-#define BME280_OVERSAMPLING_2	   (0x02)
-#define BME280_OVERSAMPLING_4	   (0x03)
-#define BME280_OVERSAMPLING_8	   (0x04)
-#define BME280_OVERSAMPLING_16	 (0x05)
+#define BME280_OVERSAMPLING_1    (0x01)
+#define BME280_OVERSAMPLING_2    (0x02)
+#define BME280_OVERSAMPLING_4    (0x03)
+#define BME280_OVERSAMPLING_8    (0x04)
+#define BME280_OVERSAMPLING_16   (0x05)
 
-#define BME280_IIR_MASK (0x1C)
-#define BME280_IIR_OFF	(0x00)
-#define BME280_IIR_2		(0x04)
-#define BME280_IIR_4		(0x08)
-#define BME280_IIR_8		(0x0C)
-#define BME280_IIR_16		(0x10)
+#define BME280_IIR_MASK          (0x1C)
+#define BME280_IIR_OFF           (0x00)
+#define BME280_IIR_2             (0x04)
+#define BME280_IIR_4             (0x08)
+#define BME280_IIR_8             (0x0C)
+#define BME280_IIR_16            (0x10)
 
-#define BME280_INTERVAL_MASK 0xE0
+#define BME280_INTERVAL_MASK     (0xE0)
+
+#define BME280_BURST_READ_LENGTH (8)
+#define BME280_MAX_READ_LENGTH BME280_BURST_READ_LENGTH
+
 enum BME280_INTERVAL {
 	BME280_STANDBY_0_5_MS  = 0x0,
 	BME280_STANDBY_62_5_MS = 0x20,
@@ -184,8 +188,12 @@ enum BME280_INTERVAL bme280_get_interval(void);
 int  bme280_is_measuring(void);
 
 /**
- *  Read measurements from BME280 to nRF52. This is done automatically in normal mode,
- *  in forced mode you have to call this manually
+ *  Read measurements from BME280 to nRF52.
+ *  You have to call this manually, in normal mode you get latest stored values.
+ *  Forced mode can be used as: 
+ *  bme_set_mode(BME280_MODE_FORCED)
+ *  while(bme280_is_measuroing());
+ *  bme280_read_measurements();
  */
 BME280_Ret bme280_read_measurements();
 
@@ -229,6 +237,7 @@ uint32_t   bme280_get_humidity(void);
 
 // Used internally
 uint8_t    bme280_read_reg(uint8_t reg);
+BME280_Ret bme280_read_burst(uint8_t start, uint8_t length, uint8_t* buffer);
 BME280_Ret bme280_write_reg(uint8_t reg, uint8_t value);
 BME280_Ret bme280_platform_init();
 
