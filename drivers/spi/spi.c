@@ -52,7 +52,7 @@ extern void spi_init(void)
     spi_config.sck_pin = SPIM0_SCK_PIN;
     spi_config.miso_pin = SPIM0_MISO_PIN;
     spi_config.mosi_pin = SPIM0_MOSI_PIN;
-    spi_config.frequency = NRF_DRV_SPI_FREQ_4M;
+    spi_config.frequency = NRF_DRV_SPI_FREQ_8M;
 
     /* Init chipselect for BME280 */
     nrf_gpio_pin_dir_set(SPIM0_SS_HUMI_PIN, NRF_GPIO_PIN_DIR_OUTPUT);
