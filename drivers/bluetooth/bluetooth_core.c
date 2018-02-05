@@ -213,7 +213,6 @@ ret_code_t bluetooth_configure_advertisement_type(uint8_t type)
 ret_code_t bluetooth_apply_configuration()
 {
   ret_code_t err_code = NRF_SUCCESS;
-  err_code |= ble_advdata_set(&advdata, &scanresp);
   err_code |= bluetooth_advertising_start();
   if(err_code != NRF_SUCCESS) { NRF_LOG_ERROR("Failed to apply configuration: %d\r\n", err_code); }
   return err_code;
@@ -441,7 +440,7 @@ ret_code_t bluetooth_advertising_start(void)
     err_code |= sd_ble_gap_adv_start(&m_adv_params);
     if(NRF_SUCCESS != err_code)
     {
-        NRF_LOG_INFO("Advertisement fail: %d \r\n",err_code);
+        NRF_LOG_INFO("Advertisement fail: %d \r\n", err_code);
     }
     else { advertising = true; }
     return err_code;
@@ -492,6 +491,7 @@ ret_code_t bluetooth_set_manufacturer_data(uint8_t* data, size_t length)
     memset(&advdata, 0, sizeof(advdata));
     advdata.p_manuf_specific_data = &m_manufacturer_data;
     advdata.flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+    err_code |= ble_advdata_set(&advdata, &scanresp);
   }
   NRF_LOG_DEBUG("ADV data status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
 
@@ -499,7 +499,7 @@ ret_code_t bluetooth_set_manufacturer_data(uint8_t* data, size_t length)
 }
 
 /**
- * Set Eddystone URL advertisement package in advdata. Must be applied with bluetooth_apply_configuration()
+ * Set Eddystone URL advertisement package in advdata.
  * 
  * @param url_buffer character array containing new URL. May contain eddystone
  *        shortcuts, such as 0x03: "https://"
@@ -508,5 +508,7 @@ ret_code_t bluetooth_set_manufacturer_data(uint8_t* data, size_t length)
  */
 ret_code_t bluetooth_set_eddystone_url(char* url_buffer, size_t length)
 {
-  return eddystone_prepare_url_advertisement(&advdata, url_buffer, length);
+  ret_code_t err_code = eddystone_prepare_url_advertisement(&advdata, url_buffer, length);
+  err_code |= ble_advdata_set(&advdata, &scanresp);
+  return err_code;
 }
