@@ -45,10 +45,10 @@ ret_code_t pin_interrupt_enable(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t 
 	NRF_LOG_INFO("Enabling\r\n");
 	ret_code_t err_code = NRF_SUCCESS;
 	nrf_drv_gpiote_in_config_t in_config = {                                            \
-        .is_watcher = false,                     \
-        .hi_accuracy = true,                  \
-        .pull = NRF_GPIO_PIN_NOPULL,             \
-        .sense = polarity                        \
+        .is_watcher = false,               \
+        .hi_accuracy = false,              \
+        .pull = NRF_GPIO_PIN_NOPULL,       \
+        .sense = polarity                  \
     };
 	switch(polarity)
 	{
