@@ -241,13 +241,11 @@ int main(void)
   //Start advertising only after sensors have valid data
   err_code |= bluetooth_advertising_stop();
   err_code |= bluetooth_tx_power_set(BLE_TX_POWER);
+  err_code |= bluetooth_configure_advertising_interval(MAIN_LOOP_INTERVAL_RAW);
   err_code |= bluetooth_configure_advertisement_type(BLE_GAP_ADV_TYPE_ADV_NONCONN_IND);
 
   // Initialize the application timer module.
   err_code |= init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler);
-
-  // Initialize RTC.
-  //err_code |= init_rtc();
 
   // Start interrupts.
   err_code |= pin_interrupt_init();
