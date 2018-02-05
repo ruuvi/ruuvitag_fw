@@ -140,7 +140,7 @@ typedef enum
 
 #define BME280_INTERVAL_MASK     (0xE0)
 
-#define BME280_BURST_READ_LENGTH (8)
+#define BME280_BURST_READ_LENGTH (9) // 8 bytes + address
 #define BME280_MAX_READ_LENGTH BME280_BURST_READ_LENGTH
 
 enum BME280_INTERVAL {
