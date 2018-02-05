@@ -80,7 +80,7 @@ ret_code_t bluetooth_configure_advertising_interval(uint16_t interval);
 
 
 /**
- * Set Eddystone URL advertisement package in advdata. Must be applied with bluetooth_apply_configuration()
+ * Set Eddystone URL advertisement package in advdata.
  * 
  * @param url_buffer character array containing new URL. May contain eddystone
  *        shortcuts, such as 0x03: "https://"
