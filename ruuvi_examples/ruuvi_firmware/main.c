@@ -174,6 +174,7 @@ void main_timer_handler(void * p_context)
     if (model_plus)
     {      
       // Get raw environmental data.
+      bme280_read_measurements();
       raw_t = bme280_get_temperature();
       raw_p = bme280_get_pressure();
       raw_h = bme280_get_humidity();
@@ -199,7 +200,7 @@ void main_timer_handler(void * p_context)
     // Get battery voltage every 30.th cycle
     static uint32_t vbat_update_counter;
     static uint16_t vbat = 0;
-    if(!(vbat_update_counter++%30)) { vbat = getBattery(); }
+    vbat = getBattery();
     //NRF_LOG_INFO("temperature: , pressure: , humidity: ");
     // Embed data into structure for parsing.
     parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
