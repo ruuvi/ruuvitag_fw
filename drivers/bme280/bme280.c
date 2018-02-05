@@ -262,15 +262,15 @@ BME280_Ret bme280_read_measurements()
   
   BME280_Ret err_code = bme280_read_burst(BME280REG_PRESS_MSB, BME280_BURST_READ_LENGTH, data);
 
-  bme280.adc_h = data[7] + ((uint32_t)data[6] << 8);
+  bme280.adc_h = data[8] + ((uint32_t)data[7] << 8);
 
-  bme280.adc_t  = (uint32_t) data[5] >> 4;
-  bme280.adc_t |= (uint32_t) data[4] << 4;
-  bme280.adc_t |= (uint32_t) data[3] << 12;
+  bme280.adc_t  = (uint32_t) data[6] >> 4;
+  bme280.adc_t |= (uint32_t) data[5] << 4;
+  bme280.adc_t |= (uint32_t) data[4] << 12;
 
-  bme280.adc_p  = (uint32_t) data[2] >> 4;
-  bme280.adc_p |= (uint32_t) data[1] << 4;
-  bme280.adc_p |= (uint32_t) data[0] << 12;
+  bme280.adc_p  = (uint32_t) data[3] >> 4;
+  bme280.adc_p |= (uint32_t) data[2] << 4;
+  bme280.adc_p |= (uint32_t) data[1] << 12;
 
   return err_code;
 }
