@@ -97,12 +97,22 @@ init_err_code_t init_ble(void)
  * @retval 1          Something went wrong
  *
  */
+<<<<<<< HEAD
+uint8_t init_nfc(void)
+{
+    uint32_t err_code;
+
+    //Enable NFC with empty data message
+    err_code = nfc_init(NULL, 0);
+    APP_ERROR_CHECK(err_code);
+=======
 init_err_code_t init_nfc(void)
 {
     init_err_code_t err_code = NRF_SUCCESS;
 
     //Enable NFC with empty data message
     err_code = nfc_init(NULL, 0);
+>>>>>>> master
 
     NRF_LOG_INFO("NFC init\r\n");
     return (NRF_SUCCESS == err_code) ? 0 : 1;
@@ -182,6 +192,9 @@ init_err_code_t init_lis2dh12(void)
     {
         NRF_LOG_DEBUG("LIS2DH12 init Done\r\n");
         set_acceleration_handler(lis2dh12_acceleration_handler);
+        // Interrupt handler is defined in lis2dh12_acceleration_handler.c, reads the buffer and passes the data onwards to application as configured.
+        // Try using PROPRIETARY as a target of accelerometer to implement your own logic.
+        err_code |= pin_interrupt_enable(INT_ACC1_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int1_handler);
     }
     else
     {
