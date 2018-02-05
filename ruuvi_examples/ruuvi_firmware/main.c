@@ -175,6 +175,7 @@ void main_timer_handler(void * p_context)
     if (model_plus)
     {      
       // Get raw environmental data.
+      bme280_read_measurements();
       raw_t = bme280_get_temperature();
       raw_p = bme280_get_pressure();
       raw_h = bme280_get_humidity();
