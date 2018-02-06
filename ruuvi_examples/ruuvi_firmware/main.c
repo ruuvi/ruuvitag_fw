@@ -40,6 +40,7 @@
 
 // Drivers
 #include "lis2dh12.h"
+#include "lis2dh12_acceleration_handler.h"
 #include "bme280.h"
 #include "battery.h"
 #include "bluetooth_core.h"
@@ -75,7 +76,7 @@ APP_TIMER_DEF(main_timer_id);                 // Creates timer id for our progra
 static char url_buffer[17] = {0x03, 'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
 static uint8_t data_buffer[14] = { 0 };
 static bool model_plus = false;     // Flag for sensors available
-static bool highres = false;        // Flag for used mode
+static bool highres = true;        // Flag for used mode
 static uint64_t debounce = false;   // Flag for avoiding double presses
 
 static ruuvi_sensor_t data;
@@ -156,8 +157,7 @@ static void updateAdvertisement(void)
   ret_code_t err_code = NRF_SUCCESS;
   if (highres) { err_code |= bluetooth_set_manufacturer_data(data_buffer, sizeof(data_buffer)); }
   else { err_code |= bluetooth_set_eddystone_url(url_buffer, sizeof(url_buffer)); }
-  NRF_LOG_DEBUG("Applying configuration, data status %d\r\n", err_code);
-  err_code |= bluetooth_apply_configuration();
+  NRF_LOG_DEBUG("Updating data, data status %d\r\n", err_code);  
 }
 
 
@@ -165,41 +165,43 @@ static void updateAdvertisement(void)
  */
 void main_timer_handler(void * p_context)
 {
-    static int32_t  raw_t  = 0;
-    static uint32_t raw_p = 0;
-    static uint32_t raw_h = 0;
-    static lis2dh12_sensor_buffer_t buffer;
-    static int32_t acc[3] = {0};
+  int32_t  raw_t  = 0;
+  uint32_t raw_p = 0;
+  uint32_t raw_h = 0;
+  lis2dh12_sensor_buffer_t buffer;
+  int32_t acc[3] = {0};
 
-    // If we have all the sensors.
-    if (model_plus)
-    {      
-      // Get raw environmental data.
-      raw_t = bme280_get_temperature();
-      raw_p = bme280_get_pressure();
-      raw_h = bme280_get_humidity();
+  // If we have all the sensors.
+  if (model_plus)
+  {      
+    // Get raw environmental data.
+    bme280_read_measurements();
+    raw_t = bme280_get_temperature();
+    raw_p = bme280_get_pressure();
+    raw_h = bme280_get_humidity();
+  
+    // Get accelerometer data.
+    lis2dh12_read_samples(&buffer, 1);  
+    acc[0] = buffer.sensor.x;
+    acc[1] = buffer.sensor.y;
+    acc[2] = buffer.sensor.z;
+  }  
+  // If only temperature sensor is present.
+  else
+  {
+    int32_t temp;                                        // variable to hold temp reading
+    (void)sd_temp_get(&temp);                            // get new temperature
+    temp *= 25;                                          // SD returns temp * 4. Ruuvi format expects temp * 100. 4*25 = 100.
+    raw_t = (int32_t) temp;
+  }
 
-      // Get accelerometer data.
-      lis2dh12_read_samples(&buffer, 1);  
-      acc[0] = buffer.sensor.x;
-      acc[1] = buffer.sensor.y;
-      acc[2] = buffer.sensor.z;
-    }
-    // If only temperature sensor is present.
-    else
-    {
-      int32_t temp;                                        // variable to hold temp reading
-      (void)sd_temp_get(&temp);                            // get new temperature
-      temp *= 25;                                          // SD returns temp * 4. Ruuvi format expects temp * 100. 4*25 = 100.
-      raw_t = (int32_t) temp;
-    }
-
-    // Get battery voltage every 30.th cycle
-    static uint32_t vbat_update_counter;
+    // Get battery voltage
+    //static uint32_t vbat_update_counter;
     static uint16_t vbat = 0;
-    if(!(vbat_update_counter++%30)) { vbat = getBattery(); }
+    vbat = getBattery();
     //NRF_LOG_INFO("temperature: , pressure: , humidity: ");
     // Embed data into structure for parsing.
+    
     parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
     NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d x: %d y: %d z: %d\r\n", raw_t, raw_p, raw_h, acc[0], acc[1], acc[2]);
     NRF_LOG_DEBUG("VBAT: %d send %d \r\n", vbat, data.vbat);
@@ -224,41 +226,29 @@ void main_timer_handler(void * p_context)
 int main(void)
 {
   ret_code_t err_code = 0; // counter, gets incremented by each failed init. It is 0 in the end if init was ok.
-
+  if(NRF_SUCCESS == init_sensors()) { model_plus = true; }
   // Initialize log.
   err_code |= init_log();
-
+  
   // Setup leds. LEDs are active low, so setting high them turns leds off.
   err_code |= init_leds();      // INIT leds first and turn RED on.
   nrf_gpio_pin_clear(LED_RED);  // If INIT fails at later stage, RED will stay lit.
 
+  //Init NFC ASAP in case we're waking from deep sleep via NFC (todo)
   err_code |= init_nfc();
-
-  err_code |= init_rtc();
-
-  // Initialize BLE Stack. Required in all applications for timer operation.
-  err_code |= init_ble();
-  //Start advertising only after sensors have valid data
-  err_code |= bluetooth_advertising_stop();
-  err_code |= bluetooth_tx_power_set(BLE_TX_POWER);
-  err_code |= bluetooth_configure_advertisement_type(BLE_GAP_ADV_TYPE_ADV_NONCONN_IND);
-
-  // Initialize the application timer module.
-  err_code |= init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler);
-
-  // Initialize RTC.
-  //err_code |= init_rtc();
 
   // Start interrupts.
   err_code |= pin_interrupt_init();
   // Initialize button.
   err_code |= pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler);
 
-  // Initialize BME 280 and lis2dh12. Requires timer running.
-  if (NRF_SUCCESS == init_sensors())
-  {
-    model_plus = true;
+  // Interrupt handler is defined in lis2dh12_acceleration_handler.c, reads the buffer and passes the data onwards to application as configured.
+  // Try using PROPRIETARY as a target of accelerometer to implement your own logic.
+  err_code |= pin_interrupt_enable(INT_ACC1_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int1_handler);
 
+  // Initialize BME 280 and lis2dh12.
+  if (model_plus)
+  {
     // Clear memory.
     lis2dh12_reset();
     // Wait for reboot.
@@ -278,8 +268,24 @@ int main(void)
     bme280_set_interval(BME280_STANDBY_1000_MS);
     bme280_set_mode(BME280_MODE_NORMAL);
     NRF_LOG_DEBUG("BME280 configuration done\r\n");
-    app_sched_event_put (NULL, 0, change_mode);
   }
+
+  // Initialize BLE Stack. Required in all applications for timer operation.
+  err_code |= init_ble();
+  // Start advertising only after sensors have valid data
+  err_code |= bluetooth_advertising_stop();
+  err_code |= bluetooth_tx_power_set(BLE_TX_POWER);
+  err_code |= bluetooth_configure_advertising_interval(MAIN_LOOP_INTERVAL_RAW);
+  err_code |= bluetooth_configure_advertisement_type(BLE_GAP_ADV_TYPE_ADV_NONCONN_IND);
+
+  // Init ok, start watchdog with default wdt event handler (reset).
+  init_watchdog(NULL);
+
+  // Used only for button debounce
+  err_code |= init_rtc();
+
+  // Initialize the application timer module.
+  err_code |= init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler);
 
   // Visually display init status. Hangs if there was an error, waits 3 seconds on success.
   init_blink_status(err_code);
@@ -291,9 +297,6 @@ int main(void)
 
   // Delay before advertising so we get valid data on first packet
   nrf_delay_ms(MAIN_LOOP_INTERVAL_RAW + 100);
-
-  // Init ok, start watchdog with default wdt event handler (reset).
-  init_watchdog(NULL);
 
   // Enter main loop.
   bluetooth_advertising_start();
