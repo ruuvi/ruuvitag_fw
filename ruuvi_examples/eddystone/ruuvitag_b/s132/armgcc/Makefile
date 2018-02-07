@@ -25,6 +25,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
   $(PROJ_DIR)/../../drivers/init/init.c \
   $(PROJ_DIR)/../../drivers/lis2dh12/lis2dh12.c \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_pininterrupt/pin_interrupt.c \
   $(PROJ_DIR)/../../drivers/pwm/pwm.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../drivers/nrf_nordic_nfc/nfc.c \
