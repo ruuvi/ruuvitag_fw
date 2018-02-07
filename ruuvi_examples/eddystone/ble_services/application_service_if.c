@@ -12,26 +12,7 @@
 
 static ble_dfu_t m_dfus;    /**< Structure for DFU service. */
 
-/**@brief Function for handling Eddystone events.
- *
- * @param[in] evt Eddystone event to handle.
- */
-static void on_es_evt(nrf_ble_es_evt_t evt)
-{
-    switch(evt)
-    {
-        case NRF_BLE_ES_EVT_ADVERTISEMENT_SENT:
-            //bsp_board_led_invert(NON_CONNECTABLE_ADV_LED_PIN);
-            break;
-        
-        case NRF_BLE_ES_EVT_CONNECTABLE_ADV_STARTED:
-            bsp_board_led_on(CONNECTABLE_ADV_LED_PIN);
-            break;
 
-        default:
-            break;
-    }
-}
 
 static void ble_dfu_evt_handler(ble_dfu_t * p_dfu, ble_dfu_evt_t * p_evt)
 {
@@ -61,7 +42,6 @@ static void ble_dfu_evt_handler(ble_dfu_t * p_dfu, ble_dfu_evt_t * p_evt)
  */
 uint32_t application_services_init(void)
 {
-    nrf_ble_es_init(on_es_evt);
 
     uint32_t       err_code = NRF_SUCCESS;
 
@@ -80,7 +60,7 @@ uint32_t application_services_init(void)
     ble_dis_init_t    dis_init;
     memset(&dis_init, 0, sizeof(dis_init));
 
-    // Create pseudo-unique name. Note: This should be disabled 
+    // Create pseudo-unique name.
     unsigned int mac0 =  NRF_FICR->DEVICEID[0];
     unsigned int mac1 =  NRF_FICR->DEVICEID[1];
     char serial[SERIAL_LENGTH];
