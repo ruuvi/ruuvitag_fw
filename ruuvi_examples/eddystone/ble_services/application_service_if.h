@@ -27,6 +27,9 @@ uint32_t application_services_init(void);
 /** Return pointer to BLE dfu service **/
 ble_dfu_t* get_dfu(void);
 
+/** Return true of application is in connectable state **/
+bool isConnectable(void);
+
 #endif
 
 
