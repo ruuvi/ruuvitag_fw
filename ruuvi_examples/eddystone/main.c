@@ -106,6 +106,7 @@ static void power_manage(void)
   if(!isConnectable()) { nrf_gpio_pin_set(LED_GREEN); }
   nrf_gpio_pin_set(LED_RED);
   uint32_t err_code = sd_app_evt_wait();
+  //__WFE();
   APP_ERROR_CHECK(err_code);
   nrf_gpio_pin_clear(LED_RED);
   if(isConnectable()) nrf_gpio_pin_clear(LED_GREEN);
@@ -127,33 +128,27 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
 }
 
 /**
- *  @brief pull CS of sensors up to keep them powered off
- */
-static void gpio_init()
-{
-    nrf_gpio_cfg_output	(SPIM0_SS_HUMI_PIN);
-    nrf_gpio_pin_set(SPIM0_SS_HUMI_PIN);
-    nrf_gpio_cfg_output	(SPIM0_SS_ACC_PIN);
-    nrf_gpio_pin_set(SPIM0_SS_ACC_PIN);
-}
-
-
-/**
  * @brief Function for application main entry.
  */
 int main(void)
 {
-    uint32_t err_code;
+    uint32_t err_code = NRF_SUCCESS;
 
     // Initialize.
-    init_log(); 
+    err_code |= init_log(); 
     
-    err_code = init_ble(); 
-    NRF_LOG_INFO("BLE init status: %d\r\n", err_code);
-    nrf_delay_ms(10);
+    err_code |= init_ble(); 
+    err_code |= bluetooth_configure_advertisement_type(BLE_GAP_ADV_TYPE_ADV_NONCONN_IND);
+    err_code |= bluetooth_advertising_stop();
+
+    err_code |= init_sensors();
+    
+    NRF_LOG_DEBUG("BLE init status: %d\r\n", err_code);
+    
 
     err_code |= init_nfc();
 
+    
     // Start interrupts.
     err_code |= pin_interrupt_init();
  
@@ -164,8 +159,9 @@ int main(void)
     APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, true);
     APP_ERROR_CHECK(err_code);
 
-    gpio_init();
     nrf_ble_es_init(on_es_evt);
+    
+    
     
     NRF_LOG_INFO("Start!\r\n");
     // Enter main loop.

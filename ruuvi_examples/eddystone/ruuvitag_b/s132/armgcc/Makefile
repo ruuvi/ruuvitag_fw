@@ -24,14 +24,20 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/bluetooth/ble_event_handlers.c \
   $(PROJ_DIR)/../../drivers/bluetooth/bluetooth_core.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
+  $(PROJ_DIR)/../../drivers/bme280/bme280_temperature_handler.c \
   $(PROJ_DIR)/../../drivers/init/init.c \
   $(PROJ_DIR)/../../drivers/lis2dh12/lis2dh12.c \
+  $(PROJ_DIR)/../../drivers/lis2dh12/lis2dh12_acceleration_handler.c \
   $(PROJ_DIR)/../../drivers/nrf_nordic_pininterrupt/pin_interrupt.c \
   $(PROJ_DIR)/../../drivers/pwm/pwm.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../drivers/nrf_nordic_nfc/nfc.c \
   $(PROJ_DIR)/../../drivers/nrf_nordic_watchdog/watchdog.c \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/ruuvi_endpoints.c \
+  $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/chain_channels.c \
+  $(PROJ_DIR)/../../libraries/data_structures/ringbuffer.c \
+  $(PROJ_DIR)/../../libraries/dsp/dsp.c \
+  $(PROJ_DIR)/../../libraries/dsp/stdev.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
   $(SDK_ROOT)/external/tiny-AES128/aes.c \
@@ -84,6 +90,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/drivers_nrf/common/nrf_drv_common.c \
   $(SDK_ROOT)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c \
   $(SDK_ROOT)/components/drivers_nrf/saadc/nrf_drv_saadc.c \
+  $(SDK_ROOT)/components/drivers_nrf/spi_master/nrf_drv_spi.c \
   $(SDK_ROOT)/components/drivers_nrf/uart/nrf_drv_uart.c \
   $(SDK_ROOT)/components/drivers_nrf/hal/nrf_saadc.c \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
