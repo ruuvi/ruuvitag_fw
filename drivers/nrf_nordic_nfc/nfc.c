@@ -18,10 +18,10 @@
 //Do not compile RAM-consuming buffers if they're not used
 #if NFC_HAL_ENABLED
 
-
 uint8_t m_ndef_msg_buf[256];
 bool nfc_is_init = false;
 volatile bool field_on = false;
+nfc_callback_t app_callback = NULL;
 
 /**
  * @brief Callback function for handling NFC events.
@@ -47,6 +47,7 @@ void nfc_callback(void * p_context, nfc_t2t_event_t event, const uint8_t * p_dat
         default:
             break;
     }
+    if(NULL != app_callback) { app_callback(p_context, event, p_data, data_length); } 
 }
 
 /**
@@ -65,7 +66,7 @@ void nfc_msg_encode(nfc_ndef_msg_desc_t* nfc_msg, uint8_t * p_buffer, uint32_t *
     /** @snippet [NFC text usage_2] */
 }
 
-uint32_t nfc_init(uint8_t* data, uint32_t data_length)
+ret_code_t nfc_init(uint8_t* data, uint32_t data_length)
 {
     if(field_on) { return NRF_ERROR_INVALID_STATE; }
     NFC_NDEF_MSG_DEF(nfc_msg, MAX_REC_COUNT);
@@ -195,6 +196,11 @@ void address_record_add(nfc_ndef_msg_desc_t* nfc_msg)
     err_code = nfc_ndef_msg_record_add(nfc_msg,
                                        &NFC_NDEF_TEXT_RECORD_DESC(id_text_rec));
     APP_ERROR_CHECK(err_code);
+}
+
+void set_nfc_callback(nfc_callback_t callback)
+{
+  app_callback = callback;
 }
 
 #endif

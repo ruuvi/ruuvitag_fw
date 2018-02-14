@@ -5,6 +5,7 @@
 #include "nfc_t2t_lib.h"
 #include "nfc_ndef_msg.h"
 #include "nfc_text_rec.h"
+#include "sdk_errors.h"
 
 #define MAX_REC_COUNT      3     /**< Maximum records count. */
 
@@ -16,7 +17,7 @@
  * @return error  code from NFC init, 0 on success
  *
  */
-uint32_t nfc_init(uint8_t* data, uint32_t data_length);
+ret_code_t nfc_init(uint8_t* data, uint32_t data_length);
 
 /**
  * @brief Function for encoding the NFC message.
@@ -43,5 +44,14 @@ void data_record_add(nfc_ndef_msg_desc_t* nfc_msg, uint8_t* data, uint32_t data_
  * @brief Callback function for handling NFC events.
  */
 void nfc_callback(void * p_context, nfc_t2t_event_t event, const uint8_t * p_data, size_t data_length);
+
+/*
+ * Set callback which will be called once NFC event is received. NULL to disable callback
+ * Takes effect after NFC init
+ */
+typedef void(*nfc_callback_t)(void*, nfc_t2t_event_t, const uint8_t*, size_t);
+void set_nfc_callback(nfc_callback_t callback);
+
+
 
 #endif
