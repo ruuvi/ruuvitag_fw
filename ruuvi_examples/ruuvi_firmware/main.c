@@ -270,7 +270,7 @@ int main(void)
   err_code |= init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler);
 
   // Initialize RTC.
-  //err_code |= init_rtc();
+  err_code |= init_rtc();
 
   // Start interrupts.
   err_code |= pin_interrupt_init();
