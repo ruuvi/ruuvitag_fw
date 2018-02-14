@@ -28,11 +28,12 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/init/init.c \
   $(PROJ_DIR)/../../drivers/lis2dh12/lis2dh12.c \
   $(PROJ_DIR)/../../drivers/lis2dh12/lis2dh12_acceleration_handler.c \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_nfc/nfc.c \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_nfc/nrf_nfc_handler.c \
   $(PROJ_DIR)/../../drivers/nrf_nordic_pininterrupt/pin_interrupt.c \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_watchdog/watchdog.c \
   $(PROJ_DIR)/../../drivers/pwm/pwm.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
-  $(PROJ_DIR)/../../drivers/nrf_nordic_nfc/nfc.c \
-  $(PROJ_DIR)/../../drivers/nrf_nordic_watchdog/watchdog.c \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/ruuvi_endpoints.c \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/chain_channels.c \
   $(PROJ_DIR)/../../libraries/data_structures/ringbuffer.c \
@@ -93,6 +94,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/drivers_nrf/spi_master/nrf_drv_spi.c \
   $(SDK_ROOT)/components/drivers_nrf/uart/nrf_drv_uart.c \
   $(SDK_ROOT)/components/drivers_nrf/hal/nrf_saadc.c \
+  $(SDK_ROOT)/components/drivers_nrf/wdt/nrf_drv_wdt.c \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
   $(SDK_ROOT)/components/ble/ble_advertising/ble_advertising.c \
   $(SDK_ROOT)/components/ble/ble_services/ble_dfu/ble_dfu.c \

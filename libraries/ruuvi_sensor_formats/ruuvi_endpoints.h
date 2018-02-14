@@ -13,6 +13,7 @@ typedef enum{
   BATTERY                 = 0x20, // Battery state message
   RNG                     = 0x21, // Random number
   RTC                     = 0x22, // Real time clock 
+  NFC                     = 0x23, // NFC message
   TEMPERATURE             = 0x31, // Temperature message
   HUMIDITY                = 0x32,
   PRESSURE                = 0x33,

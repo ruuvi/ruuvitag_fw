@@ -22,5 +22,12 @@
 #define PEER_MANAGER_ENABLED 1
 #define BLE_DIS_ENABLED 1
 
+// WDT_CONFIG_RELOAD_VALUE - Reload value  <15-4294967295> (ms)
+// Watchdog cannot be stopped even when entering bootloader, 
+// so use 6 minutes to allow DFU process to complete.
+#ifndef WDT_CONFIG_RELOAD_VALUE
+#define WDT_CONFIG_RELOAD_VALUE 360000 
+#endif
+
 #endif
 

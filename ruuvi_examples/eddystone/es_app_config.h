@@ -96,7 +96,7 @@
 /** @brief This value should mimic the data that would be written to the RW ADV Slot characteristic (for example, no RSSI for UID). */
 #define DEFAULT_FRAME_DATA              {DEFAULT_FRAME_TYPE, DEFAULT_FRAME_TX_POWER, APP_ES_URL_SCHEME, APP_ES_URL_URL}
 #define DEFAULT_FRAME_LENGTH            15                                //!< 1 - Frame Type, 1 - TX - power 1 - URL Scheme, URL - 12 = 15
-#define APP_CFG_CONNECTABLE_ADV_TIMEOUT 60
+#define APP_CFG_CONNECTABLE_ADV_TIMEOUT 60                                //!< seconds
 #define APP_CFG_DEFAULT_RADIO_TX_POWER  4
 
 #endif //End include guard
