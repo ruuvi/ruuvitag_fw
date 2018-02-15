@@ -197,11 +197,10 @@ void main_timer_handler(void * p_context)
       raw_t = (int32_t) temp;
     }
 
-    // Get battery voltage every 30.th cycle
-    static uint32_t vbat_update_counter;
-    static uint16_t vbat = 0;
+    // Get battery voltage 
+    uint16_t vbat = 0;
     vbat = getBattery();
-    //NRF_LOG_INFO("temperature: , pressure: , humidity: ");
+
     // Embed data into structure for parsing.
     parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
     NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d x: %d y: %d z: %d\r\n", raw_t, raw_p, raw_h, acc[0], acc[1], acc[2]);
