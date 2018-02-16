@@ -14,6 +14,7 @@
 #define EDDYSTONE_CONFIG_H 
 
 #include "bluetooth_config.h"
+#include "bluetooth_board_config.h"
 
 // EID security
 #define MAC_RANDOMIZED //!< Configuration option to specify whether the BLE address should be randomized when advertising EIDs.
@@ -23,11 +24,7 @@
                               0x88, 0x99, 0xAA, 0xBB, \
                               0xCC, 0xDD, 0xEE, 0xFF} //!< Beacon lock code. @warning This lock code must be changed before going to production.
 
-#ifdef NRF52 
-#define APP_CONFIG_CALIBRATED_RANGING_DATA {-51, -41, -32, -26, -22, -17, -15, -10, -3}   //!< Calibrated TX power at 0 m. See the nRF52 Product Specification for corresponding TX values.
-#elif NRF51
-#define APP_CONFIG_CALIBRATED_RANGING_DATA {-39, -26, -23, -18, -13, -12, -9, -2}       //!< Calibrated TX power at 0 m. See the nRF51 Product Specification for corresponding TX values.
-#else
+#ifndef APP_CONFIG_CALIBRATED_RANGING_DATA // in bluetooth_board_config
 #error MISSING CALIBRATED DATA
 #endif 
 

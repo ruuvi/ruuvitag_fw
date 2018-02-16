@@ -9,7 +9,7 @@
 #define INIT_MANUFACTURER                   "Ruuvi Innovations Ltd"
 #define INIT_MODEL                          "RuuviTag"
 #define INIT_HWREV                          "B"
-#define INIT_FWREV                          "Eddystone_2.0.0-alpha"                                 /**< Github tag **/
-#define INIT_SWREV                          "2.X.Y"                                       /**< compatible library revisions should use this version **/
+#define INIT_FWREV                          "Eddystone_1.3.0"                             /**< Github tag **/
+#define INIT_SWREV                          INIT_FWREV                                    /**< Practicially same thing, as there is no separate SW **/
 
 #endif
