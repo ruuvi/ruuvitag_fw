@@ -12,13 +12,16 @@
 
 #include "nrf_drv_saadc.h"
 #include "es_battery_voltage.h"
+#include "boards.h"
 
 #define NRF_LOG_MODULE_NAME "ES_SAADC"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
 #define ADC_REF_VOLTAGE_IN_MILLIVOLTS  600  //!< Reference voltage (in milli volts) used by ADC while doing conversion.
-#define DIODE_FWD_VOLT_DROP_MILLIVOLTS 1    //!< Typical forward voltage drop of the diode (Part no: SD103ATW-7-F) that is connected in series with the voltage supply. This is the voltage drop when the forward current is 1mA. Source: Data sheet of 'SURFACE MOUNT SCHOTTKY BARRIER DIODE ARRAY' available at www.diodes.com.
+#ifndef REVERSE_PROT_VOLT_DROP_MILLIVOLTS
+  #define REVERSE_PROT_VOLT_DROP_MILLIVOLTS 1    //!< Typical forward voltage drop of the diode (Part no: SD103ATW-7-F) that is connected in series with the voltage supply. This is the voltage drop when the forward current is 1mA. Source: Data sheet of 'SURFACE MOUNT SCHOTTKY BARRIER DIODE ARRAY' available at www.diodes.com.
+#endif
 #define ADC_RES_10BIT                  1024 //!< Maximum digital value for 10-bit ADC conversion.
 #define ADC_PRE_SCALING_COMPENSATION   6    //!< The ADC is configured to use VDD with 1/3 prescaling as input. And hence the result of conversion is to be multiplied by 3 to get the actual value of the battery voltage.
 #define ADC_RESULT_IN_MILLI_VOLTS(ADC_VALUE) \
@@ -42,7 +45,7 @@ static void saadc_event_handler(nrf_drv_saadc_evt_t const * p_evt)
         adc_result = p_evt->data.done.p_buffer[0];
 
         m_batt_lvl_in_milli_volts = ADC_RESULT_IN_MILLI_VOLTS(adc_result) +
-                                    DIODE_FWD_VOLT_DROP_MILLIVOLTS;
+                                    REVERSE_PROT_VOLT_DROP_MILLIVOLTS;
 
         NRF_LOG_DEBUG("ADC Done: battery voltage %d\r\n", (uint32_t)m_batt_lvl_in_milli_volts);
     }
@@ -61,9 +64,6 @@ void es_battery_voltage_init(void)
 
     err_code = nrf_drv_saadc_buffer_convert(&adc_buf[0], 1);
     APP_ERROR_CHECK(err_code);
-
-    //err_code = nrf_drv_saadc_buffer_convert(&adc_buf[1], 1);
-    //APP_ERROR_CHECK(err_code);
 
     err_code = nrf_drv_saadc_sample();
     APP_ERROR_CHECK(err_code);
