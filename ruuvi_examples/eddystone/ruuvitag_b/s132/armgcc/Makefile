@@ -53,7 +53,6 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/eddystone/es_adv_frame.c \
   $(SDK_ROOT)/components/libraries/eddystone/es_adv_timing.c \
   $(SDK_ROOT)/components/libraries/eddystone/es_adv_timing_resolver.c \
-  $(SDK_ROOT)/components/libraries/eddystone/es_battery_voltage_saadc.c \
   $(SDK_ROOT)/components/libraries/eddystone/es_flash.c \
   $(SDK_ROOT)/components/libraries/eddystone/es_gatts.c \
   $(SDK_ROOT)/components/libraries/eddystone/es_gatts_read.c \
