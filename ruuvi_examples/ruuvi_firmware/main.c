@@ -63,10 +63,6 @@
 // ID for main loop timer.
 APP_TIMER_DEF(main_timer_id);                 // Creates timer id for our program.
 
-// milliseconds until main loop timer function is called. Other timers can bring
-// application out of sleep at higher (or lower) interval.
-#define MAIN_LOOP_INTERVAL_URL 5000u 
-#define MAIN_LOOP_INTERVAL_RAW 1000u
 #define DEBOUNCE_THRESHOLD 250u
 
 // Payload requires 8 characters
@@ -110,7 +106,7 @@ void change_mode(void* data, uint16_t length)
       // Reconfigure application sample rate for URL mode.
       app_timer_stop(main_timer_id);
       app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_URL, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 5000 ms
-      bluetooth_configure_advertising_interval(MAIN_LOOP_INTERVAL_URL / 10); // Broadcast often to "hit" occasional background scans.
+      bluetooth_configure_advertising_interval(MAIN_LOOP_INTERVAL_URL ); // Broadcast often to "hit" occasional background scans.
     }
   }
   NRF_LOG_INFO("Updating in %d mode\r\n", (uint32_t) highres);
