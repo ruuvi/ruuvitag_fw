@@ -29,6 +29,20 @@ ret_code_t bluetooth_stack_init(void);
  */
 void peer_manager_init(bool erase_bonds);
 
+/**
+ * Generate name "BASEXXXX", where Base is human-readable (i.e. Ruuvi) and XXXX is  last 4 chars of mac address
+ *
+ * @param name_base character array with the base name and 4 extra chars of space
+ * @base_length length of name base, 5 for "RuuviXXXX"
+ */
+void bluetooth_name_postfix_add(char* name_base, size_t base_length);
+
+/**
+ * Set name to be advertised + XXXX where XXXX is last 4 chars of MAC.
+ *
+ * @param name_base base for name i.e. "Ruuvi"
+ * @param name_length length of name_base, 5 for "Ruuvi" 
+ */
 ret_code_t bluetooth_set_name(const char* name_base, size_t name_length);
 
 /**
