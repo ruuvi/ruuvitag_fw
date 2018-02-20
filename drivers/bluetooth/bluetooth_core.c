@@ -141,7 +141,7 @@ static ble_advdata_manuf_data_t m_manufacturer_data;
  /**
   *  Set name to be advertised
   */
-uint32_t bluetooth_set_name(const char* name_base, size_t name_length)
+ret_code_t bluetooth_set_name(const char* name_base, size_t name_length)
 {
   uint32_t err_code = NRF_SUCCESS;
   bool was_advertising = advertising;
@@ -165,11 +165,12 @@ uint32_t bluetooth_set_name(const char* name_base, size_t name_length)
  * @details Sets the advertising interval in program.    
  * @param interval advertisement interval in milliseconds, 100 - 10 000 
  */
-void bluetooth_configure_advertising_interval(uint16_t interval)
+ret_code_t bluetooth_configure_advertising_interval(uint16_t interval)
  {
-   if(interval > 10000) return;
-   if(interval < 100) return;
+   if(interval > 10000) return NRF_ERROR_INVALID_PARAM;
+   if(interval < 100) return NRF_ERROR_INVALID_PARAM;
    m_adv_params.interval = MSEC_TO_UNITS(interval, UNIT_0_625_MS);
+   return NRF_SUCCESS;
  }
  
  /**
@@ -177,11 +178,12 @@ void bluetooth_configure_advertising_interval(uint16_t interval)
  * @details https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s132.api.v3.0.0%2Fgroup___b_l_e___g_a_p___a_d_v___t_y_p_e_s.html
  * @param type Advertisement type, 0 ... 3
  */
-void bluetooth_configure_advertisement_type(uint8_t type)
+ret_code_t bluetooth_configure_advertisement_type(uint8_t type)
  {
-  //TODO: Handle invalid parameter
-  if(type > 3){ return; }
+  
+  if(type > 3){ return NRF_ERROR_INVALID_PARAM; }
   m_adv_params.type = type;
+  return NRF_SUCCESS;
  }
  
 /**
@@ -208,10 +210,9 @@ void bluetooth_configure_advertisement_type(uint8_t type)
   m_adv_params.timeout = timeout;
  }
 
-uint32_t bluetooth_apply_configuration()
+ret_code_t bluetooth_apply_configuration()
 {
   ret_code_t err_code = NRF_SUCCESS;
-  err_code |= ble_advdata_set(&advdata, &scanresp);
   err_code |= bluetooth_advertising_start();
   if(err_code != NRF_SUCCESS) { NRF_LOG_ERROR("Failed to apply configuration: %d\r\n", err_code); }
   return err_code;
@@ -276,7 +277,7 @@ static void advertising_init(void)
     APP_ERROR_CHECK(err_code);
 }
 
-uint32_t bluetooth_stack_init(void)
+ret_code_t bluetooth_stack_init(void)
 {
     uint32_t err_code = NRF_SUCCESS;
 
@@ -412,7 +413,7 @@ void peer_manager_init(bool erase_bonds)
  * @param int8_t power power in dBm, must be one of -40, -30, -20, -16, -12, -8, -4, 0, 4
  * @return error code, 0 if operation was success.
  */
-uint32_t bluetooth_tx_power_set(int8_t power)
+ret_code_t bluetooth_tx_power_set(int8_t power)
 {
     uint32_t err_code = sd_ble_gap_tx_power_set(power);
     //APP_ERROR_CHECK(err_code);
@@ -426,10 +427,10 @@ uint32_t bluetooth_tx_power_set(int8_t power)
  *
  * @return error code from BLE stack, NRF_SUCCESS if ok.
  */
-uint32_t bluetooth_advertising_start(void)
+ret_code_t bluetooth_advertising_start(void)
 {
 
-    uint32_t err_code = NRF_SUCCESS;
+    ret_code_t err_code = NRF_SUCCESS;
     //Stop advertising before making adjustments
     if(advertising)
     {
@@ -439,7 +440,7 @@ uint32_t bluetooth_advertising_start(void)
     err_code |= sd_ble_gap_adv_start(&m_adv_params);
     if(NRF_SUCCESS != err_code)
     {
-        NRF_LOG_INFO("Advertisement fail: %d \r\n",err_code);
+        NRF_LOG_INFO("Advertisement fail: %d \r\n", err_code);
     }
     else { advertising = true; }
     return err_code;
@@ -450,9 +451,9 @@ uint32_t bluetooth_advertising_start(void)
  *
  * @return error code from BLE stack, NRF_SUCCESS if ok.
  */
-uint32_t bluetooth_advertising_stop(void)
+ret_code_t bluetooth_advertising_stop(void)
 {
-  uint32_t err_code = NRF_SUCCESS;
+  ret_code_t err_code = NRF_SUCCESS;
   if(advertising)
   {
     err_code = sd_ble_gap_adv_stop();
@@ -470,9 +471,9 @@ uint32_t bluetooth_advertising_stop(void)
  *
  * @return error code from BLE stack initialization, NRF_SUCCESS if init was ok
  */
-uint32_t bluetooth_set_manufacturer_data(uint8_t* data, size_t length)
+ret_code_t bluetooth_set_manufacturer_data(uint8_t* data, size_t length)
 {
-  uint32_t err_code = NRF_SUCCESS;
+  ret_code_t err_code = NRF_SUCCESS;
 
   //31 bytes - overhead - 2 bytes for manufacturer ID
   if(24 < length)  { return NRF_ERROR_INVALID_PARAM; }
@@ -490,6 +491,7 @@ uint32_t bluetooth_set_manufacturer_data(uint8_t* data, size_t length)
     memset(&advdata, 0, sizeof(advdata));
     advdata.p_manuf_specific_data = &m_manufacturer_data;
     advdata.flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+    err_code |= ble_advdata_set(&advdata, &scanresp);
   }
   NRF_LOG_DEBUG("ADV data status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
 
@@ -497,7 +499,7 @@ uint32_t bluetooth_set_manufacturer_data(uint8_t* data, size_t length)
 }
 
 /**
- * Set Eddystone URL advertisement package in advdata. Must be applied with bluetooth_apply_configuration()
+ * Set Eddystone URL advertisement package in advdata.
  * 
  * @param url_buffer character array containing new URL. May contain eddystone
  *        shortcuts, such as 0x03: "https://"
@@ -506,5 +508,7 @@ uint32_t bluetooth_set_manufacturer_data(uint8_t* data, size_t length)
  */
 ret_code_t bluetooth_set_eddystone_url(char* url_buffer, size_t length)
 {
-  return eddystone_prepare_url_advertisement(&advdata, url_buffer, length);
+  ret_code_t err_code = eddystone_prepare_url_advertisement(&advdata, url_buffer, length);
+  err_code |= ble_advdata_set(&advdata, &scanresp);
+  return err_code;
 }

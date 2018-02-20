@@ -11,9 +11,9 @@ $(OUTPUT_DIRECTORY)/eddystone.out: \
 # Source files common to all targets
 SRC_FILES += \
   $(PROJ_DIR)/main.c \
-  $(PROJ_DIR)/event_handlers.c \
   $(PROJ_DIR)/ble_services/application_ble_event_handlers.c \
   $(PROJ_DIR)/ble_services/application_service_if.c \
+  $(PROJ_DIR)/ble_services/nrf_dfu_flash_buttonless.c \
   $(PROJ_DIR)/../../sdk_overrides/es_battery_voltage_saadc.c \
   $(PROJ_DIR)/../../bsp/bsp.c \
   $(PROJ_DIR)/../../bsp/bsp_btn_ble.c \
@@ -25,6 +25,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
   $(PROJ_DIR)/../../drivers/init/init.c \
   $(PROJ_DIR)/../../drivers/lis2dh12/lis2dh12.c \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_pininterrupt/pin_interrupt.c \
   $(PROJ_DIR)/../../drivers/pwm/pwm.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../drivers/nrf_nordic_nfc/nfc.c \
@@ -45,6 +46,7 @@ SRC_FILES += \
   $(SDK_ROOT)/external/cifra_AES128-EAX/cmac.c \
   $(SDK_ROOT)/components/libraries/crc16/crc16.c \
   $(SDK_ROOT)/external/cifra_AES128-EAX/eax.c \
+  $(SDK_ROOT)/components/libraries/bootloader/dfu/nrf_dfu_settings.c \
   $(SDK_ROOT)/components/libraries/crc16/crc16.c \
   $(SDK_ROOT)/components/libraries/crc32/crc32.c \
   $(SDK_ROOT)/components/libraries/eddystone/es_adv.c \
@@ -83,6 +85,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/drivers_nrf/saadc/nrf_drv_saadc.c \
   $(SDK_ROOT)/components/drivers_nrf/uart/nrf_drv_uart.c \
   $(SDK_ROOT)/components/drivers_nrf/hal/nrf_saadc.c \
+  $(SDK_ROOT)/components/drivers_nrf/wdt/nrf_drv_wdt.c \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
   $(SDK_ROOT)/components/ble/ble_advertising/ble_advertising.c \
   $(SDK_ROOT)/components/ble/common/ble_advdata.c \
@@ -102,6 +105,9 @@ SRC_FILES += \
   $(SDK_ROOT)/components/ble/peer_manager/pm_mutex.c \
   $(SDK_ROOT)/components/ble/peer_manager/security_dispatcher.c \
   $(SDK_ROOT)/components/ble/peer_manager/security_manager.c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_dfu/ble_dfu.c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_nus/ble_nus.c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_dis/ble_dis.c \
   $(SDK_ROOT)/components/toolchain/gcc/gcc_startup_nrf52.S \
   $(SDK_ROOT)/components/toolchain/system_nrf52.c \
   $(SDK_ROOT)/components/ble/ble_services/ble_escs/nrf_ble_escs.c \
@@ -230,6 +236,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/ble/ble_services/ble_escs \
   $(SDK_ROOT)/components/ble/ble_racp \
   $(SDK_ROOT)/components/toolchain/gcc \
+  $(SDK_ROOT)/components/libraries/bootloader/dfu/ \
   $(SDK_ROOT)/components/libraries/fds \
   $(SDK_ROOT)/components/libraries/twi \
   $(SDK_ROOT)/components/drivers_nrf/clock \
@@ -258,20 +265,25 @@ CFLAGS += -DBOARD_CUSTOM
 CFLAGS += -DBOARD_RUUVITAG_B
 CFLAGS += -DNRF52832
 CFLAGS += -DNRF_LOG_USES_RTT=1
+CFLAGS += -DNRF_DFU_SETTINGS_VERSION=1
+CFLAGS += -DHAL_NFC_ENGINEERING_BC_FTPAN_WORKAROUND
+CFLAGS += -DNRF52_PAN_64
+CFLAGS += -DNRF52_PAN_12
+CFLAGS += -DNRF52_PAN_15
 CFLAGS += -DNRF52_PAN_58
+CFLAGS += -DNRF52_PAN_55
 CFLAGS += -DNRF52_PAN_54
 CFLAGS += -DNRF52_PAN_31
+CFLAGS += -DNRF52_PAN_30
 CFLAGS += -DNRF52_PAN_51
 CFLAGS += -DNRF52_PAN_36
+CFLAGS += -DNRF52_PAN_53
 CFLAGS += -DUART_DEBUG
 CFLAGS += -DCONFIG_GPIO_AS_PINRESET
-CFLAGS += -DNRF52_PAN_12
 CFLAGS += -DBLE_STACK_SUPPORT_REQD
-CFLAGS += -DNRF52_PAN_15
 CFLAGS += -DNRF_SD_BLE_API_VERSION=3
 CFLAGS += -DSWI_DISABLE0
 CFLAGS += -DNRF52_PAN_20
-CFLAGS += -DNRF52_PAN_55
 CFLAGS += -DS132
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
@@ -293,11 +305,19 @@ ASMFLAGS += -DSOFTDEVICE_PRESENT
 ASMFLAGS += -DBOARD_PCA10040
 ASMFLAGS += -DNRF52832
 ASMFLAGS += -DNRF_LOG_USES_RTT=1
+ASMFLAGS += -DNRF_DFU_SETTINGS_VERSION=1
+ASMFLAGS += -DHAL_NFC_ENGINEERING_BC_FTPAN_WORKAROUND
+ASMFLAGS += -DNRF52_PAN_64
+ASMFLAGS += -DNRF52_PAN_12
+ASMFLAGS += -DNRF52_PAN_15
 ASMFLAGS += -DNRF52_PAN_58
+ASMFLAGS += -DNRF52_PAN_55
 ASMFLAGS += -DNRF52_PAN_54
 ASMFLAGS += -DNRF52_PAN_31
+ASMFLAGS += -DNRF52_PAN_30
 ASMFLAGS += -DNRF52_PAN_51
 ASMFLAGS += -DNRF52_PAN_36
+ASMFLAGS += -DNRF52_PAN_53
 ASMFLAGS += -DUART_DEBUG
 ASMFLAGS += -DCONFIG_GPIO_AS_PINRESET
 ASMFLAGS += -DNRF52_PAN_12

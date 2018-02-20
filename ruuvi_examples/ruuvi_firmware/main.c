@@ -63,10 +63,6 @@
 // ID for main loop timer.
 APP_TIMER_DEF(main_timer_id);                 // Creates timer id for our program.
 
-// milliseconds until main loop timer function is called. Other timers can bring
-// application out of sleep at higher (or lower) interval.
-#define MAIN_LOOP_INTERVAL_URL 5000u 
-#define MAIN_LOOP_INTERVAL_RAW 1000u
 #define DEBOUNCE_THRESHOLD 250u
 
 // Payload requires 8 characters
@@ -101,7 +97,7 @@ void change_mode(void* data, uint16_t length)
       // Reconfigure application sample rate for RAW mode
       app_timer_stop(main_timer_id);
       app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 1000 ms
-      bluetooth_configure_advertising_interval(MAIN_LOOP_INTERVAL_RAW); // Broadcast only updated data, assuming there is an active receiver nearby.
+      bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_RAW); // Broadcast only updated data, assuming there is an active receiver nearby.
     }
     else
     {
@@ -110,7 +106,7 @@ void change_mode(void* data, uint16_t length)
       // Reconfigure application sample rate for URL mode.
       app_timer_stop(main_timer_id);
       app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_URL, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 5000 ms
-      bluetooth_configure_advertising_interval(MAIN_LOOP_INTERVAL_URL / 10); // Broadcast often to "hit" occasional background scans.
+      bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_URL ); // Broadcast often to "hit" occasional background scans.
     }
   }
   NRF_LOG_INFO("Updating in %d mode\r\n", (uint32_t) highres);
@@ -156,8 +152,6 @@ static void updateAdvertisement(void)
   ret_code_t err_code = NRF_SUCCESS;
   if (highres) { err_code |= bluetooth_set_manufacturer_data(data_buffer, sizeof(data_buffer)); }
   else { err_code |= bluetooth_set_eddystone_url(url_buffer, sizeof(url_buffer)); }
-  NRF_LOG_DEBUG("Applying configuration, data status %d\r\n", err_code);
-  err_code |= bluetooth_apply_configuration();
 }
 
 
@@ -175,6 +169,7 @@ void main_timer_handler(void * p_context)
     if (model_plus)
     {      
       // Get raw environmental data.
+      bme280_read_measurements();
       raw_t = bme280_get_temperature();
       raw_p = bme280_get_pressure();
       raw_h = bme280_get_humidity();
@@ -197,11 +192,10 @@ void main_timer_handler(void * p_context)
       raw_t = (int32_t) temp;
     }
 
-    // Get battery voltage every 30.th cycle
-    static uint32_t vbat_update_counter;
-    static uint16_t vbat = 0;
-    if(!(vbat_update_counter++%30)) { vbat = getBattery(); }
-    //NRF_LOG_INFO("temperature: , pressure: , humidity: ");
+    // Get battery voltage 
+    uint16_t vbat = 0;
+    vbat = getBattery();
+
     // Embed data into structure for parsing.
     parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
     NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d x: %d y: %d z: %d\r\n", raw_t, raw_p, raw_h, acc[0], acc[1], acc[2]);
@@ -264,13 +258,14 @@ int main(void)
 
   // Initialize BLE Stack. Required in all applications for timer operation.
   err_code |= init_ble();
+  bluetooth_advertising_stop();
   bluetooth_tx_power_set(BLE_TX_POWER);
 
   // Initialize the application timer module.
   err_code |= init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler);
 
   // Initialize RTC.
-  //err_code |= init_rtc();
+  err_code |= init_rtc();
 
   // Start interrupts.
   err_code |= pin_interrupt_init();
@@ -341,6 +336,7 @@ int main(void)
 
   // Init ok, start watchdog with default wdt event handler (reset).
   init_watchdog(NULL);
+  bluetooth_advertising_start();
 
   // Enter main loop.
   for (;;)
