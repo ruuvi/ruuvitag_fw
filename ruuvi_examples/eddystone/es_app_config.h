@@ -14,6 +14,7 @@
 #define EDDYSTONE_CONFIG_H 
 
 #include "bluetooth_config.h"
+#include "bluetooth_board_config.h"
 
 // EID security
 #define MAC_RANDOMIZED //!< Configuration option to specify whether the BLE address should be randomized when advertising EIDs.
@@ -23,11 +24,7 @@
                               0x88, 0x99, 0xAA, 0xBB, \
                               0xCC, 0xDD, 0xEE, 0xFF} //!< Beacon lock code. @warning This lock code must be changed before going to production.
 
-#ifdef NRF52 
-#define APP_CONFIG_CALIBRATED_RANGING_DATA {-51, -41, -32, -26, -22, -17, -15, -10, -3}   //!< Calibrated TX power at 0 m. See the nRF52 Product Specification for corresponding TX values.
-#elif NRF51
-#define APP_CONFIG_CALIBRATED_RANGING_DATA {-39, -26, -23, -18, -13, -12, -9, -2}       //!< Calibrated TX power at 0 m. See the nRF51 Product Specification for corresponding TX values.
-#else
+#ifndef APP_CONFIG_CALIBRATED_RANGING_DATA // in bluetooth_board_config
 #error MISSING CALIBRATED DATA
 #endif 
 
@@ -56,7 +53,7 @@
 
 // ES CONFIGS
 #define APP_MAX_ADV_SLOTS                   5                 //!< Maximum number of advertisement slots.
-#define APP_MAX_EID_SLOTS                   1                 /**< @brief Maximum number of EID slots.
+#define APP_MAX_EID_SLOTS                   5                 /**< @brief Maximum number of EID slots.
                                                                * @note The maximum number of EID slots must be equal to the maximum number of advertisement slots (@ref APP_MAX_ADV_SLOTS). If your application does not adhere to this convention, you must modify the @ref eddystone_security module, because the security module maps the security slots' slot numbers 1 to 1 to the slots'. */
 #define APP_ETLM_DELAY_MS                   300               //!< The delay that is introduced between advertisement slots of type eTLM.
 
@@ -87,16 +84,15 @@
 // Eddystone URL data
 #define APP_ES_URL_FRAME_TYPE    ES_FRAME_TYPE_URL                 //!< URL Frame type (fixed at 0x10).
 #define APP_ES_URL_SCHEME        0x03                              //!< URL prefix scheme according to specification (0x03 = "https://").
-#define APP_ES_URL_URL           'r', 'u', 'u', '.', 'v', 'i', \
-                                 '/', 's', 'e', 't', 'u', 'p'      //!< "ruu.vi/setup"
+#define APP_ES_URL_URL           'r', 'u', 'u', 'v', 'i', 0x07     //!< "ruuvi.com"
 
 #define DEFAULT_FRAME_TYPE       APP_ES_URL_FRAME_TYPE             //!< Frame type of default frame.
-#define DEFAULT_FRAME_TX_POWER   0x00                              //!< Default frame TX power.
+#define DEFAULT_FRAME_TX_POWER   0x04                              //!< Default frame TX power.
 
 /** @brief This value should mimic the data that would be written to the RW ADV Slot characteristic (for example, no RSSI for UID). */
 #define DEFAULT_FRAME_DATA              {DEFAULT_FRAME_TYPE, DEFAULT_FRAME_TX_POWER, APP_ES_URL_SCHEME, APP_ES_URL_URL}
-#define DEFAULT_FRAME_LENGTH            15                                //!< 1 - Frame Type, 1 - TX - power 1 - URL Scheme, URL - 12 = 15
-#define APP_CFG_CONNECTABLE_ADV_TIMEOUT 60
-#define APP_CFG_DEFAULT_RADIO_TX_POWER  4
+#define DEFAULT_FRAME_LENGTH            9                          //!< 1 - Frame Type, 1 - TX - power 1 - URL Scheme, URL - 6 = 9
+#define APP_CFG_CONNECTABLE_ADV_TIMEOUT 60                         //!< seconds
+#define APP_CFG_DEFAULT_RADIO_TX_POWER  4                          //dBm
 
 #endif //End include guard
