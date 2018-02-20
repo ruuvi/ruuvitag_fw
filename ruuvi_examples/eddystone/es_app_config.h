@@ -70,7 +70,7 @@
 #define APP_IS_REMAIN_CONNECTABLE_SUPPORTED ESCS_FUNCT_REMAIN_CONNECTABLE_SUPPORTED_Yes //!< Information whether the 'remain connectable' option is supported.
 
 // Eddystone common data
-#define APP_ES_UUID                  0xFEAA                        //!< UUID for Eddystone beacons according to specification.
+#define APP_ES_UUID              0xFEAA.                           //!< UUID for Eddystone beacons according to specification.
 
 // Eddystone UID data
 #define APP_ES_UID_FRAME_TYPE    ES_FRAME_TYPE_UID                 //!< UID frame type (fixed at 0x00).
@@ -84,16 +84,15 @@
 // Eddystone URL data
 #define APP_ES_URL_FRAME_TYPE    ES_FRAME_TYPE_URL                 //!< URL Frame type (fixed at 0x10).
 #define APP_ES_URL_SCHEME        0x03                              //!< URL prefix scheme according to specification (0x03 = "https://").
-#define APP_ES_URL_URL           'r', 'u', 'u', '.', 'v', 'i', \
-                                 '/', 's', 'e', 't', 'u', 'p'      //!< "ruu.vi/setup"
+#define APP_ES_URL_URL           'r', 'u', 'u', 'v', 'i', 0x07     //!< "ruuvi.com"
 
 #define DEFAULT_FRAME_TYPE       APP_ES_URL_FRAME_TYPE             //!< Frame type of default frame.
-#define DEFAULT_FRAME_TX_POWER   0x00                              //!< Default frame TX power.
+#define DEFAULT_FRAME_TX_POWER   0x04                              //!< Default frame TX power.
 
 /** @brief This value should mimic the data that would be written to the RW ADV Slot characteristic (for example, no RSSI for UID). */
 #define DEFAULT_FRAME_DATA              {DEFAULT_FRAME_TYPE, DEFAULT_FRAME_TX_POWER, APP_ES_URL_SCHEME, APP_ES_URL_URL}
-#define DEFAULT_FRAME_LENGTH            15                                //!< 1 - Frame Type, 1 - TX - power 1 - URL Scheme, URL - 12 = 15
-#define APP_CFG_CONNECTABLE_ADV_TIMEOUT 60                                //!< seconds
-#define APP_CFG_DEFAULT_RADIO_TX_POWER  4
+#define DEFAULT_FRAME_LENGTH            9                          //!< 1 - Frame Type, 1 - TX - power 1 - URL Scheme, URL - 6 = 9
+#define APP_CFG_CONNECTABLE_ADV_TIMEOUT 60                         //!< seconds
+#define APP_CFG_DEFAULT_RADIO_TX_POWER  4                          //dBm
 
 #endif //End include guard
