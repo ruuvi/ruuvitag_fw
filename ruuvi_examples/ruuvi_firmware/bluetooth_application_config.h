@@ -8,4 +8,11 @@
 #define APPLICATION_ADV_INTERVAL        1000                            /**< ms **/
 #define APP_TX_POWER                    4                               /**< dBm **/
 
+// milliseconds until main loop timer function is called. Other timers can bring
+// application out of sleep at higher (or lower) interval.
+#define MAIN_LOOP_INTERVAL_RAW   1000u
+#define ADVERTISING_INTERVAL_RAW 1000u
+#define MAIN_LOOP_INTERVAL_URL   5000u 
+#define ADVERTISING_INTERVAL_URL  500u
+
 #endif
