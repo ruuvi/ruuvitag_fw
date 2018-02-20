@@ -97,7 +97,7 @@ void change_mode(void* data, uint16_t length)
       // Reconfigure application sample rate for RAW mode
       app_timer_stop(main_timer_id);
       app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 1000 ms
-      bluetooth_configure_advertising_interval(MAIN_LOOP_INTERVAL_RAW); // Broadcast only updated data, assuming there is an active receiver nearby.
+      bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_RAW); // Broadcast only updated data, assuming there is an active receiver nearby.
     }
     else
     {
@@ -106,7 +106,7 @@ void change_mode(void* data, uint16_t length)
       // Reconfigure application sample rate for URL mode.
       app_timer_stop(main_timer_id);
       app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_URL, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 5000 ms
-      bluetooth_configure_advertising_interval(MAIN_LOOP_INTERVAL_URL ); // Broadcast often to "hit" occasional background scans.
+      bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_URL ); // Broadcast often to "hit" occasional background scans.
     }
   }
   NRF_LOG_INFO("Updating in %d mode\r\n", (uint32_t) highres);
