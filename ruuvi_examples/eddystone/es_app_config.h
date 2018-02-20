@@ -30,7 +30,7 @@
 
 #define APP_CONFIG_TLM_TEMP_VBATT_UPDATE_INTERVAL_SECONDS   10                          //!< How often should the data in the TLM frame be updated.
 
-#define APP_CONFIG_ADV_FRAME_SPACING_MS_MIN                 500                         //!< Minimum time between advertisement frames. Imposes limit on minumum accepted advertisement interval.
+#define APP_CONFIG_ADV_FRAME_SPACING_MS_MIN                 100                         //!< Minimum time between advertisement frames. Imposes limit on minumum accepted advertisement interval.
 #if defined(NRF52)
 #define APP_CONFIG_ADV_FRAME_ETLM_SPACING_MS                300                         //!< The time that is reqired for preparing an eTLM slot. Imposes limit on minimum accepted advertisement interval.
 #elif defined(NRF51)
