@@ -12,7 +12,7 @@
 // application out of sleep at higher (or lower) interval.
 #define MAIN_LOOP_INTERVAL_RAW   1000u
 #define ADVERTISING_INTERVAL_RAW 1000u
-#define MAIN_LOOP_INTERVAL_URL    500u 
-#define ADVERTISING_INTERVAL_URL 5000u
+#define MAIN_LOOP_INTERVAL_URL   5000u 
+#define ADVERTISING_INTERVAL_URL 500u
 
 #endif
