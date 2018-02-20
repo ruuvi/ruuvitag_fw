@@ -137,6 +137,20 @@ static bool advertising = false;
 static ble_gap_conn_params_t   gap_conn_params;
 static ble_gap_conn_sec_mode_t sec_mode;
 static ble_advdata_manuf_data_t m_manufacturer_data;
+
+/**
+ * Generate name "BASEXXXX", where Base is human-readable (i.e. Ruuvi) and XXXX is  last 4 chars of mac address
+ *
+ * @param name_base character array with the base name and 4 extra chars of space
+ * @base_length length of name base, 5 for "RuuviXXXX"
+ */
+void bluetooth_name_postfix_add(char* name_base, size_t base_length)
+{
+    unsigned int addr0 =  NRF_FICR->DEVICEADDR[0];
+    char postfix[4] = { 0 };
+    sprintf(postfix,"%x", addr0&0xFFFF);
+    memcpy(name_base + base_length, postfix, sizeof(postfix));
+}
  
  /**
   *  Set name to be advertised
@@ -144,18 +158,18 @@ static ble_advdata_manuf_data_t m_manufacturer_data;
 ret_code_t bluetooth_set_name(const char* name_base, size_t name_length)
 {
   uint32_t err_code = NRF_SUCCESS;
+  if(name_length > 15) { return NRF_ERROR_INVALID_PARAM; }
   bool was_advertising = advertising;
   if(advertising) { bluetooth_advertising_stop(); }
-  unsigned int mac0 =  NRF_FICR->DEVICEID[0];
-  // space + 4 hex chars
+  // base + 4 hex chars
   char name[20] = { 0 };
   memcpy(name, name_base, name_length);
-  sprintf(name + name_length, " %x", mac0>>16);
+  bluetooth_name_postfix_add(name, name_length);
   NRF_LOG_DEBUG("%s\r\n", (uint32_t)name);
-  NRF_LOG_HEXDUMP_DEBUG((uint8_t*)name, name_length+ 5);
+  NRF_LOG_HEXDUMP_DEBUG((uint8_t*)name, name_length + 4);
   err_code |= sd_ble_gap_device_name_set(&sec_mode,
                                         (const uint8_t *) name,
-                                        name_length + 5);
+                                        name_length + 4);
   if(was_advertising) { bluetooth_advertising_start(); }
   return err_code;
 }
