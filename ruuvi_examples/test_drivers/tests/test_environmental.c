@@ -19,9 +19,13 @@ void test_environmental(void)
   //First sample
   err_code |= bme280_set_mode(BME280_MODE_FORCED);
   nrf_delay_ms(100);
-  //read previous data, start next sample
+  //read data, start next sample
+  bme280_read_measurements();
+  
   bme280_set_mode(BME280_MODE_FORCED);
   nrf_delay_ms(10);
+  bme280_read_measurements();
+
   // Get raw environmental data
   raw_t = bme280_get_temperature();
   raw_p = bme280_get_pressure();
@@ -30,12 +34,14 @@ void test_environmental(void)
   
   err_code |= bme280_set_mode(BME280_MODE_FORCED);
   nrf_delay_ms(10);
+  bme280_read_measurements();
   raw_t = bme280_get_temperature();
   raw_p = bme280_get_pressure();
   raw_h = bme280_get_humidity();
   NRF_LOG_INFO("temperature: %d.%d, pressure: %d, humidity: %d\r\n", raw_t/100, raw_t%100, raw_p>>8, raw_h>>10); //Wrong decimals on negative values.
     
   err_code |= bme280_set_mode(BME280_MODE_FORCED);
+  bme280_read_measurements();
   raw_t = bme280_get_temperature();
   raw_p = bme280_get_pressure();
   raw_h = bme280_get_humidity();
@@ -47,7 +53,7 @@ void test_environmental(void)
   NRF_LOG_INFO("Ok, switching to normal mode, status %s.\r\n", (uint32_t)ERR_TO_STR(err_code));
   for(int ii = 0; ii < 15; ii++)
   {
-    app_sched_execute();
+    bme280_read_measurements();
     raw_t = bme280_get_temperature();
     raw_p = bme280_get_pressure();
     raw_h = bme280_get_humidity();
@@ -74,7 +80,7 @@ void test_environmental(void)
   NRF_LOG_INFO("Ok, applied oversampling, status %s. Noise should be decreased. Place bme280 to fan exhaust to see the effect.\r\n", (uint32_t)ERR_TO_STR(err_code));
   for(int ii = 0; ii < 15; ii++)
   {
-    app_sched_execute();
+    bme280_read_measurements();
     raw_t = bme280_get_temperature();
     raw_p = bme280_get_pressure();
     raw_h = bme280_get_humidity();
@@ -89,7 +95,7 @@ void test_environmental(void)
   NRF_LOG_INFO("Ok, applying IIR, status %s. Please breathe on bme280. Values should adjust slowly.\r\n", (uint32_t)ERR_TO_STR(err_code));
   for(int ii = 0; ii < 15; ii++)
   {
-    app_sched_execute();
+    bme280_read_measurements();
     raw_t = bme280_get_temperature();
     raw_p = bme280_get_pressure();
     raw_h = bme280_get_humidity();
@@ -104,7 +110,7 @@ void test_environmental(void)
   NRF_LOG_INFO("Ok, Removing IIR, status %s. Please breathe on bme280. Values should adjust quickly.\r\n", (uint32_t)ERR_TO_STR(err_code));
   for(int ii = 0; ii < 15; ii++)
   {
-    app_sched_execute();
+    bme280_read_measurements();
     raw_t = bme280_get_temperature();
     raw_p = bme280_get_pressure();
     raw_h = bme280_get_humidity();
