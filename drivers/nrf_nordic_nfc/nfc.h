@@ -7,7 +7,7 @@
 #include "nfc_text_rec.h"
 #include "sdk_errors.h"
 
-#define MAX_REC_COUNT      3     /**< Maximum records count. */
+#define MAX_REC_COUNT      4     /**< Maximum records count. */
 
 /**
  * Initializes NFC with ID , address and data message.
@@ -33,6 +33,11 @@ void id_record_add(nfc_ndef_msg_desc_t* nfc_msg);
  * @brief Function for creating a record.
  */
 void address_record_add(nfc_ndef_msg_desc_t* nfc_msg);
+
+/**
+ * @brief Function for creating a record.
+ */
+void version_record_add(nfc_ndef_msg_desc_t* nfc_msg);
 
 /**
  * Update NFC payload with given data. Data is converted to hex and printed as a string.

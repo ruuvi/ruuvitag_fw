@@ -8,4 +8,7 @@
 #define APPLICATION_ADV_INTERVAL        500                             /**< ms **/
 #define APP_TX_POWER                    4                               /**< dBm **/
 
+#define INIT_FWREV                          "Eddystone_1.3.1"                             /**< Github tag **/
+#define INIT_SWREV                          INIT_FWREV                                    /**< Practicially same thing, as there is no separate SW **/
+
 #endif
