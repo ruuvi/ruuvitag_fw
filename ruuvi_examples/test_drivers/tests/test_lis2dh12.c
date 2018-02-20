@@ -179,6 +179,7 @@ static void test_sample_rates(void)
   NRF_LOG_INFO("Sample rate test complete, above log should have one error at sample rate 0\r\n");
 }
 
+/*
 static void test_activity_detection(void)
 {
   //Configure activity interrupt
@@ -192,6 +193,10 @@ static void test_activity_detection(void)
   //Interrupt on 64 mg+ (highpassed, +/-)
   //INT2_THS= 0x04 // 4 LSB = 64 mg @2G scale
    lis2dh12_set_threshold(0x04, 2);
+
+  lis2dh12_set_scale(LIS2DH12_SCALE2G);
+  lis2dh12_set_resolution(LIS2DH12_RES10BIT);
+  lis2dh12_set_sample_rate(LIS2DH12_RATE_100);
     
   //Enable Interrupt function 2 on LIS interrupt pin 2 (stays high for 1/ODR)
   lis2dh12_set_interrupts(LIS2DH12_I2C_INT2_MASK, 2);
@@ -199,7 +204,7 @@ static void test_activity_detection(void)
   while(!interrupted2);
   NRF_LOG_INFO("Activity detected\r\n");  
 }
-
+*/
 void test_lis2dh12(void)
 {
   // Enable LOTOHI interrupt on nRF52 -- note: this uses local handler, not the one defined in acceleration_handler.
@@ -242,7 +247,7 @@ void test_lis2dh12(void)
   test_sample_rates();
   
   //Test activity detection
-  test_activity_detection();
+  //test_activity_detection();
 
   //Reset lis
   //Clear memory
