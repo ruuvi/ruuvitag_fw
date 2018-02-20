@@ -9,7 +9,5 @@
 #define INIT_MANUFACTURER                   "Ruuvi Innovations Ltd"
 #define INIT_MODEL                          "RuuviTag"
 #define INIT_HWREV                          "B"
-#define INIT_FWREV                          "Ruuvi 1.2.5"                                 /**< Github tag **/
-#define INIT_SWREV                          INIT_FWREV                                    /**< Essentially same s FWrev since there is no separate SW (i.e. Espruino) **/
 
 #endif
