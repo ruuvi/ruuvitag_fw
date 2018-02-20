@@ -24,7 +24,7 @@
 
 #define APP_CFG_NON_CONN_ADV_TIMEOUT    0                                 /**< Time for which the device must be advertising in non-connectable mode (in seconds). 0 disables the time-out. */
 
-#define APP_CFG_NON_CONN_ADV_INTERVAL_MS    MSEC_TO_UNITS(APPLICATION_ADV_INTERVAL, UNIT_0_625_MS) /**< The advertising interval for non-connectable advertisement (100 ms). This value can vary between 100 ms and 10.24 s). */
+#define APP_CFG_NON_CONN_ADV_INTERVAL_MS APPLICATION_ADV_INTERVAL         /**< The advertising interval for non-connectable advertisement. This value can vary between 100 ms and 10.24 s). */
 
 #define BLE_TX_POWER                    APP_TX_POWER                                 /** dBm **/
 
