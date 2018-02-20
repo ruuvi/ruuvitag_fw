@@ -150,7 +150,6 @@ int main(void)
 
   err_code |= init_ble(); 
   err_code |= bluetooth_configure_advertisement_type(BLE_GAP_ADV_TYPE_ADV_NONCONN_IND);
-  err_code |= bluetooth_advertising_stop();
 
   err_code |= init_sensors();
 
