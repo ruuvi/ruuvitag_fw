@@ -70,7 +70,7 @@
 #define APP_IS_REMAIN_CONNECTABLE_SUPPORTED ESCS_FUNCT_REMAIN_CONNECTABLE_SUPPORTED_Yes //!< Information whether the 'remain connectable' option is supported.
 
 // Eddystone common data
-#define APP_ES_UUID                  0xFEAA                        //!< UUID for Eddystone beacons according to specification.
+#define APP_ES_UUID              0xFEAA                            //!< UUID for Eddystone beacons according to specification.
 
 // Eddystone UID data
 #define APP_ES_UID_FRAME_TYPE    ES_FRAME_TYPE_UID                 //!< UID frame type (fixed at 0x00).
