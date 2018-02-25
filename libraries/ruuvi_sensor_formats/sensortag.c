@@ -152,12 +152,13 @@ void encodeToUrlDataFromat(char* url, uint8_t base_length, ruuvi_sensor_t* data)
     //serialize values into a string
     char pack[8] = {0};
     pack[0] = WEATHER_STATION_URL_ID_FORMAT;
-    uint8_t humidity = data->humidity / 4; //Round to 2 %
+    uint8_t humidity = (data->humidity + 2) / 4; //Round to 2 %, add 2 % to round properly
     pack[1] = humidity * 4;
     int16_t temperature = data->temperature;
     pack[2] = (temperature) >> 8;
+    if((temperature&0xFF) > 49) pack[2] += 1;
     pack[3] = 0;          //Round off decimals
-    uint16_t pressure =   data->pressure;
+    uint16_t pressure =   data->pressure + 50; // rounding
     pressure = pressure - (pressure % 100); //Round pressure to hPa accuracy
     pack[4] = (pressure)>>8;
     pack[5] = (pressure)&0xFF;
