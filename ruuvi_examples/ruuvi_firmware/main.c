@@ -76,7 +76,7 @@ APP_TIMER_DEF(main_timer_id);                 // Creates timer id for our progra
 #define URL_BASE_LENGTH 8
 #define URL_DATA_LENGTH 9
 #define RAW_DATA_LENGTH 14
-static char url_buffer[URL_BASE_LENGTH + URL_DATA_LENGTH] = {0x03, 'r', 'u', 'u', 'v', 'i', 0x00, '#'};
+static char url_buffer[URL_BASE_LENGTH + URL_DATA_LENGTH] = {'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
 static uint8_t data_buffer[RAW_DATA_LENGTH] = { 0 };
 static bool model_plus = false;     // Flag for sensors available
 static bool highres = true;        // Flag for used mode
