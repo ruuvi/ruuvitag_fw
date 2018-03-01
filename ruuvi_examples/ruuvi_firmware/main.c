@@ -72,11 +72,11 @@ APP_TIMER_DEF(main_timer_id);                 // Creates timer id for our progra
 #define MAIN_LOOP_INTERVAL_RAW   1000u
 #define DEBOUNCE_THRESHOLD 250u
 
-// Payload requires 8 characters
-#define URL_BASE_LENGTH 8
+// Payload requires 9 characters
+#define URL_BASE_LENGTH 9
 #define URL_DATA_LENGTH 9
 #define RAW_DATA_LENGTH 14
-static char url_buffer[URL_BASE_LENGTH + URL_DATA_LENGTH] = {'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
+static char url_buffer[URL_BASE_LENGTH + URL_DATA_LENGTH] = {0x03, 'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
 static uint8_t data_buffer[RAW_DATA_LENGTH] = { 0 };
 static bool model_plus = false;     // Flag for sensors available
 static bool highres = true;        // Flag for used mode
