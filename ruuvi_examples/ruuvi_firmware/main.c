@@ -72,12 +72,14 @@ APP_TIMER_DEF(main_timer_id);                 // Creates timer id for our progra
 #define MAIN_LOOP_INTERVAL_RAW   1000u
 #define DEBOUNCE_THRESHOLD 250u
 
-// Payload requires 8 characters
-#define URL_BASE_LENGTH 7
-static char url_buffer[17] = {0x03, 'r', 'u', 'u', 'v', 'i', 0x00};
-static uint8_t data_buffer[24] = { 0 };
+// Payload requires 9 characters
+#define URL_BASE_LENGTH 9
+#define URL_DATA_LENGTH 9
+#define RAW_DATA_LENGTH 14
+static char url_buffer[URL_BASE_LENGTH + URL_DATA_LENGTH] = {0x03, 'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
+static uint8_t data_buffer[RAW_DATA_LENGTH] = { 0 };
 static bool model_plus = false;     // Flag for sensors available
-static bool highres = false;        // Flag for used mode
+static bool highres = true;        // Flag for used mode
 static uint64_t debounce = false;   // Flag for avoiding double presses
 static uint16_t acceleration_events = 0;
 
@@ -330,7 +332,6 @@ int main(void)
     bme280_set_interval(BME280_STANDBY_1000_MS);
     bme280_set_mode(BME280_MODE_NORMAL);
     NRF_LOG_DEBUG("BME280 configuration done\r\n");
-    highres = true;
   }
 
   // Visually display init status. Hangs if there was an error, waits 3 seconds on success.
