@@ -23,14 +23,21 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/bluetooth/ble_event_handlers.c \
   $(PROJ_DIR)/../../drivers/bluetooth/bluetooth_core.c \
   $(PROJ_DIR)/../../drivers/bme280/bme280.c \
+  $(PROJ_DIR)/../../drivers/bme280/bme280_temperature_handler.c \
   $(PROJ_DIR)/../../drivers/init/init.c \
   $(PROJ_DIR)/../../drivers/lis2dh12/lis2dh12.c \
+  $(PROJ_DIR)/../../drivers/lis2dh12/lis2dh12_acceleration_handler.c \
   $(PROJ_DIR)/../../drivers/nrf_nordic_pininterrupt/pin_interrupt.c \
   $(PROJ_DIR)/../../drivers/pwm/pwm.c \
   $(PROJ_DIR)/../../drivers/spi/spi.c \
   $(PROJ_DIR)/../../drivers/nrf_nordic_nfc/nfc.c \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_nfc/nrf_nfc_handler.c \
   $(PROJ_DIR)/../../drivers/nrf_nordic_watchdog/watchdog.c \
+  $(PROJ_DIR)/../../libraries/data_structures/ringbuffer.c \
+  $(PROJ_DIR)/../../libraries/dsp/dsp.c \
+  $(PROJ_DIR)/../../libraries/dsp/stdev.c \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/ruuvi_endpoints.c \
+  $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/chain_channels.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
   $(SDK_ROOT)/external/tiny-AES128/aes.c \
@@ -82,6 +89,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/drivers_nrf/common/nrf_drv_common.c \
   $(SDK_ROOT)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c \
   $(SDK_ROOT)/components/drivers_nrf/saadc/nrf_drv_saadc.c \
+  $(SDK_ROOT)/components/drivers_nrf/spi_master/nrf_drv_spi.c \
   $(SDK_ROOT)/components/drivers_nrf/uart/nrf_drv_uart.c \
   $(SDK_ROOT)/components/drivers_nrf/hal/nrf_saadc.c \
   $(SDK_ROOT)/components/drivers_nrf/wdt/nrf_drv_wdt.c \
@@ -159,6 +167,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/gpiote \
   $(SDK_ROOT)/components/drivers_nrf/gpiote \
   $(SDK_ROOT)/components/drivers_nrf/common \
+  $(SDK_ROOT)/components/drivers_nrf/spi_master/ \
   $(SDK_ROOT)/components/ble/ble_advertising \
   $(SDK_ROOT)/components/drivers_nrf/adc \
   $(SDK_ROOT)/components/ble/ble_services/ble_bas_c \
@@ -266,7 +275,6 @@ CFLAGS += -DHAL_NFC_ENGINEERING_BC_FTPAN_WORKAROUND
 CFLAGS += -DNRF52832
 CFLAGS += -DNRF_LOG_USES_RTT=1
 CFLAGS += -DNRF_DFU_SETTINGS_VERSION=1
-CFLAGS += -DHAL_NFC_ENGINEERING_BC_FTPAN_WORKAROUND
 CFLAGS += -DNRF52_PAN_64
 CFLAGS += -DNRF52_PAN_12
 CFLAGS += -DNRF52_PAN_15
@@ -308,7 +316,6 @@ ASMFLAGS += -DHAL_NFC_ENGINEERING_BC_FTPAN_WORKAROUND
 ASMFLAGS += -DNRF52832
 ASMFLAGS += -DNRF_LOG_USES_RTT=1
 ASMFLAGS += -DNRF_DFU_SETTINGS_VERSION=1
-ASMFLAGS += -DHAL_NFC_ENGINEERING_BC_FTPAN_WORKAROUND
 ASMFLAGS += -DNRF52_PAN_64
 ASMFLAGS += -DNRF52_PAN_12
 ASMFLAGS += -DNRF52_PAN_15
@@ -324,7 +331,6 @@ ASMFLAGS += -DUART_DEBUG
 ASMFLAGS += -DCONFIG_GPIO_AS_PINRESET
 ASMFLAGS += -DNRF52_PAN_12
 ASMFLAGS += -DBLE_STACK_SUPPORT_REQD
-ASMFLAGS += -DNRF52_PAN_15
 ASMFLAGS += -DNRF_SD_BLE_API_VERSION=3
 ASMFLAGS += -DSWI_DISABLE0
 ASMFLAGS += -DNRF52_PAN_20

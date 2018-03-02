@@ -92,13 +92,20 @@ ret_code_t bluetooth_apply_configuration();
  */
 ret_code_t bluetooth_configure_advertising_interval(uint16_t interval);
 
+ /**
+ * @brief Function for configuring advertisement type
+ * @details https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s132.api.v3.0.0%2Fgroup___b_l_e___g_a_p___a_d_v___t_y_p_e_s.html
+ * @param type Advertisement type, 0 ... 3
+ */
+ret_code_t bluetooth_configure_advertisement_type(uint8_t type);
+
 
 /**
  * Set Eddystone URL advertisement package in advdata.
  * 
  * @param url_buffer character array containing new URL. May contain eddystone
- *        shortcuts, such as 0x03: "https://"
- * @param length length of URL to transmit. must be <18. Shortcut bytes are counted as one, i.e. https://ruu.vi is 7 bytes long
+ *        shortcuts, such as 0x03: "https://". Must start with Eddystone Scheme byte
+ * @param length length of URL to transmit. must be <19. Shortcut bytes are counted as one, i.e. https://ruu.vi is 7 bytes long
  *        as long as https:// is written as 0x03
  */
 ret_code_t bluetooth_set_eddystone_url(char* url_buffer, size_t length);
