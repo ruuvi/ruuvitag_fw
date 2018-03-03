@@ -17,4 +17,13 @@
 #define MAIN_LOOP_INTERVAL_URL   5000u
 #define ADVERTISING_INTERVAL_URL  500u
 
+
+
+// Base length includes URL scheme prefix, URL is 17 bytes
+#define URL_BASE_LENGTH 9
+#define URL_DATA_LENGTH 9
+#define URL_BASE {0x03, 'r', 'u', 'u', '.', 'v', 'i', '/', '#'}; // https://ruu.vi/#
+//Raw v2
+#define RAW_DATA_LENGTH 24
+
 #endif

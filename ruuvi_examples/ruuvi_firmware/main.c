@@ -47,7 +47,7 @@
 #include "eddystone.h"
 #include "pin_interrupt.h"
 #include "rtc.h"
-#include "bluetooth_core.h"
+#include "application_config.h"
 
 // Libraries
 #include "base64.h"
@@ -65,18 +65,10 @@
 // ID for main loop timer.
 APP_TIMER_DEF(main_timer_id);                 // Creates timer id for our program.
 
-// milliseconds until main loop timer function is called. Other timers can bring
-// application out of sleep at higher (or lower) interval.
-#define MAIN_LOOP_INTERVAL_URL   5000u 
-#define ADVERTISING_INTERVAL_URL 500u 
-#define MAIN_LOOP_INTERVAL_RAW   1000u
-#define DEBOUNCE_THRESHOLD 250u
+
 
 // Payload requires 9 characters
-#define URL_BASE_LENGTH 9
-#define URL_DATA_LENGTH 9
-#define RAW_DATA_LENGTH 14
-static char url_buffer[URL_BASE_LENGTH + URL_DATA_LENGTH] = {0x03, 'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
+static char url_buffer[URL_BASE_LENGTH + URL_DATA_LENGTH] = URL_BASE;
 static uint8_t data_buffer[RAW_DATA_LENGTH] = { 0 };
 static bool model_plus = false;     // Flag for sensors available
 static bool highres = true;        // Flag for used mode
@@ -102,7 +94,7 @@ void change_mode(void* data, uint16_t length)
     if (highres)
     {
       //TODO: #define sample rate for application
-      lis2dh12_set_sample_rate(LIS2DH12_RATE_10);
+      lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAW);
       // Reconfigure application sample rate for RAW mode
       app_timer_stop(main_timer_id);
       app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 1000 ms
@@ -112,7 +104,7 @@ void change_mode(void* data, uint16_t length)
     else
     {
       // Stop accelerometer as it's not useful on URL mode.
-      lis2dh12_set_sample_rate(LIS2DH12_RATE_0);
+      lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_URL);
       // Reconfigure application sample rate for URL mode.
       app_timer_stop(main_timer_id);
       app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_URL, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 5000 ms
@@ -295,10 +287,10 @@ int main(void)
     nrf_delay_ms(10);
     // Enable XYZ axes.
     lis2dh12_enable();
-    lis2dh12_set_scale(LIS2DH12_SCALE2G);
+    lis2dh12_set_scale(LIS2DH12_SCALE);
     // Sample rate 10 for activity detection.
     lis2dh12_set_sample_rate(LIS2DH12_RATE_10);
-    lis2dh12_set_resolution(LIS2DH12_RES10BIT);
+    lis2dh12_set_resolution(LIS2DH12_SAMPLERATE_RAW);
 
     //XXX If you read this, I'm sorry about line below.
     #include "lis2dh12_registers.h"
@@ -315,7 +307,7 @@ int main(void)
     lis2dh12_write_register(LIS2DH12_INT2_CFG, ctrl, 1);    
     // Interrupt on 64 mg+ (highpassed, +/-).
     //INT2_THS= 0x04 // 4 LSB = 64 mg @2G scale
-    ctrl[0] = 0x04;
+    ctrl[0] = LIS2DH12_ACTIVITY_THRESHOLD;
     lis2dh12_write_register(LIS2DH12_INT2_THS, ctrl, 1);
         
     // Enable LOTOHI interrupt on nRF52.
@@ -325,11 +317,11 @@ int main(void)
     lis2dh12_set_interrupts(LIS2DH12_I2C_INT2_MASK, 2);
 
     // Setup BME280 - oversampling must be set for each used sensor.
-    bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
-    bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
-    bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
-    bme280_set_iir(BME280_IIR_16);
-    bme280_set_interval(BME280_STANDBY_1000_MS);
+    bme280_set_oversampling_hum(BME280_HUMIDITY_OVERSAMPLING);
+    bme280_set_oversampling_temp(BME280_TEMPERATURE_OVERSAMPLING);
+    bme280_set_oversampling_press(BME280_PRESSURE_OVERSAMPLING);
+    bme280_set_iir(BME280_IIR);
+    bme280_set_interval(BME280_DELAY);
     bme280_set_mode(BME280_MODE_NORMAL);
     NRF_LOG_DEBUG("BME280 configuration done\r\n");
   }
