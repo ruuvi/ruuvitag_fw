@@ -9,8 +9,8 @@
 #define PPI_ENABLED 1
 #define RTC_ENABLED 1
 #define RTC0_ENABLED 0  // Used by softdevice, don't enable for application
-#define RTC1_ENABLED 0  // Used by Eddystone libs
-#define RTC2_ENABLED 1  // used by application RTC
+#define RTC1_ENABLED 0  // Used by Eddystone libs, don't enable for application
+#define RTC2_ENABLED 1  // used by application RTC, enable for application
 #define APP_TIMER_KEEPS_RTC_ACTIVE 1 // Used by eddystone to keep track of time 
 #define TIMER_ENABLED 0
 #define TIMER0_ENABLED 0
@@ -24,6 +24,12 @@
 #define NRF_LOG_ENABLED 0
 
 #define BLE_DIS_ENABLED 1
+
+#define FDS_OP_QUEUE_SIZE 10
+#define FDS_CHUNK_QUEUE_SIZE 15
+#define FDS_MAX_USERS 8
+#define FDS_VIRTUAL_PAGES 10
+#define FDS_VIRTUAL_PAGE_SIZE 1024
 
 // WDT_CONFIG_RELOAD_VALUE - Reload value  <15-4294967295> (ms)
 // Watchdog cannot be stopped even when entering bootloader, 

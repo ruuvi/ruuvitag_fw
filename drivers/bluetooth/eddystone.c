@@ -49,7 +49,8 @@
  */
 ret_code_t eddystone_prepare_url_advertisement(ble_advdata_t* advdata, char* url, size_t length)
 {
-    if(length > 17) { return NRF_ERROR_INVALID_PARAM; }
+    //Scheme byte is not included in length
+    if(length > 18) { return NRF_ERROR_INVALID_PARAM; }
     static ble_uuid_t    adv_uuids[] = {{EDDYSTONE_UUID, BLE_UUID_TYPE_BLE}};
 
     static uint8_array_t eddystone_data_array;                             // Array for Service Data structure.

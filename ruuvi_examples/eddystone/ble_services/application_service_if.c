@@ -4,6 +4,7 @@
 #include "nrf_ble_es.h"
 #include "bsp.h"
 #include "bsp_board_config.h"
+#include "bluetooth_application_config.h"
 #include "bluetooth_board_config.h"
 
 #define NRF_LOG_MODULE_NAME "SERVICE"

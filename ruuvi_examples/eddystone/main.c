@@ -40,7 +40,11 @@
 #include "nrf_log_ctrl.h"
 
 #include "init.h"
+#include "bluetooth_core.h"
 #include "pin_interrupt.h"
+#include "nrf_nfc_handler.h"
+
+#include "ruuvi_endpoints.h"
 
 #define DEAD_BEEF                   0xDEADBEEF       //!< Value used as error code on stack dump, can be used to identify stack location on stack unwind.
 
@@ -101,6 +105,7 @@ static void power_manage(void)
   nrf_gpio_pin_set(LED_RED);
   uint32_t err_code = sd_app_evt_wait();
   APP_ERROR_CHECK(err_code);
+  watchdog_feed();
   nrf_gpio_pin_clear(LED_RED);
   if(isConnectable()) nrf_gpio_pin_clear(LED_GREEN);
 }
@@ -111,8 +116,6 @@ static void power_manage(void)
 
 /**@brief Function for handling button events from app_button IRQ
  *
- * @param[in] pin_no        Pin of the button for which an event has occured
- * @param[in] button_action Press or Release
  */
 ret_code_t button_press_handler(const ruuvi_standard_message_t message)
 { 
@@ -121,14 +124,12 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
 }
 
 /**
- *  @brief pull CS of sensors up to keep them powered off
+ *  Callback for NFC event
  */
-static void gpio_init()
+ret_code_t nfc_detected_handler(const ruuvi_standard_message_t message)
 {
-    nrf_gpio_cfg_output	(SPIM0_SS_HUMI_PIN);
-    nrf_gpio_pin_set(SPIM0_SS_HUMI_PIN);
-    nrf_gpio_cfg_output	(SPIM0_SS_ACC_PIN);
-    nrf_gpio_pin_set(SPIM0_SS_ACC_PIN);
+  nrf_ble_es_on_start_connectable_advertising();
+  return NRF_SUCCESS;
 }
 
 
@@ -137,16 +138,23 @@ static void gpio_init()
  */
 int main(void)
 {
-    uint32_t err_code;
+  uint32_t err_code = NRF_SUCCESS;
 
-    // Initialize.
-    init_log(); 
-    
-    err_code = init_ble(); 
-    NRF_LOG_INFO("BLE init status: %d\r\n", err_code);
-    nrf_delay_ms(10);
+  // Initialize.
+  err_code |= init_log(); 
 
-    err_code |= init_nfc();
+  err_code |= init_ble(); 
+  err_code |= bluetooth_configure_advertisement_type(BLE_GAP_ADV_TYPE_ADV_NONCONN_IND);
+
+  err_code |= init_sensors();
+
+  NRF_LOG_DEBUG("BLE init status: %d\r\n", err_code);
+
+  //init_handler must be called before init_nfc, as init_nfc passes function pointer set by init_handler to NFC stack
+  nfc_init_handler();
+  nfc_connected_handler_set(nfc_detected_handler);
+  err_code |= init_nfc();
+
 
     // Start interrupts.
     err_code |= pin_interrupt_init();
@@ -158,10 +166,11 @@ int main(void)
     APP_TIMER_APPSH_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, true);
     APP_ERROR_CHECK(err_code);
 
-    gpio_init();
-    nrf_ble_es_init(on_es_evt);
-    
-    NRF_LOG_INFO("Start!\r\n");
+  nrf_ble_es_init(on_es_evt);
+
+
+
+  NRF_LOG_INFO("Start!\r\n");
     // Enter main loop.
     for (;; )
     {

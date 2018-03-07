@@ -29,6 +29,20 @@ ret_code_t bluetooth_stack_init(void);
  */
 void peer_manager_init(bool erase_bonds);
 
+/**
+ * Generate name "BASEXXXX", where Base is human-readable (i.e. Ruuvi) and XXXX is  last 4 chars of mac address
+ *
+ * @param name_base character array with the base name and 4 extra chars of space
+ * @base_length length of name base, 5 for "RuuviXXXX"
+ */
+void bluetooth_name_postfix_add(char* name_base, size_t base_length);
+
+/**
+ * Set name to be advertised + XXXX where XXXX is last 4 chars of MAC.
+ *
+ * @param name_base base for name i.e. "Ruuvi"
+ * @param name_length length of name_base, 5 for "Ruuvi" 
+ */
 ret_code_t bluetooth_set_name(const char* name_base, size_t name_length);
 
 /**
@@ -78,13 +92,20 @@ ret_code_t bluetooth_apply_configuration();
  */
 ret_code_t bluetooth_configure_advertising_interval(uint16_t interval);
 
+ /**
+ * @brief Function for configuring advertisement type
+ * @details https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s132.api.v3.0.0%2Fgroup___b_l_e___g_a_p___a_d_v___t_y_p_e_s.html
+ * @param type Advertisement type, 0 ... 3
+ */
+ret_code_t bluetooth_configure_advertisement_type(uint8_t type);
+
 
 /**
  * Set Eddystone URL advertisement package in advdata.
  * 
  * @param url_buffer character array containing new URL. May contain eddystone
- *        shortcuts, such as 0x03: "https://"
- * @param length length of URL to transmit. must be <18. Shortcut bytes are counted as one, i.e. https://ruu.vi is 7 bytes long
+ *        shortcuts, such as 0x03: "https://". Must start with Eddystone Scheme byte
+ * @param length length of URL to transmit. must be <19. Shortcut bytes are counted as one, i.e. https://ruu.vi is 7 bytes long
  *        as long as https:// is written as 0x03
  */
 ret_code_t bluetooth_set_eddystone_url(char* url_buffer, size_t length);
