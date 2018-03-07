@@ -35,12 +35,10 @@ void nfc_callback(void * p_context, nfc_t2t_event_t event, const uint8_t * p_dat
     switch (event)
     {
         case NFC_T2T_EVENT_FIELD_ON:
-            bsp_board_led_on(BSP_BOARD_LED_0); //TODO: Name LED GREEN / LED_RED etc or maybe configure in application config.h?
             NRF_LOG_INFO("NFC Field detected \r\n");
             field_on = true;
             break;
         case NFC_T2T_EVENT_FIELD_OFF:
-            bsp_board_led_off(BSP_BOARD_LED_0);
             NRF_LOG_INFO("NFC Field lost \r\n");
             field_on = false;
             break;
