@@ -23,7 +23,7 @@ You might additionally benefit from [JLink](https://www.segger.com/jlink-debug-p
 connect to tags with SWD, GDB debugger, and more advanced tools.
 
 ## Getting in touch with community
-You can always request invite to [Ruuvi's Slack channel](https://ruuvi.slack.com) by emailing us an informal request at [slack@ruuvi.com](mailto:slack@ruuvi.com). 
+Join [Ruuvi Slack team](http://slack.ruuvi.com) to chat with the developers and other community members.
 
 Take a look at [Ruuvi's Trello board](https://trello.com/b/kz1llpvK/ruuvitag-firmware) to see what people are working on.
 
