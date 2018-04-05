@@ -25,7 +25,7 @@ connect to tags with SWD, GDB debugger, and more advanced tools.
 ## Getting in touch with community
 Join [Ruuvi Slack team](http://slack.ruuvi.com) to chat with the developers and other community members.
 
-Take a look at [Github isseus](https://github.com/ruuvi/ruuvitag_fw/issues) to see what people are working on.
+Take a look at [Github issues](https://github.com/ruuvi/ruuvitag_fw/issues) to see what people are working on.
 
 Please check if any work is being done on the task you're interested in and either join or announce that you've started to work in the area
 (for example by commenting on an appropriate Trello card).
