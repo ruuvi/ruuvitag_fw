@@ -47,6 +47,10 @@ keys
 
 _build
 
+#build files
+*.hex
+*.zip
+
 # VisualGDB Makefile
 
 nrf5x.mak
