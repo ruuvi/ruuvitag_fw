@@ -1,16 +1,20 @@
 # Licenses 
 
 ## Nordic SDK
-Nordic SDK provides interface to nRF52 chip and various libraries for software development. [Nordic SDK license](<licenses/Nordic SDK license.md>) applies to nRF5_SDK folders, with the exception of `external` subfolder. It also applies to `bsp` folder, `ruuvi_examples` folder and `sdk_overrides` folder.
+Nordic SDK provides interface to nRF52 chip and various libraries for software development. [Nordic SDK license](<licenses/nordic_sdk_license.md>) applies to nRF5_SDK folders, with the exception of `external` subfolder. It also applies to `bsp` folder, `ruuvi_examples` folder and `sdk_overrides` folder.
+
+## ARM CMSIS
+ARM CMSIS provides _a vendor-independent hardware abstraction layer for Cortex-M processors_. ARM CMSIS is embedded into Nordic SDK and is available under
+ARM BSD-3 License, please see Nordic SDK for details.
 
 ## Softdevice s132 V3.1.0
 Softdevice is a software radio stack which is used to implement BLE communication on top of nRF52832 integrated circuit. It is distributed as a binary only, embedded within nRF52832.
-License is Nordic softdevice license agreement. Full text is available in Nordic SDK and [licenses folder](<licenses/Nordic Softdevice License.md>)
+License is Nordic softdevice license agreement. Full text is available in Nordic SDK and [licenses folder](<licenses/nordic_softdevice_license.md>)
 
 Softdevice available at https://www.nordicsemi.com/eng/nordic/Products/nRF52832/S132-SD-v3/56261 .
 
 ## Bootloader
-Bootloader is built on top of Nordic example sources and [nRF5 SDK License](<licenses/Noric SDK Licesnse.md>) applies to it. Additionally the bootloader uses micro-ecc library, available at https://github.com/kmackay/micro-ecc . Micro-ECC is released under [BSD-2 license](<licenses/micro-ecc.md>), copyright 2014 Kenneth MacKay.
+Bootloader is built on top of Nordic example sources and [Nordic SDK License](<licenses/nordic_sdk_license.md>) applies to it. Additionally the bootloader uses micro-ecc library, available at https://github.com/kmackay/micro-ecc . Micro-ECC is released under [BSD-2 license](<licenses/micro-ecc.md>), copyright 2014 Kenneth MacKay.
 
 Bootloader licensing applies to `bootloader` folder. 
 Bootloader is statically linked against Softdevice S132 3.1.0
