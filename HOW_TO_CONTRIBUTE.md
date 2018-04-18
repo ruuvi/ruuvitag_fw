@@ -41,6 +41,8 @@ and ask for advice if you're unsure to where your code should go.
 Once you're made a pull request, Ruuvi Team will run an automated Jenkins check to see that the main makefile compiles.
 Please be sure that the main makefile compiles the code you've made.
 If the Jenkins tests pass, your work is manually reviewed and tested.
+We'll also ask you to explicitly accept that code is published under BSD-3 License. 
+Please add your information to [Contributors list](<licenses/Ruuvi licenses.md>).
 
 Once we've reviewed your code, it will be merged into Ruuvi's main branch.
 Once we've merged your code, we'll do our best to maintain the compatibility in future work of Ruuvi's software.
