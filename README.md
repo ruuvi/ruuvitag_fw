@@ -95,7 +95,7 @@ SDK overrides are bugfix backports or some minor changes to the official SDK fil
 Please note that these examples inherit a lot of code from various sources and pay careful attention to 
 license and origin of each application. Most importantly, the code will be statically linked against
 Nordic Softdevice, for which the source code is not available. Therefore the code is not GPL-compatible.
-For more details, please see (licenses.md)[<licenses.md>].
+For more details, please see [licenses.md](<licenses.md>).
 
 ## Developing Ruuvi Firmware
 Instructions below are tested using OS X and Ubuntu, but basically any Unix distribution (or even Windows) should be fine. Compilation works also using the *Bash on Ubuntu on Windows* -feature added in the July 2016 update of Windows 10 if you follow the Ubuntu directions. If you've compiled and flashed successfully (or unsuccessfully), please identify yourself on our Slack :)
@@ -188,7 +188,7 @@ Modify $SDK/components/toolchain/gcc/Makefile.posix (on Linux and OSX) or Makefi
 to point to your gcc-arm install location. 
 
 You need also add support for secure bootloader elliptic curve cryptography by installing micro-ECC inside
-SDK, details can be found at [Nordic Infocenter] (https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.0.0%2Flib_crypto.html)
+SDK, details can be found at [Nordic Infocenter](https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.0.0%2Flib_crypto.html)
 
 Second time running `make` builds all the sources. 
 `make clean` cleans the build directories.
