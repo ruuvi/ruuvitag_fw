@@ -23,7 +23,7 @@ Bootloader is statically linked against Softdevice S132 3.1.0
 Ruuvi firmware is built by Ruuvi community and it is BSD-3 licensed, Nordic SDK licensed or license-free (no explicit license).
 These licenses apply to folders `drivers`, `keys`, `libraries`, and `licenses`. 
 Files which are under Nordic SDK license can be identified by a comment in the header. 
-Copyleft or BSD-3 status can be identified from the list below.
+Copyleft or BSD-3 status can be identified from the list below, please see git commit history for contributors.
 
 Copyright in alphabetical order of GitHub usernames, real name and email are listed for user who have listed it on their profile:
 
