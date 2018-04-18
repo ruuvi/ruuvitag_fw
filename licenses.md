@@ -11,7 +11,7 @@ ARM BSD-3 License, please see Nordic SDK for details.
 Softdevice is a software radio stack which is used to implement BLE communication on top of nRF52832 integrated circuit. It is distributed as a binary only, embedded within nRF52832.
 License is Nordic softdevice license agreement. Full text is available in Nordic SDK and [licenses folder](<licenses/nordic_softdevice_license.md>)
 
-Softdevice available at https://www.nordicsemi.com/eng/nordic/Products/nRF52832/S132-SD-v3/56261 .
+Softdevice is available at https://www.nordicsemi.com/eng/nordic/Products/nRF52832/S132-SD-v3/56261 .
 
 ## Bootloader
 Bootloader is built on top of Nordic example sources and [Nordic SDK License](<licenses/nordic_sdk_license.md>) applies to it. Additionally the bootloader uses micro-ecc library, available at https://github.com/kmackay/micro-ecc . Micro-ECC is released under [BSD-2 license](<licenses/micro-ecc.md>), copyright 2014 Kenneth MacKay.
