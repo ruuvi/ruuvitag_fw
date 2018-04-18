@@ -38,6 +38,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/chain_channels.c \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/sensortag.c \
   $(PROJ_DIR)/../../sdk_overrides/app_button.c \
+  $(PROJ_DIR)/../../sdk_overrides/nrf_drv_wdt.c \
   $(PROJ_DIR)/ble_services/application_ble_event_handlers.c \
   $(PROJ_DIR)/ble_services/application_service_if.c \
   $(PROJ_DIR)/ble_services/nrf_dfu_flash_buttonless.c \
@@ -74,7 +75,6 @@ SRC_FILES += \
   $(SDK_ROOT)/components/drivers_nrf/saadc/nrf_drv_saadc.c \
   $(SDK_ROOT)/components/drivers_nrf/hal/nrf_saadc.c \
   $(SDK_ROOT)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c \
-  $(SDK_ROOT)/components/drivers_nrf/wdt/nrf_drv_wdt.c \
   $(SDK_ROOT)/components/ble/ble_advertising/ble_advertising.c \
   $(SDK_ROOT)/components/libraries/bootloader/dfu/nrf_dfu_settings.c \
   $(SDK_ROOT)/components/libraries/crc16/crc16.c \

@@ -260,7 +260,7 @@ int main(void)
 
   // Initialize BLE Stack. Required in all applications for timer operation.
   err_code |= init_ble();
-  bluetooth_advertising_stop();
+  bluetooth_configure_advertisement_type(APPLICATION_ADVERTISEMENT_TYPE);
   bluetooth_tx_power_set(BLE_TX_POWER);
   bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_RAW);
 
@@ -290,8 +290,8 @@ int main(void)
     lis2dh12_enable();
     lis2dh12_set_scale(LIS2DH12_SCALE);
     // Sample rate 10 for activity detection.
-    lis2dh12_set_sample_rate(LIS2DH12_RATE_10);
-    lis2dh12_set_resolution(LIS2DH12_SAMPLERATE_RAW);
+    lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAW);
+    lis2dh12_set_resolution(LIS2DH12_RESOLUTION);
 
     //XXX If you read this, I'm sorry about line below.
     #include "lis2dh12_registers.h"

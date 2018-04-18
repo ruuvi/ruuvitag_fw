@@ -26,13 +26,15 @@
 #include "sdk_errors.h"
 #include "nrf_delay.h"
 
-#include "ble_event_handlers.h" 
 #include "bluetooth_config.h"
 #include "ble_bulk_transfer.h"
 #include "eddystone.h"
 #include "ruuvi_endpoints.h"
+#include "ble_event_handlers.h" 
 
+#if APPLICATION_GATT
 #include "application_service_if.h"
+#endif 
 
 #define NRF_LOG_MODULE_NAME "BLE_CORE"
 #define NRF_LOG__DEFAULT_LEVEL 4
@@ -358,10 +360,12 @@ ret_code_t bluetooth_stack_init(void)
     peer_manager_init(true);
     NRF_LOG_INFO("Peer manager init \r\n");
     nrf_delay_ms(10);
-
+    
+    #if APPLICATION_GATT
     err_code |= application_services_init();
     NRF_LOG_INFO("Services init status %d\r\n", err_code);
     nrf_delay_ms(10);
+    #endif 
     
     gap_params_init();
     NRF_LOG_INFO("GAP params init\r\n");

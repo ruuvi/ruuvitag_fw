@@ -13,7 +13,9 @@
 #include "bluetooth_config.h"
 #include "app_scheduler.h"
 
+#if APPLICATION_GATT
 #include "application_ble_event_handlers.h"
+#endif
 
 
 static uint16_t                          m_conn_handle = BLE_CONN_HANDLE_INVALID;   /**< Handle of the current connection. */
@@ -329,6 +331,9 @@ void ble_evt_dispatch(ble_evt_t * p_ble_evt)
     bsp_btn_ble_on_ble_evt(p_ble_evt);
     ble_advertising_on_ble_evt(p_ble_evt);
     on_ble_evt(p_ble_evt);
-    application_on_ble_evt(p_ble_evt);
     nrf_ble_qwr_on_ble_evt(&m_qwr, p_ble_evt);
+
+#if APPLICATION_GATT
+    application_on_ble_evt(p_ble_evt);
+#endif
 }
