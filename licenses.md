@@ -1,11 +1,11 @@
 # Licenses 
 
 ## Nordic SDK
-Nordic SDK provides interface to nRF52 chip and various libraries for software development. [Nordic SDK license](<licenses/Noric SDK Licesnse.md>) applies to nRF5_SDK folders, with the exception of `external` subfolder. It also applies to `bsp` folder, `ruuvi_examples` folder and `sdk_overrides` folder.
+Nordic SDK provides interface to nRF52 chip and various libraries for software development. [Nordic SDK license](<licenses/Nordic SDK license.md>) applies to nRF5_SDK folders, with the exception of `external` subfolder. It also applies to `bsp` folder, `ruuvi_examples` folder and `sdk_overrides` folder.
 
 ## Softdevice s132 V3.1.0
 Softdevice is a software radio stack which is used to implement BLE communication on top of nRF52832 integrated circuit. It is distributed as a binary only, embedded within nRF52832.
-License is Nordic softdevice license agreement. Full text is available in Nordic SDK and [licenses folder](<licenses/<Noridc Softdevice license.md>)
+License is Nordic softdevice license agreement. Full text is available in Nordic SDK and [licenses folder](<licenses/Nordic Softdevice License.md>)
 
 Softdevice available at https://www.nordicsemi.com/eng/nordic/Products/nRF52832/S132-SD-v3/56261 .
 
