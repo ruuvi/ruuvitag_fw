@@ -134,9 +134,12 @@ ble_advdata_t scanresp =
 };
 
 static bool advertising = false;
-static ble_gap_conn_params_t   gap_conn_params;
 static ble_gap_conn_sec_mode_t sec_mode;
 static ble_advdata_manuf_data_t m_manufacturer_data;
+
+#if APP_GATT_PROFILE_ENABLED
+  static ble_gap_conn_params_t   gap_conn_params;
+#endif
 
 /**
  * Generate name "BASEXXXX", where Base is human-readable (i.e. Ruuvi) and XXXX is  last 4 chars of mac address
@@ -232,6 +235,7 @@ ret_code_t bluetooth_apply_configuration()
   return err_code;
 }
 
+#if APP_GATT_PROFILE_ENABLED
 /**@brief Function for the GAP initialization.
  *
  * @details This function will set up all the necessary GAP (Generic Access Profile) parameters of
@@ -253,7 +257,6 @@ static void gap_params_init(void)
     err_code |= sd_ble_gap_ppcp_set(&gap_conn_params);
     APP_ERROR_CHECK(err_code);
 }
-
 
 /**@brief Function for initializing the Connection Parameters module.
  */
@@ -279,6 +282,8 @@ static void conn_params_init(void)
     //nrf_delay_ms(10);
     APP_ERROR_CHECK(err_code);
 }
+#endif
+
 //TODO: Enable & differentiate slow / fast advertising
 static void advertising_init(void)
 {
@@ -336,8 +341,10 @@ ret_code_t bluetooth_stack_init(void)
       ble_enable_params.gatt_enable_params.att_mtu = NRF_BLE_MAX_MTU_SIZE;
     #endif
 
+    #if APP_GATT_PROFILE_ENABLED
     //Init filesystem
     err_code |= fs_init();
+    #endif
 
     // Subscribe for BLE events.
     err_code |= softdevice_ble_evt_handler_set(ble_evt_dispatch);
@@ -354,8 +361,9 @@ ret_code_t bluetooth_stack_init(void)
     NRF_LOG_INFO("Softdevice enabled, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));
     nrf_delay_ms(10);
 
-    //Enable peer manager, erase bonds
-    peer_manager_init(true);
+    //Enable peer manager, do not erase bonds
+    #if APP_GATT_PROFILE_ENABLED
+    peer_manager_init(false);
     NRF_LOG_INFO("Peer manager init \r\n");
     nrf_delay_ms(10);
 
@@ -365,11 +373,12 @@ ret_code_t bluetooth_stack_init(void)
     
     gap_params_init();
     NRF_LOG_INFO("GAP params init\r\n");
-    //nrf_delay_ms(10);
+    nrf_delay_ms(10);
 
     conn_params_init();
     NRF_LOG_INFO("Conn params init, status\r\n");
-    //nrf_delay_ms(10);
+    nrf_delay_ms(10);
+    #endif
 
     advertising_init();    
     NRF_LOG_INFO("Advertising init, status\r\n");

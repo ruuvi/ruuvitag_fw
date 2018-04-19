@@ -18,10 +18,11 @@
 #define CRC16_ENABLED 1   //Required by DFU
 #define CRC32_ENABLED 1
 #define NRF_LOG_ENABLED 0
-
-#define PEER_MANAGER_ENABLED 1
-#define BLE_DIS_ENABLED 1
-#define BLE_NUS_ENABLED 1
+#define APP_GATT_PROFILE_ENABLED 0
+#define PEER_MANAGER_ENABLED 0
+#define BLE_DIS_ENABLED 0
+#define BLE_NUS_ENABLED 0
+#define BLE_DFU_ENABLED 0
 
 // WDT_CONFIG_RELOAD_VALUE - Reload value  <15-4294967295> (ms)
 // Watchdog cannot be stopped even when entering bootloader, 

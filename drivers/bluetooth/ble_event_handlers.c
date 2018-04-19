@@ -1,4 +1,5 @@
 #include "ble_event_handlers.h"
+#include "sdk_application_config.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -34,9 +35,11 @@ bool is_ble_connected()
  */
 void sys_evt_dispatch(uint32_t sys_evt)
 {
+    #if APP_GATT_PROFILE_ENABLED
     // Dispatch the system event to the fstorage module, where it will be
     // dispatched to the Flash Data Storage (FDS) module.
     fs_sys_event_handler(sys_evt);
+    #endif
 
     // Dispatch to the Advertising module last, since it will check if there are any
     // pending flash operations in fstorage. Let fstorage process system events first,
@@ -324,11 +327,14 @@ void ble_evt_dispatch(ble_evt_t * p_ble_evt)
 {
     NRF_LOG_DEBUG("Dispatching BLE Event to modules\r\n");
     ble_conn_state_on_ble_evt(p_ble_evt);
-    pm_on_ble_evt(p_ble_evt);
     ble_conn_params_on_ble_evt(p_ble_evt);
     bsp_btn_ble_on_ble_evt(p_ble_evt);
     ble_advertising_on_ble_evt(p_ble_evt);
     on_ble_evt(p_ble_evt);
     application_on_ble_evt(p_ble_evt);
     nrf_ble_qwr_on_ble_evt(&m_qwr, p_ble_evt);
+
+    #if PEER_MANAGER_ENABLED
+    pm_on_ble_evt(p_ble_evt);
+    #endif
 }
