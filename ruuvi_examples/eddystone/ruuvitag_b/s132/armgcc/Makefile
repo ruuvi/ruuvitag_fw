@@ -15,6 +15,7 @@ SRC_FILES += \
   $(PROJ_DIR)/ble_services/application_ble_event_handlers.c \
   $(PROJ_DIR)/ble_services/application_service_if.c \
   $(PROJ_DIR)/../../sdk_overrides/es_battery_voltage_saadc.c \
+  $(PROJ_DIR)/../../sdk_overrides/nrf_drv_wdt.c \
   $(PROJ_DIR)/ble_services/nrf_dfu_flash_buttonless.c \
   $(PROJ_DIR)/../../bsp/bsp.c \
   $(PROJ_DIR)/../../bsp/bsp_btn_ble.c \
@@ -93,7 +94,6 @@ SRC_FILES += \
   $(SDK_ROOT)/components/drivers_nrf/spi_master/nrf_drv_spi.c \
   $(SDK_ROOT)/components/drivers_nrf/uart/nrf_drv_uart.c \
   $(SDK_ROOT)/components/drivers_nrf/hal/nrf_saadc.c \
-  $(SDK_ROOT)/components/drivers_nrf/wdt/nrf_drv_wdt.c \
   $(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
   $(SDK_ROOT)/components/ble/ble_advertising/ble_advertising.c \
   $(SDK_ROOT)/components/ble/ble_services/ble_dfu/ble_dfu.c \

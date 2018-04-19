@@ -44,7 +44,7 @@
  *
  * This function initializes logging peripherals, and must be called before using NRF_LOG().
  * Exact functionality depends on defines at sdk_config.h.
- * 
+ *
  * @return 0          Operation successful
  * @retval 1          Something went wrong
  *
@@ -72,27 +72,27 @@ init_err_code_t init_ble(void)
     //Enable DC/DC for BLE
     NRF_POWER->DCDCEN = 1;
     NRF_LOG_DEBUG("BLE Stack init start\r\n");
-    
+
     //Enable scheduler - required for BLE stack
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
     APP_TIMER_APPSH_INIT(RUUVITAG_APP_TIMER_PRESCALER, SCHED_QUEUE_SIZE, true);
 
     //Enable BLE STACK
     err_code =  bluetooth_stack_init();
-    
+
     // Application Replies are sent by BLE GATT
     set_ble_gatt_handler(ble_std_transfer_asynchronous);
     set_reply_handler(ble_std_transfer_asynchronous);
-    
+
     NRF_LOG_DEBUG("BLE Stack init done\r\n");
     return (NRF_SUCCESS == err_code) ? INIT_SUCCESS : INIT_ERR_UNKNOWN;
 }
 
 /**
  * Initialize NFC driver
- *  
+ *
  * Puts NFC on standby, ready to transmit ID of the tag.
- * 
+ *
  * @return 0          Operation successful
  * @retval 1          Something went wrong
  *
@@ -125,10 +125,10 @@ init_err_code_t init_timer(app_timer_id_t main_timer_id, uint32_t main_interval,
     // Requires low-frequency clock initialized.
     // Create timer
     init_err_code_t err_code = app_timer_create(&main_timer_id,
-                                APP_TIMER_MODE_REPEATED,
-                                timer_handler);
+                               APP_TIMER_MODE_REPEATED,
+                               timer_handler);
     APP_ERROR_CHECK(err_code);
-    
+
     //Start timer
     err_code = app_timer_start(main_timer_id, APP_TIMER_TICKS(main_interval, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / MAIN_TIMER_INTERVAL
     APP_ERROR_CHECK(err_code);
@@ -145,18 +145,18 @@ init_err_code_t init_timer(app_timer_id_t main_timer_id, uint32_t main_interval,
  */
 init_err_code_t init_leds(void)
 {
-  if(LED_RED)
-  {
-    nrf_gpio_cfg_output	(LED_RED);
-    nrf_gpio_pin_set(LED_RED);
-  }
-  if(LED_GREEN)
-  {
-    nrf_gpio_cfg_output	(LED_GREEN);
-    nrf_gpio_pin_set(LED_GREEN);
-  }
-  NRF_LOG_DEBUG("LEDs init\r\n");
-  return INIT_SUCCESS; // Cannot fail under any reasonable circumstance
+    if (LED_RED)
+    {
+        nrf_gpio_cfg_output (LED_RED);
+        nrf_gpio_pin_set(LED_RED);
+    }
+    if (LED_GREEN)
+    {
+        nrf_gpio_cfg_output (LED_GREEN);
+        nrf_gpio_pin_set(LED_GREEN);
+    }
+    NRF_LOG_DEBUG("LEDs init\r\n");
+    return INIT_SUCCESS; // Cannot fail under any reasonable circumstance
 }
 
 /**
@@ -187,7 +187,7 @@ init_err_code_t init_lis2dh12(void)
     {
         NRF_LOG_ERROR("LIS2DH12 init Failed: Error Code: %d\r\n", (int32_t)err_code);
     }
-  return err_code;
+    return err_code;
 }
 
 init_err_code_t init_bme280(void)
@@ -197,7 +197,7 @@ init_err_code_t init_bme280(void)
     err_code = bme280_init();
     if (INIT_SUCCESS != err_code)
     {
-      return (BME280_RET_ERROR_SELFTEST == (BME280_Ret)err_code) ? INIT_ERR_SELFTEST : INIT_ERR_NO_RESPONSE;
+        return (BME280_RET_ERROR_SELFTEST == (BME280_Ret)err_code) ? INIT_ERR_SELFTEST : INIT_ERR_NO_RESPONSE;
     }
     //TODO: reset
     bme280_set_mode(BME280_MODE_SLEEP); //Set sleep mode to allow configuration, sensor might have old config in internal RAM
@@ -213,7 +213,7 @@ init_err_code_t init_bme280(void)
     }
     else
     {
-        NRF_LOG_ERROR("BME280 init Failed: Error Code: %d\r\n", (uint32_t)err_code); 
+        NRF_LOG_ERROR("BME280 init Failed: Error Code: %d\r\n", (uint32_t)err_code);
     }
 
     return err_code;
@@ -223,7 +223,7 @@ init_err_code_t init_bme280(void)
  * Initialize sensors
  *
  * This function initializes the sensor drivers.
- * It should be called even if sensors are not used, 
+ * It should be called even if sensors are not used,
  * since initialization will put sensors in low-power mode
  *
  *
@@ -247,8 +247,8 @@ init_err_code_t init_sensors(void)
  */
 init_err_code_t init_pwm(void)
 {
-  pwm_init(200, LED_RED, LED_GREEN, 0, 0);
-  return INIT_SUCCESS;
+    pwm_init(200, LED_RED, LED_GREEN, 0, 0);
+    return INIT_SUCCESS;
 }
 
 /**
@@ -259,37 +259,34 @@ init_err_code_t init_pwm(void)
  */
 init_err_code_t init_watchdog(watchdog_event_handler_t handler)
 {
-  if(NULL == handler) { handler = watchdog_default_handler; }
-  init_err_code_t err_code = INIT_SUCCESS;
-  err_code |= watchdog_init(handler);
-  watchdog_enable();
-  return err_code;
-  
+    if (NULL == handler) { handler = watchdog_default_handler; }
+    init_err_code_t err_code = INIT_SUCCESS;
+    err_code |= watchdog_init(handler);
+    watchdog_enable();
+    return err_code;
+
 }
 
 /**
  * Display init status
+ * Blinks 10 times if there was error in init and returns.
  *
- * This function checks the init status from previous
- * init operations, and blinks the led in infinite loop
- * if there was error.
- * 
  * @param init_status number of errors occured in init, 0 on successful init.
  */
 init_err_code_t init_blink_status(uint8_t init_status)
 {
-    nrf_gpio_pin_clear(LED_RED);
-    do
+    if (init_status)
     {
-        for(uint8_t ii = 0; ii < init_status * 2; ii++)
-        { 
+        nrf_gpio_pin_clear(LED_RED);
+
+        for (uint8_t ii = 0; ii < 10 * 2; ii++)
+        {
             nrf_gpio_pin_toggle(LED_RED);
-            nrf_delay_ms(150u);//Delay prevents power saving, use with care
+            nrf_delay_ms(250u);//Delay prevents power saving, use with care
         }//infinite loop if there is error
 
-        nrf_delay_ms(1000u); // Gives user time to count the blinks
-    }while(init_status);
-    nrf_gpio_pin_set(LED_RED);
-    
+        nrf_gpio_pin_set(LED_RED);
+    }
+
     return INIT_SUCCESS;
 }

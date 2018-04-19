@@ -17,14 +17,17 @@
 #define TIMER1_ENABLED 0  //CSense
 #define TIMER2_ENABLED 0  //CSense
 #define TIMER3_ENABLED 0
-#define TIMER4_ENABLED 0  //Required by NFC
+#define TIMER4_ENABLED 0  //Reserved by NFC
 #define NFC_HAL_ENABLED 1
 #define CRC16_ENABLED 1   //Required by DFU
 #define CRC32_ENABLED 1
 #define NRF_LOG_ENABLED 0
 
+#define APP_GATT_PROFILE_ENABLED 1
 #define PEER_MANAGER_ENABLED 1
 #define BLE_DIS_ENABLED 1
+#define BLE_NUS_ENABLED 0
+#define BLE_DFU_ENABLED 1
 
 #define FDS_OP_QUEUE_SIZE 10
 #define FDS_CHUNK_QUEUE_SIZE 15

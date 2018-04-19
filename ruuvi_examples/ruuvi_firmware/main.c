@@ -149,6 +149,7 @@ static void power_manage(void)
   nrf_gpio_pin_set(LED_RED);       
   
   uint32_t err_code = sd_app_evt_wait();
+  NRF_LOG_INFO("SD_Wait status %d\r\n", err_code);
   APP_ERROR_CHECK(err_code);
 
   // Signal mode by led color.
@@ -230,26 +231,47 @@ void main_timer_handler(void * p_context)
  */
 int main(void)
 {
+
+
   ret_code_t err_code = 0; // counter, gets incremented by each failed init. It is 0 in the end if init was ok.
-  if(NRF_SUCCESS == init_sensors()) { model_plus = true; }
-  // Initialize log.
+  nrf_delay_ms(10);
   err_code |= init_log();
-  
+  // Initialize log.
+
   // Setup leds. LEDs are active low, so setting high them turns leds off.
   err_code |= init_leds();      // INIT leds first and turn RED on.
   nrf_gpio_pin_clear(LED_RED);  // If INIT fails at later stage, RED will stay lit.
+  nrf_delay_ms(10);
+  
+  NRF_LOG_INFO("LOG INIT \r\n");
+  
+  if(NRF_SUCCESS == init_sensors()) 
+  { 
+    NRF_LOG_INFO("SENSORS INIT \r\n");
+    model_plus = true; 
+  }
+  nrf_delay_ms(10);
+
+  
+
 
   //Init NFC ASAP in case we're waking from deep sleep via NFC (todo)
   err_code |= init_nfc();
+  NRF_LOG_INFO("NFC INIT \r\n");
+  nrf_delay_ms(10);
 
   // Start interrupts.
   err_code |= pin_interrupt_init();
+  nrf_delay_ms(10);
   // Initialize button.
   err_code |= pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler);
+  nrf_delay_ms(10);
 
   // Interrupt handler is defined in lis2dh12_acceleration_handler.c, reads the buffer and passes the data onwards to application as configured.
   // Try using PROPRIETARY as a target of accelerometer to implement your own logic.
   err_code |= pin_interrupt_enable(INT_ACC1_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int1_handler);
+  NRF_LOG_INFO("INTERRUPT INIT \r\n");
+  nrf_delay_ms(10);
 
   // Initialize BME 280 and lis2dh12.
   if (model_plus)
@@ -264,6 +286,8 @@ int main(void)
     // Sample rate 10 for activity detection.
     lis2dh12_set_sample_rate(LIS2DH12_RATE_1);
     lis2dh12_set_resolution(LIS2DH12_RES12BIT);
+    NRF_LOG_INFO("LIS INIT \r\n");
+    nrf_delay_ms(10);
 
     // Setup BME280 - oversampling must be set for each used sensor.
     bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
@@ -272,25 +296,35 @@ int main(void)
     bme280_set_iir(BME280_IIR_16);
     bme280_set_interval(BME280_STANDBY_1000_MS);
     bme280_set_mode(BME280_MODE_NORMAL);
-    NRF_LOG_DEBUG("BME280 configuration done\r\n");
+    NRF_LOG_INFO("BME280 configuration done\r\n");
+    nrf_delay_ms(10);
   }
 
   // Initialize BLE Stack. Required in all applications for timer operation.
   err_code |= init_ble();
+  nrf_delay_ms(10);
   // Start advertising only after sensors have valid data
-  err_code |= bluetooth_advertising_stop();
+
   err_code |= bluetooth_tx_power_set(BLE_TX_POWER);
   err_code |= bluetooth_configure_advertising_interval(MAIN_LOOP_INTERVAL_RAW);
   err_code |= bluetooth_configure_advertisement_type(BLE_GAP_ADV_TYPE_ADV_NONCONN_IND);
+  NRF_LOG_INFO("BLE INIT \r\n");
+  nrf_delay_ms(10);
 
   // Init ok, start watchdog with default wdt event handler (reset).
   init_watchdog(NULL);
+  NRF_LOG_INFO("WATCHDOG INIT \r\n");
+  nrf_delay_ms(10);
 
   // Used only for button debounce
   err_code |= init_rtc();
+  NRF_LOG_INFO("RTC INIT \r\n");
+  nrf_delay_ms(10);
 
   // Initialize the application timer module.
   err_code |= init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler);
+  NRF_LOG_INFO("TIMER INIT \r\n");
+  nrf_delay_ms(10);
 
   // Visually display init status. Hangs if there was an error, waits 3 seconds on success.
   init_blink_status(err_code);
@@ -305,6 +339,8 @@ int main(void)
 
   // Enter main loop.
   bluetooth_advertising_start();
+  NRF_LOG_INFO("ADVERTISING START  \r\n");
+  nrf_delay_ms(10);
   for (;;)
   {
     app_sched_execute();
