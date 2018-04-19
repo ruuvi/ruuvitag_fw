@@ -150,7 +150,7 @@ void bluetooth_name_postfix_add(char* name_base, size_t base_length)
 {
     unsigned int addr0 =  NRF_FICR->DEVICEADDR[0];
     char postfix[4] = { 0 };
-    sprintf(postfix,"%x", addr0&0xFFFF);
+    sprintf(postfix,"%04x", addr0&0xFFFF);
     memcpy(name_base + base_length, postfix, sizeof(postfix));
 }
  
