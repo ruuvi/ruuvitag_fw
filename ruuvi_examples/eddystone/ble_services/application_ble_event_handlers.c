@@ -18,8 +18,11 @@
 void application_on_ble_evt(ble_evt_t * p_ble_evt)
 { 
   /** Return pointer to BLE dfu service **/
+  #if BLE_DFU_ENABLED
   ble_dfu_t* p_dfu = get_dfu();
   ble_dfu_on_ble_evt(p_dfu, p_ble_evt);
+  #endif 
+  
   nrf_ble_es_on_ble_evt(p_ble_evt);
 }
 
