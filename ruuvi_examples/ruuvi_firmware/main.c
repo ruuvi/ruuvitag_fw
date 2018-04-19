@@ -312,7 +312,7 @@ int main(void)
   nrf_delay_ms(10);
 
   // Init ok, start watchdog with default wdt event handler (reset).
-  // init_watchdog(NULL);
+  init_watchdog(NULL);
   NRF_LOG_INFO("WATCHDOG INIT \r\n");
   nrf_delay_ms(10);
 
