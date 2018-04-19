@@ -43,9 +43,10 @@ ui_*.h
 
 keys
 
-# Build directories
-
+# Build directories, files
 _build
+*.hex
+*.zip
 
 # VisualGDB Makefile
 
@@ -70,3 +71,4 @@ nRF5_SDK_12.1.0_0d23e2a.zip
 nRF5_SDK_12.2.*
 nRF5_SDK_12.3.*
 nRF5_SDK_13.*
+nRF5_SDK_14.*
