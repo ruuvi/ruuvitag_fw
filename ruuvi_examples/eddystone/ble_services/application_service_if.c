@@ -46,6 +46,7 @@ uint32_t application_services_init(void)
 
     uint32_t       err_code = NRF_SUCCESS;
 
+    #if BLE_DFU_ENABLED
     // Initialize the Device Firmware Update Service.
     ble_dfu_init_t dfus_init;
     memset(&dfus_init, 0, sizeof(dfus_init));
@@ -56,7 +57,9 @@ uint32_t application_services_init(void)
 
     err_code |= ble_dfu_init(&m_dfus, &dfus_init);
     NRF_LOG_INFO("DFU Init status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));
+    #endif 
 
+    #if BLE_DIS_ENABLED
     //Initialize DIS
     ble_dis_init_t    dis_init;
     memset(&dis_init, 0, sizeof(dis_init));
@@ -97,9 +100,10 @@ uint32_t application_services_init(void)
     if (err_code != NRF_SUCCESS)
     {
         NRF_LOG_ERROR("Failed to init DIS\r\n");
-        return err_code;
     }
-    return NRF_SUCCESS;
+    #endif
+
+    return err_code;
 }
 
 /** Return pointer to BLE dfu service **/
