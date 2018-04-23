@@ -45,9 +45,6 @@ For a detailed description see the detailed description in @ref LIS2DH12.h
 #define SPI_ADR_INC 0x40U
 
 /* MACROS *****************************************************************************************/
-//TODO: Refactor to some place else
-APP_TIMER_DEF(lis2dh12_timer_id);                           /** Creates timer id for our program **/
-
 
 
 /* PROTOTYPES *************************************************************************************/
@@ -69,14 +66,6 @@ lis2dh12_ret_t lis2dh12_init(void)
 
     /* Initialize SPI */
     if (false == spi_isInitialized()){ spi_init(); }
-    
-    // Initialize the lis2dh12 timer module.
-    // Requires the low-frequency clock initialized
-    // Create timer TODO refactor to some place else.
-    /*err_code |= app_timer_create(&lis2dh12_timer_id,
-                                  APP_TIMER_MODE_REPEATED,
-                                  NULL);
-    APP_ERROR_CHECK(err_code);*/
     
     /** Reboot memory  - causes FIFO to fail - maybe delay is needed  before enabling axes? **/
     //err_code |= lis2dh12_reset();
