@@ -127,7 +127,43 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
   nrf_gpio_pin_clear(LED_GREEN);
   //Change mode on button press
   //Use scheduler, do not use peripherals in interrupt conext (SPI write halts)
-  app_sched_event_put	(NULL, 0, change_mode);
+  app_sched_event_put (NULL, 0, change_mode);
+
+  return ENDPOINT_SUCCESS;
+}
+
+/**
+ * Work around NFC data corruption bug by reinitializing NFC data after field has been lost. 
+ * Call this function outside of interrupt context.
+ */
+static void reinit_nfc(void* data, uint16_t length)
+{
+
+}
+
+/**@brief Function for handling NFC events.
+ * Schedulers call to handler.
+ */
+void nfc_callback(p_context, event, p_data, data_length);
+{
+  NRF_LOG_INFO("NFC\r\n");
+  switch (event)
+  {
+  case NFC_T2T_EVENT_FIELD_ON:
+    NRF_LOG_INFO("NFC Field detected \r\n");
+    break;
+  case NFC_T2T_EVENT_FIELD_OFF:
+    NRF_LOG_INFO("NFC Field lost \r\n");
+    app_sched_event_put (NULL, 0, reinit_nfc);
+    break;
+  case NFC_T2T_EVENT_DATA_READ:
+    NRF_LOG_INFO("Data read\r\n");
+  default:
+    break;
+  }
+  //Change mode on button press
+  //Use scheduler, do not use peripherals in interrupt conext (SPI write halts)
+  
 
   return ENDPOINT_SUCCESS;
 }
@@ -138,9 +174,9 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
 static void power_manage(void)
 {
   // Clear both leds before sleep.
-  nrf_gpio_pin_set(LED_GREEN); 
-  nrf_gpio_pin_set(LED_RED);       
-  
+  nrf_gpio_pin_set(LED_GREEN);
+  nrf_gpio_pin_set(LED_RED);
+
   uint32_t err_code = sd_app_evt_wait();
   APP_ERROR_CHECK(err_code);
 
@@ -167,22 +203,30 @@ void main_timer_handler(void * p_context)
   uint32_t raw_h = 0;
   lis2dh12_sensor_buffer_t buffer;
   int32_t acc[3] = {0};
+  static bool fast_advetising = true;
+
+  if(fast_advetising && millis()> ADVERTISING_STARTUP_PERIOD)
+  {
+    fast_advetising = false;
+    if(highres) { bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_RAW);}
+    else {bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_URL);}
+  }
 
   // If we have all the sensors.
   if (model_plus)
-  {      
+  {
     // Get raw environmental data.
     bme280_read_measurements();
     raw_t = bme280_get_temperature();
     raw_p = bme280_get_pressure();
     raw_h = bme280_get_humidity();
-  
+
     // Get accelerometer data.
-    lis2dh12_read_samples(&buffer, 1);  
+    lis2dh12_read_samples(&buffer, 1);
     acc[0] = buffer.sensor.x;
     acc[1] = buffer.sensor.y;
     acc[2] = buffer.sensor.z;
-  }  
+  }
   // If only temperature sensor is present.
   else
   {
@@ -192,31 +236,31 @@ void main_timer_handler(void * p_context)
     raw_t = (int32_t) temp;
   }
 
-    // Get battery voltage
-    //static uint32_t vbat_update_counter;
-    static uint16_t vbat = 0;
-    vbat = getBattery();
+  // Get battery voltage
+  //static uint32_t vbat_update_counter;
+  static uint16_t vbat = 0;
+  vbat = getBattery();
 
-    // Embed data into structure for parsing.
-    parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
-    NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d x: %d y: %d z: %d\r\n", raw_t, raw_p, raw_h, acc[0], acc[1], acc[2]);
-    NRF_LOG_DEBUG("VBAT: %d send %d \r\n", vbat, data.vbat);
-    if (highres)
-    {
-      // Prepare bytearray to broadcast.
-      bme280_data_t environmental;
-      environmental.temperature = raw_t;
-      environmental.humidity = raw_h;
-      environmental.pressure = raw_p;
-      encodeToRawFormat5(data_buffer, &environmental, &buffer.sensor, acceleration_events, vbat, BLE_TX_POWER);
-    } 
-    else 
-    {
-      encodeToUrlDataFromat(url_buffer, URL_BASE_LENGTH, &data);
-    }
+  // Embed data into structure for parsing.
+  parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
+  NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d x: %d y: %d z: %d\r\n", raw_t, raw_p, raw_h, acc[0], acc[1], acc[2]);
+  NRF_LOG_DEBUG("VBAT: %d send %d \r\n", vbat, data.vbat);
+  if (highres)
+  {
+    // Prepare bytearray to broadcast.
+    bme280_data_t environmental;
+    environmental.temperature = raw_t;
+    environmental.humidity = raw_h;
+    environmental.pressure = raw_p;
+    encodeToRawFormat5(data_buffer, &environmental, &buffer.sensor, acceleration_events, vbat, BLE_TX_POWER);
+  }
+  else
+  {
+    encodeToUrlDataFromat(url_buffer, URL_BASE_LENGTH, &data);
+  }
 
-    updateAdvertisement();
-    watchdog_feed();
+  updateAdvertisement();
+  watchdog_feed();
 }
 
 
@@ -230,14 +274,14 @@ void main_timer_handler(void * p_context)
  **/
 ret_code_t lis2dh12_int2_handler(const ruuvi_standard_message_t message)
 {
-    NRF_LOG_DEBUG("Accelerometer interrupt to pin 2\r\n");
-    acceleration_events++;
-    /*
-    app_sched_event_put ((void*)(&message),
-                         sizeof(message),
-                         lis2dh12_scheduler_event_handler);
-    */
-    return NRF_SUCCESS;
+  NRF_LOG_DEBUG("Accelerometer interrupt to pin 2\r\n");
+  acceleration_events++;
+  /*
+  app_sched_event_put ((void*)(&message),
+                       sizeof(message),
+                       lis2dh12_scheduler_event_handler);
+  */
+  return NRF_SUCCESS;
 }
 
 
@@ -246,8 +290,8 @@ ret_code_t lis2dh12_int2_handler(const ruuvi_standard_message_t message)
  */
 int main(void)
 {
-  ret_code_t err_code = 0; // counter, gets incremented by each failed init. It is 0 in the end if init was ok.
-  if(NRF_SUCCESS == init_sensors()) { model_plus = true; }
+  ret_code_t err_code = NRF_SUCCESS; // counter, gets incremented by each failed init. It is 0 in the end if init was ok.
+
   // Initialize log.
   err_code |= init_log();
 
@@ -256,13 +300,16 @@ int main(void)
   nrf_gpio_pin_clear(LED_RED);  // If INIT fails at later stage, RED will stay lit.
 
   //Init NFC ASAP in case we're waking from deep sleep via NFC (todo)
+  set_nfc_callback(nfc_callback);
   err_code |= init_nfc();
+
+  if (NRF_SUCCESS == init_sensors()) { model_plus = true; }
 
   // Initialize BLE Stack. Required in all applications for timer operation.
   err_code |= init_ble();
   bluetooth_configure_advertisement_type(APPLICATION_ADVERTISEMENT_TYPE);
   bluetooth_tx_power_set(BLE_TX_POWER);
-  bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_RAW);
+  bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP);
 
   // Initialize the application timer module.
   err_code |= init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler);
@@ -294,26 +341,26 @@ int main(void)
     lis2dh12_set_resolution(LIS2DH12_RESOLUTION);
 
     //XXX If you read this, I'm sorry about line below.
-    #include "lis2dh12_registers.h"
+#include "lis2dh12_registers.h"
     // Configure activity interrupt - TODO: Implement in driver, add tests.
     uint8_t ctrl[1];
     // Enable high-pass for Interrupt function 2.
     //CTRLREG2 = 0x02
     ctrl[0] = LIS2DH12_HPIS2_MASK;
     lis2dh12_write_register(LIS2DH12_CTRL_REG2, ctrl, 1);
-    
+
     // Enable interrupt 2 on X-Y-Z HI/LO.
     //INT2_CFG = 0x7F
     ctrl[0] = 0x7F;
-    lis2dh12_write_register(LIS2DH12_INT2_CFG, ctrl, 1);    
+    lis2dh12_write_register(LIS2DH12_INT2_CFG, ctrl, 1);
     // Interrupt on 64 mg+ (highpassed, +/-).
     //INT2_THS= 0x04 // 4 LSB = 64 mg @2G scale
     ctrl[0] = LIS2DH12_ACTIVITY_THRESHOLD;
     lis2dh12_write_register(LIS2DH12_INT2_THS, ctrl, 1);
-        
+
     // Enable LOTOHI interrupt on nRF52.
     err_code |= pin_interrupt_enable(INT_ACC2_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int2_handler);
-    
+
     // Enable Interrupt function 2 on LIS interrupt pin 2 (stays high for 1/ODR).
     lis2dh12_set_interrupts(LIS2DH12_I2C_INT2_MASK, 2);
 
