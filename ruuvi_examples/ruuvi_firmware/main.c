@@ -59,24 +59,14 @@
 
 // Configuration
 #include "bluetooth_config.h"
+#include "application_config.h"
 
 // Constants
 #define DEAD_BEEF               0xDEADBEEF    //!< Value used as error code on stack dump, can be used to identify stack location on stack unwind.
 
 // ID for main loop timer.
-APP_TIMER_DEF(main_timer_id);                 // Creates timer id for our program.
+APP_TIMER_DEF(main_timer_id); 
 
-// milliseconds until main loop timer function is called. Other timers can bring
-// application out of sleep at higher (or lower) interval.
-#define MAIN_LOOP_INTERVAL_URL   5000u 
-#define ADVERTISING_INTERVAL_URL 500u 
-#define MAIN_LOOP_INTERVAL_RAW   1000u
-#define DEBOUNCE_THRESHOLD 250u
-
-// Payload requires 9 characters
-#define URL_BASE_LENGTH 9
-#define URL_DATA_LENGTH 9
-#define RAW_DATA_LENGTH 14
 static char url_buffer[URL_BASE_LENGTH + URL_DATA_LENGTH] = {0x03, 'r', 'u', 'u', '.', 'v', 'i', '/', '#'};
 static uint8_t data_buffer[RAW_DATA_LENGTH] = { 0 };
 static bool model_plus = false;     // Flag for sensors available
@@ -195,7 +185,7 @@ static void updateAdvertisement(void)
   ret_code_t err_code = NRF_SUCCESS;
   if (highres) { err_code |= bluetooth_set_manufacturer_data(data_buffer, sizeof(data_buffer)); }
   else { err_code |= bluetooth_set_eddystone_url(url_buffer, sizeof(url_buffer)); }
-  NRF_LOG_DEBUG("Updating data, data status %d\r\n", err_code);  
+  NRF_LOG_DEBUG("Updating data, data status %d\r\n", err_code);
 }
 
 
@@ -215,6 +205,7 @@ void main_timer_handler(void * p_context)
     fast_advetising = false;
     if (highres) { bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_RAW);}
     else {bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_URL);}
+    bluetooth_apply_configuration();
   }
 
   // If we have all the sensors.
@@ -241,32 +232,9 @@ void main_timer_handler(void * p_context)
     raw_t = (int32_t) temp;
   }
 
-<<<<<<< HEAD
-    // Get battery voltage
-    //static uint32_t vbat_update_counter;
-    static uint16_t vbat = 0;
-    vbat = getBattery();
-    //NRF_LOG_INFO("temperature: , pressure: , humidity: ");
-    // Embed data into structure for parsing.
-    
-    parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
-    NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d x: %d y: %d z: %d\r\n", raw_t, raw_p, raw_h, acc[0], acc[1], acc[2]);
-    NRF_LOG_DEBUG("VBAT: %d send %d \r\n", vbat, data.vbat);
-    if (highres)
-    {
-      // Prepare bytearray to broadcast.
-      encodeToSensorDataFormat(data_buffer, &data);
-    } 
-    else 
-    {
-      encodeToUrlDataFromat(url_buffer, URL_BASE_LENGTH, &data);
-    }
-=======
   // Get battery voltage
-  //static uint32_t vbat_update_counter;
   static uint16_t vbat = 0;
   vbat = getBattery();
-
   // Embed data into structure for parsing.
   parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
   NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d x: %d y: %d z: %d\r\n", raw_t, raw_p, raw_h, acc[0], acc[1], acc[2]);
@@ -274,100 +242,55 @@ void main_timer_handler(void * p_context)
   if (highres)
   {
     // Prepare bytearray to broadcast.
-    bme280_data_t environmental;
-    environmental.temperature = raw_t;
-    environmental.humidity = raw_h;
-    environmental.pressure = raw_p;
-    encodeToRawFormat5(data_buffer, &environmental, &buffer.sensor, acceleration_events, vbat, BLE_TX_POWER);
+    encodeToSensorDataFormat(data_buffer, &data);
   }
   else
   {
     encodeToUrlDataFromat(url_buffer, URL_BASE_LENGTH, &data);
   }
->>>>>>> b490eae... Reinit NFC after connection, Advertise faster at boot
 
   updateAdvertisement();
   watchdog_feed();
 }
 
-
-/**
-<<<<<<< HEAD
-=======
- * @brief Handle interrupt from lis2dh12.
- * Never do long actions, such as sensor reads in interrupt context.
- * Using peripherals in interrupt is also risky,
- * as peripherals might require interrupts for their function.
- *
- *  @param message Ruuvi message, with source, destination, type and 8 byte payload. Ignore for now.
- **/
-ret_code_t lis2dh12_int2_handler(const ruuvi_standard_message_t message)
-{
-  NRF_LOG_DEBUG("Accelerometer interrupt to pin 2\r\n");
-  acceleration_events++;
-  /*
-  app_sched_event_put ((void*)(&message),
-                       sizeof(message),
-                       lis2dh12_scheduler_event_handler);
-  */
-  return NRF_SUCCESS;
-}
-
-
-/**
->>>>>>> b490eae... Reinit NFC after connection, Advertise faster at boot
+/*
  * @brief Function for application main entry.
  */
 int main(void)
 {
-<<<<<<< HEAD
 
-
-  ret_code_t err_code = 0; // counter, gets incremented by each failed init. It is 0 in the end if init was ok.
-  nrf_delay_ms(10);
-=======
   ret_code_t err_code = NRF_SUCCESS; // counter, gets incremented by each failed init. It is 0 in the end if init was ok.
 
   // Initialize log.
->>>>>>> b490eae... Reinit NFC after connection, Advertise faster at boot
   err_code |= init_log();
-  // Initialize log.
+  NRF_LOG_INFO("LOG INIT \r\n");
+
 
   // Setup leds. LEDs are active low, so setting high them turns leds off.
   err_code |= init_leds();      // INIT leds first and turn RED on.
   nrf_gpio_pin_clear(LED_RED);  // If INIT fails at later stage, RED will stay lit.
-  nrf_delay_ms(10);
-  
-  NRF_LOG_INFO("LOG INIT \r\n");
-  
-  if(NRF_SUCCESS == init_sensors()) 
-  { 
-    NRF_LOG_INFO("SENSORS INIT \r\n");
-    model_plus = true; 
-  }
-  nrf_delay_ms(10);
 
-<<<<<<< HEAD
-  
-=======
   //Init NFC ASAP in case we're waking from deep sleep via NFC (todo)
   set_nfc_callback(app_nfc_callback);
   err_code |= init_nfc();
 
-  if (NRF_SUCCESS == init_sensors()) { model_plus = true; }
+
+
+
+  if (NRF_SUCCESS == init_sensors())
+  {
+    NRF_LOG_INFO("SENSORS INIT \r\n");
+    model_plus = true;
+  }
+  nrf_delay_ms(10);
+
 
   // Initialize BLE Stack. Required in all applications for timer operation.
   err_code |= init_ble();
   bluetooth_configure_advertisement_type(APPLICATION_ADVERTISEMENT_TYPE);
   bluetooth_tx_power_set(BLE_TX_POWER);
   bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP);
->>>>>>> b490eae... Reinit NFC after connection, Advertise faster at boot
 
-
-  //Init NFC ASAP in case we're waking from deep sleep via NFC (todo)
-  err_code |= init_nfc();
-  NRF_LOG_INFO("NFC INIT \r\n");
-  nrf_delay_ms(10);
 
   // Start interrupts.
   err_code |= pin_interrupt_init();
@@ -375,12 +298,7 @@ int main(void)
   // Initialize button.
   err_code |= pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler);
   nrf_delay_ms(10);
-
-  // Interrupt handler is defined in lis2dh12_acceleration_handler.c, reads the buffer and passes the data onwards to application as configured.
-  // Try using PROPRIETARY as a target of accelerometer to implement your own logic.
-  err_code |= pin_interrupt_enable(INT_ACC1_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int1_handler);
   NRF_LOG_INFO("INTERRUPT INIT \r\n");
-  nrf_delay_ms(10);
 
   // Initialize BME 280 and lis2dh12.
   if (model_plus)
@@ -392,69 +310,27 @@ int main(void)
     // Enable XYZ axes.
     lis2dh12_enable();
     lis2dh12_set_scale(LIS2DH12_SCALE2G);
-    // Sample rate 10 for activity detection.
-<<<<<<< HEAD
-    lis2dh12_set_sample_rate(LIS2DH12_RATE_1);
-    lis2dh12_set_resolution(LIS2DH12_RES12BIT);
-    NRF_LOG_INFO("LIS INIT \r\n");
-    nrf_delay_ms(10);
-=======
     lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAW);
     lis2dh12_set_resolution(LIS2DH12_RESOLUTION);
-
-    //XXX If you read this, I'm sorry about line below.
-#include "lis2dh12_registers.h"
-    // Configure activity interrupt - TODO: Implement in driver, add tests.
-    uint8_t ctrl[1];
-    // Enable high-pass for Interrupt function 2.
-    //CTRLREG2 = 0x02
-    ctrl[0] = LIS2DH12_HPIS2_MASK;
-    lis2dh12_write_register(LIS2DH12_CTRL_REG2, ctrl, 1);
-
-    // Enable interrupt 2 on X-Y-Z HI/LO.
-    //INT2_CFG = 0x7F
-    ctrl[0] = 0x7F;
-    lis2dh12_write_register(LIS2DH12_INT2_CFG, ctrl, 1);
-    // Interrupt on 64 mg+ (highpassed, +/-).
-    //INT2_THS= 0x04 // 4 LSB = 64 mg @2G scale
-    ctrl[0] = LIS2DH12_ACTIVITY_THRESHOLD;
-    lis2dh12_write_register(LIS2DH12_INT2_THS, ctrl, 1);
-
-    // Enable LOTOHI interrupt on nRF52.
-    err_code |= pin_interrupt_enable(INT_ACC2_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int2_handler);
-
-    // Enable Interrupt function 2 on LIS interrupt pin 2 (stays high for 1/ODR).
-    lis2dh12_set_interrupts(LIS2DH12_I2C_INT2_MASK, 2);
->>>>>>> b490eae... Reinit NFC after connection, Advertise faster at boot
+    NRF_LOG_INFO("LIS2DH12 configuration done\r\n");
+    nrf_delay_ms(10);
 
     // Setup BME280 - oversampling must be set for each used sensor.
-    bme280_set_oversampling_hum(BME280_OVERSAMPLING_1);
-    bme280_set_oversampling_temp(BME280_OVERSAMPLING_1);
-    bme280_set_oversampling_press(BME280_OVERSAMPLING_1);
-    bme280_set_iir(BME280_IIR_16);
-    bme280_set_interval(BME280_STANDBY_1000_MS);
+    bme280_set_oversampling_hum(BME280_HUMIDITY_OVERSAMPLING);
+    bme280_set_oversampling_temp(BME280_TEMPERATURE_OVERSAMPLING);
+    bme280_set_oversampling_press(BME280_PRESSURE_OVERSAMPLING);
+    bme280_set_iir(BME280_IIR);
+    bme280_set_interval(BME280_DELAY);
     bme280_set_mode(BME280_MODE_NORMAL);
     NRF_LOG_INFO("BME280 configuration done\r\n");
     nrf_delay_ms(10);
   }
-
-  // Initialize BLE Stack. Required in all applications for timer operation.
-  err_code |= init_ble();
-  nrf_delay_ms(10);
-  // Start advertising only after sensors have valid data
-
-  err_code |= bluetooth_tx_power_set(BLE_TX_POWER);
-  err_code |= bluetooth_configure_advertising_interval(MAIN_LOOP_INTERVAL_RAW);
-  err_code |= bluetooth_configure_advertisement_type(BLE_GAP_ADV_TYPE_ADV_NONCONN_IND);
-  NRF_LOG_INFO("BLE INIT \r\n");
-  nrf_delay_ms(10);
 
   // Init ok, start watchdog with default wdt event handler (reset).
   init_watchdog(NULL);
   NRF_LOG_INFO("WATCHDOG INIT \r\n");
   nrf_delay_ms(10);
 
-  // Used only for button debounce
   err_code |= init_rtc();
   NRF_LOG_INFO("RTC INIT \r\n");
   nrf_delay_ms(10);

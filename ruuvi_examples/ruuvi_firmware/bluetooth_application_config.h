@@ -7,11 +7,10 @@
 #define APP_DEVICE_NAME_LENGTH          APPLICATION_DEVICE_NAME_LENGTH
 #define APPLICATION_ADV_INTERVAL        1000                            /**< ms **/
 #define APP_TX_POWER                    4                               /**< dBm **/
-#define INIT_FWREV                      "Ruuvi 1.2.11"                   /**< Github tag **/
+#define INIT_FWREV                      "Ruuvi 1.2.12"                  /**< Github tag **/
 #define INIT_SWREV                      INIT_FWREV                      /**< Essentially same s FWrev since there is no separate SW (i.e. Espruino) **/
 
-<<<<<<< HEAD
-=======
+
 // milliseconds until main loop timer function is called. Other timers can bring
 // application out of sleep at higher (or lower) interval.
 #define MAIN_LOOP_INTERVAL_RAW       1000u
@@ -28,7 +27,7 @@
 #define URL_DATA_LENGTH 9
 #define URL_BASE {0x03, 'r', 'u', 'u', '.', 'v', 'i', '/', '#'}; // https://ruu.vi/#
 //Raw v2
-#define RAW_DATA_LENGTH 24
+#define RAW_DATA_LENGTH 14
 
 /**
  *  BLE_GAP_ADV_TYPE_ADV_IND   0x00           Connectable, scannable
@@ -36,9 +35,8 @@
  *  BLE_GAP_ADV_TYPE_ADV_SCAN_IND   0x02      Nonconnectable, scannable
  *  BLE_GAP_ADV_TYPE_ADV_NONCONN_IND   0x03   Nonconnectable, nonscannable
  */
-#define APPLICATION_ADVERTISEMENT_TYPE 0x00
+#define APPLICATION_ADVERTISEMENT_TYPE 0x03
 //Set to 0 if you don't want to include GATT connectivity. Remember to adjust advertisement type
 #define APPLICATION_GATT 1
->>>>>>> b490eae... Reinit NFC after connection, Advertise faster at boot
 
 #endif
