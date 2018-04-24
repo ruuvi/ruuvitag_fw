@@ -35,7 +35,6 @@
 #include "nrf_log_ctrl.h"
 
 // BSP
-//#define BSP_SIMPLE
 #include "bsp.h"
 
 // Drivers
@@ -46,6 +45,8 @@
 #include "bluetooth_core.h"
 #include "eddystone.h"
 #include "pin_interrupt.h"
+#include "nfc.h"
+#include "nfc_t2t_lib.h"
 #include "rtc.h"
 #include "application_config.h"
 
@@ -133,18 +134,18 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
 }
 
 /**
- * Work around NFC data corruption bug by reinitializing NFC data after field has been lost. 
+ * Work around NFC data corruption bug by reinitializing NFC data after field has been lost.
  * Call this function outside of interrupt context.
  */
 static void reinit_nfc(void* data, uint16_t length)
 {
-
+  init_nfc();
 }
 
 /**@brief Function for handling NFC events.
  * Schedulers call to handler.
  */
-void nfc_callback(p_context, event, p_data, data_length);
+void app_nfc_callback(void* p_context, nfc_t2t_event_t event, const uint8_t* p_data, size_t data_length)
 {
   NRF_LOG_INFO("NFC\r\n");
   switch (event)
@@ -161,11 +162,6 @@ void nfc_callback(p_context, event, p_data, data_length);
   default:
     break;
   }
-  //Change mode on button press
-  //Use scheduler, do not use peripherals in interrupt conext (SPI write halts)
-  
-
-  return ENDPOINT_SUCCESS;
 }
 
 
@@ -205,10 +201,10 @@ void main_timer_handler(void * p_context)
   int32_t acc[3] = {0};
   static bool fast_advetising = true;
 
-  if(fast_advetising && millis()> ADVERTISING_STARTUP_PERIOD)
+  if (fast_advetising && millis() > ADVERTISING_STARTUP_PERIOD)
   {
     fast_advetising = false;
-    if(highres) { bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_RAW);}
+    if (highres) { bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_RAW);}
     else {bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_URL);}
   }
 
@@ -300,7 +296,7 @@ int main(void)
   nrf_gpio_pin_clear(LED_RED);  // If INIT fails at later stage, RED will stay lit.
 
   //Init NFC ASAP in case we're waking from deep sleep via NFC (todo)
-  set_nfc_callback(nfc_callback);
+  set_nfc_callback(app_nfc_callback);
   err_code |= init_nfc();
 
   if (NRF_SUCCESS == init_sensors()) { model_plus = true; }
