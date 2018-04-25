@@ -127,7 +127,7 @@ void data_record_add(nfc_ndef_msg_desc_t* nfc_msg, uint8_t* data, uint32_t data_
     sprintf(data_string+2*ii, "%02x", data[ii]);
   }
   uint8_t* data_bytes = (void*)&data_string;
-  const uint8_t data_code[] = {'d', 't'};
+  static const uint8_t data_code[] = {'d', 't'};
 
   NFC_NDEF_TEXT_RECORD_DESC_DEF(data_text_rec,
                                   UTF_8,
@@ -159,7 +159,7 @@ void id_record_add(nfc_ndef_msg_desc_t* nfc_msg)
                                         (id0>>24)&0xFF, (id0>>16)&0xFF, (id0>>8)&0xFF, id0&0xFF, 
                                         (id1>>24)&0xFF, (id1>>16)&0xFF, (id1>>8)&0xFF, id1&0xFF);
     uint8_t* name_bytes = (void*)&id_string;
-    const uint8_t id_code[] = {'i', 'd'};
+    static const uint8_t id_code[] = {'i', 'd'};
 
     NFC_NDEF_TEXT_RECORD_DESC_DEF(id_text_rec,
                                   UTF_8,
@@ -192,7 +192,7 @@ void address_record_add(nfc_ndef_msg_desc_t* nfc_msg)
     static char name[30] = { 0 };
     sprintf(name, "MAC: %02X:%02X:%02X:%02X:%02X:%02X", mac_buffer[0], mac_buffer[1], mac_buffer[2], mac_buffer[3], mac_buffer[4], mac_buffer[5]);
     uint8_t* name_bytes = (void*)&name;
-    const uint8_t addr_code[] = {'a', 'd'};
+    static const uint8_t addr_code[] = {'a', 'd'};
 
     NFC_NDEF_TEXT_RECORD_DESC_DEF(addr_text_rec,
                                   UTF_8,
@@ -218,7 +218,7 @@ void version_record_add(nfc_ndef_msg_desc_t* nfc_msg)
     memcpy(name, prefix, sizeof(prefix));
     memcpy(name + sizeof(prefix), INIT_SWREV, sizeof(INIT_SWREV));
     uint8_t* name_bytes = (void*)&name;
-    const uint8_t version_code[] = {'s', 'w'};
+    static const uint8_t version_code[] = {'s', 'w'};
 
     NFC_NDEF_TEXT_RECORD_DESC_DEF(version_text_rec,
                                   UTF_8,
