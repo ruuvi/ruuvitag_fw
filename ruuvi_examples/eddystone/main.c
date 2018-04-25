@@ -44,7 +44,8 @@
 #include "init.h"
 #include "bluetooth_core.h"
 #include "pin_interrupt.h"
-#include "nrf_nfc_handler.h"
+#include "nfc.h"
+#include "nfc_t2t_lib.h"
 
 #include "ruuvi_endpoints.h"
 
@@ -132,10 +133,41 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
 /**
  *  Callback for NFC event
  */
-ret_code_t nfc_detected_handler(const ruuvi_standard_message_t message)
+static void nfc_detected_handler(void* data, uint16_t length)
 {
   nrf_ble_es_on_start_connectable_advertising();
-  return NRF_SUCCESS;
+}
+
+/**
+ * Work around NFC data corruption bug by reinitializing NFC data after field has been lost.
+ * Call this function outside of interrupt context.
+ */
+static void reinit_nfc(void* data, uint16_t length)
+{
+  init_nfc();
+}
+
+/**@brief Function for handling NFC events.
+ * Schedulers call to handler.
+ */
+void app_nfc_callback(void* p_context, nfc_t2t_event_t event, const uint8_t* p_data, size_t data_length)
+{
+  NRF_LOG_INFO("NFC\r\n");
+  switch (event)
+  {
+  case NFC_T2T_EVENT_FIELD_ON:
+    NRF_LOG_INFO("NFC Field detected \r\n");
+    app_sched_event_put (NULL, 0, nfc_detected_handler);
+    break;
+  case NFC_T2T_EVENT_FIELD_OFF:
+    NRF_LOG_INFO("NFC Field lost \r\n");
+    app_sched_event_put (NULL, 0, reinit_nfc);
+    break;
+  case NFC_T2T_EVENT_DATA_READ:
+    NRF_LOG_INFO("Data read\r\n");
+  default:
+    break;
+  }
 }
 
 /**
@@ -155,9 +187,8 @@ int main(void)
 
   NRF_LOG_DEBUG("BLE init status: %d\r\n", err_code);
 
-  //init_handler must be called before init_nfc, as init_nfc passes function pointer set by init_handler to NFC stack
-  nfc_init_handler();
-  nfc_connected_handler_set(nfc_detected_handler);
+  //setup callback before initializing NFC.
+  set_nfc_callback(app_nfc_callback);
   err_code |= init_nfc();
 
 
