@@ -27,15 +27,15 @@ Copyleft or BSD-3 status can be identified from the list below.
 
 Copyright in alphabetical order of GitHub usernames, real name and email are listed for user who have listed it on their profile:
 
-* angst7: Matt Roche <angst7@gmail.com> (license-free)
-* dieweltistklein: (license-free)
+* angst7: Matt Roche <angst7@gmail.com> (BSD-3)
 * DG12:   Dennis German <DGermang@Real-World-Systems.com> (BSD-3)
+* dieweltistklein: (license-free)
 * frawau: François Wautier (BSD-3)
-* jessenic: (license-free)
+* jessenic: Jesse Leskinen (BSD-3)
 * jrosberg: Janne Rosberg (BSD-3)
 * laurijamsa: Lauri Jämsä <lauri@ruuvi.com> (BSD-3)
-* mdxs: (license-free)
+* mdxs: (BSD-3)
 * ojousima: Otso Jousimaa <otso@ruuvi.com> (BSD-3)
-* scrin: (license-free)
+* scrin: (BSD-3)
 
 Ruuvi firmware is statically linked against bootloader and softdevice. 
