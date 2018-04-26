@@ -11,7 +11,7 @@ ARM BSD-3 License, please see Nordic SDK for details.
 Softdevice is a software radio stack which is used to implement BLE communication on top of nRF52832 integrated circuit. It is distributed as a binary only, embedded within nRF52832.
 License is Nordic softdevice license agreement. Full text is available in Nordic SDK and [licenses folder](<licenses/nordic_softdevice_license.md>)
 
-Softdevice available at https://www.nordicsemi.com/eng/nordic/Products/nRF52832/S132-SD-v3/56261 .
+Softdevice is available at https://www.nordicsemi.com/eng/nordic/Products/nRF52832/S132-SD-v3/56261 .
 
 ## Bootloader
 Bootloader is built on top of Nordic example sources and [Nordic SDK License](<licenses/nordic_sdk_license.md>) applies to it. Additionally the bootloader uses micro-ecc library, available at https://github.com/kmackay/micro-ecc . Micro-ECC is released under [BSD-2 license](<licenses/micro-ecc.md>), copyright 2014 Kenneth MacKay.
@@ -23,7 +23,7 @@ Bootloader is statically linked against Softdevice S132 3.1.0
 Ruuvi firmware is built by Ruuvi community and it is BSD-3 licensed, Nordic SDK licensed or license-free (no explicit license).
 These licenses apply to folders `drivers`, `keys`, `libraries`, and `licenses`. 
 Files which are under Nordic SDK license can be identified by a comment in the header. 
-Copyleft or BSD-3 status can be identified from the list below.
+Copyleft or BSD-3 status can be identified from the list below, please see git commit history for contributors.
 
 Copyright in alphabetical order of GitHub usernames, real name and email are listed for user who have listed it on their profile:
 
