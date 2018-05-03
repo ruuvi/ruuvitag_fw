@@ -3,52 +3,66 @@
 
 
 ## Repository structure
-This repository is structured as follows:
-
 ```
 .
-+-- bootloader
-|   +-- ruuvitag\_HW\_FLAVOR
+,-- bootloader
+|   +-- ruuvitag_<HW_version>_debug
 |   |   +-- armgcc
 |   |   |   +-- Makefile
-|   |   |   +-- Linkerscript
+|   |   |   `-- <Linkerscript>
 |   |   +-- config
-|   |   |   +-- sdk_configuration
-|   |   +-- bootloader_files
-+-- bsp
-|   +-- BSP files
-+-- drivers
-|   +-- bme280
-|   +-- lis2dh12
-|   +-- etc
-|   +-- init
-|   |   +-- common_configuration
-+-- libraries
-|   +-- acceleration
+|   |       `-- sdk_configuration 
+|   `-- ruuvitag_<HW_version>_production
+|       +-- armgcc...
+|       `-- config ...
+|-- bsp
+|   `-- <BSP files>
+|-- drivers
+|   +-- battery
+|   |-- bluetooth
+|   |-- bme280
+|   |-- init
+|   |-- lis2dh12
+|   |-- nrf_nordic_...
+|   |-- pwm
+|   |-- rng
+|   |-- rtc
+|   `-- spi
+|
+|-- libraries
 |   +-- base64
-|   +-- base91
+|   |-- base91
+|   |-- data_structures
+|   |-- dsp
+|   `-- rust_allocator
+|
 +-- keys
-|   +-- ruuvi_open_private.pem
+|   `-- ruuvi_open_private.pem
+|
 +-- ruuvi_examples
-|   +-- APPLICATION
-|   |   +-- application_sdk_configuration
-|   |   +-- application_bsp_configuration
-|   |   +-- application_bluetooth_configuration
-|   |   +-- ble_services
-|   |   +-- ruuvitag_HW
-|   |   |   +-- s132
-|   |   |   |   +-- armgcc
-|   |   |   |   |   +-- Makefile
-|   |   |   |   |   +-- Linkerscript
-|   |   |   |   +-- config
-|   |   |   |   |   +-- board_sdk_configuration
-|   |   |   |   |   +-- board_bsp_configuration
-|   |   |   |   |   +-- board_bluetooth_configuration
-|   |   +-- application files
-+-- Makefile
+|   +-- ble_app_beacon
+|   | `-- ruuvitag_<HW_version>
+|   |
+|   +-- eddystone
+|   | +-- ble_services
+|   | |-- occ ...
+|   | `-- ruuvitag_<HW_version>
+|   |
+|   `-- ruuvi_firmware
+|     +-- ble_services
+|     `-- ruuvitag_<HW_version>
+|       `-- s132
+|           +-- armgcc
+|           |   +-- Makefile
+|           |   |-- _build
+|           |   `-- <Linkerscript>
+|           `-- config
+|              +-- bluetooth_board_configuration 
+|              +-- bsp_board_configuration
+|              `-- sdk_board_configuration
+|-- sdk_overrides
++-- nRF5_SDK_<vesion>
 +-- README.md
-+-- .gitignore
-|   +-- (SDK)
 ```
 
 ### Bootloader
