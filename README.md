@@ -40,6 +40,25 @@
 |   `-- ruuvi_open_private.pem
 |
 +-- ruuvi_examples
+|   +-- APPLICATION
+|   |   +-- application_sdk_configuration
+|   |   +-- application_bsp_configuration
+|   |   +-- application_bluetooth_configuration
+|   |   +-- ble_services
+|   |   +-- ruuvitag_HW
+|   |   |   +-- s132
+|   |   |   |   +-- armgcc
+|   |   |   |   |   +-- Makefile
+|   |   |   |   |   +-- Linkerscript
+|   |   |   |   +-- config
+|   |   |   |   |   +-- board_sdk_configuration
+|   |   |   |   |   +-- board_bsp_configuration
+|   |   |   |   |   +-- board_bluetooth_configuration
+|   |   +-- application files
+|   sdk_overrides
+|   +-- override_1.c
+|   +-- etc
++-- Makefile
 |   +-- ble_app_beacon
 |   | `-- ruuvitag_<HW_version>
 |   |
@@ -98,16 +117,17 @@ The SDK folder contains Nordic Software development kit which is used to provide
 low-level drivers and abstractions to speed up development. We do not host the SDK to reduce the 
 size of repository, our makefile downloads and unzips the SDK if it is not present. 
 
+### SDK Overrides
+SDK overrides are bugfix backports or some minor changes to the official SDK files. 
+
 ### Licenses
 Please note that these examples inherit a lot of code from various sources and pay careful attention to 
 license and origin of each application. Most importantly, the code will be statically linked against
 Nordic Softdevice, for which the source code is not available. Therefore the code is not GPL-compatible.
+For more details, please see [licenses.md](<licenses.md>).
 
 ## Developing Ruuvi Firmware
-
 Instructions below are tested using OS X and Ubuntu, but basically any Unix distribution (or even Windows) should be fine. Compilation works also using the *Bash on Ubuntu on Windows* -feature added in the July 2016 update of Windows 10 if you follow the Ubuntu directions. If you've compiled and flashed successfully (or unsuccessfully), please identify yourself on our Slack :)
-
-We also host some ready binaries so it's not necessary to setup a development environment if you would be happy to use those. So, please check a `builds` directory first. If you would like to modify the firmware code, continue reading:
 
 ### Prerequisites (to compile):
 
@@ -168,10 +188,20 @@ sudo python setup.py install
 nrfutil version
 ```
 
-To get started you can try:
+To get started with development kit you can try:
 
 ```
-nrfutil pkg generate --debug-mode --application app.hex --key-file key.pem app_dfu_package.zip
+nrfutil settings generate --family NRF52 --application _build/ruuvi_firmware.hex --application-version 1 --bootloader-version 1 --bl-settings-version 1 settings.hex
+mergehex -m ~/git/s132_nrf52_3.1.0_softdevice.hex ~/git/ruuvitag_b_bootloader_1.0.0.hex settings.hex -o sbc.hex
+mergehex -m sbc.hex _build/ruuvi_firmware.hex -o packet.hex
+nrfjprog --family nrf52 --eraseall
+nrfjprog --family nrf52 --program packet.hex
+nrfjprog --family nrf52 --reset
+```
+
+Or to create a DFU packet:
+```
+nrfutil pkg generate --debug-mode --application _build/ruuvi_firmware.hex --hw-version 3 --sd-req 0x91 --key-file ~/git/ruuvitag_fw/keys/ruuvi_open_private.pem ruuvi_firmware_dfu.zip
 ```
 
 Debug mode skips various version checks which is useful for development. Packages have to be signed,
@@ -187,7 +217,7 @@ Modify $SDK/components/toolchain/gcc/Makefile.posix (on Linux and OSX) or Makefi
 to point to your gcc-arm install location. 
 
 You need also add support for secure bootloader elliptic curve cryptography by installing micro-ECC inside
-SDK, details can be found at [Nordic Infocenter] (https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.0.0%2Flib_crypto.html)
+SDK, details can be found at [Nordic Infocenter](https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.0.0%2Flib_crypto.html)
 
 Second time running `make` builds all the sources. 
 `make clean` cleans the build directories.
@@ -214,7 +244,7 @@ After the SoftDevice is flashed successfully, flash the bootloader:
 `J-Link>loadfile bootloader/ruuvitag_b2/dual_bank_ble_s132/armgcc/_build/ruuvitag_b2_bootloader.hex`
 
 ## With nrfjprog
-Get nrfjprog from Nordic's website: TODO LINK
+Get nrfjprog from [Nordic's website](http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.tools/dita/tools/nrf5x_command_line_tools/nrf5x_installation.html).
 nrfjprog offers simple wrapper to Segger's JLINK. To get started, erase your device:
 `nrfjprog --family nrf52 --eraseall`
 Then flash softdevice + bootloader:
