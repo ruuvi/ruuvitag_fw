@@ -183,7 +183,13 @@ int main(void)
   err_code |= init_ble(); 
   err_code |= bluetooth_configure_advertisement_type(BLE_GAP_ADV_TYPE_ADV_NONCONN_IND);
 
-  err_code |= init_sensors();
+  // Call sensor init to ensure that sensors will be in low-power mode
+  // Do not OR error code, as eddystone works without sensors and
+  // we want to support basic model
+  if (NRF_SUCCESS == init_sensors())
+  {
+    NRF_LOG_INFO("SENSORS INIT \r\n");
+  }
 
   NRF_LOG_DEBUG("BLE init status: %d\r\n", err_code);
 
