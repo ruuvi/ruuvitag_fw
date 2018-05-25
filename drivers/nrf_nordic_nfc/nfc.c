@@ -154,8 +154,8 @@ void id_record_add(nfc_ndef_msg_desc_t* nfc_msg)
     unsigned int id1 = NRF_FICR->DEVICEID[1];
     
     sprintf(id_string + sizeof(prefix), "%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X", 
-                                        (id0>>24)%0xFF, (id0>>16)&0xFF, (id0>>8)%0xFF, id0%0xFF, 
-                                        (id1>>24)%0xFF, (id1>>16)%0xFF, (id1>>8)%0xFF, id1&0xFF);
+                                        (id0>>24)&0xFF, (id0>>16)&0xFF, (id0>>8)&0xFF, id0&0xFF, 
+                                        (id1>>24)&0xFF, (id1>>16)&0xFF, (id1>>8)&0xFF, id1&0xFF);
     uint8_t* name_bytes = (void*)&id_string;
     const uint8_t id_code[] = {'i', 'd'};
 

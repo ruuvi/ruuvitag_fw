@@ -5,17 +5,19 @@
 #define APPLICATION_DEVICE_NAME_LENGTH  5                               /**< number of characters in above string, excluding null */
 #define APP_DEVICE_NAME                 APPLICATION_DEVICE_NAME         /**< TODO: Refactoring **/
 #define APP_DEVICE_NAME_LENGTH          APPLICATION_DEVICE_NAME_LENGTH
-#define APPLICATION_ADV_INTERVAL        1010                            /**< ms. Use value which is not exactly divisible by 1000 ms for Minew interoperability **/
+#define APPLICATION_ADV_INTERVAL        1010                            /**< ms. Use value which is not exactly divisible by 1000 ms to be seen by gateways which have limited scan windows in second divisible intervals. **/
 #define APP_TX_POWER                    4                               /**< dBm **/
-#define INIT_FWREV                      "2.2.1"                         /**< Github tag. Do not include specifiers such as "alpha" so you can accept ready binaries as they are **/
+#define INIT_FWREV                      "2.2.2"                         /**< Github tag. Do not include specifiers such as "alpha" so you can accept ready binaries as they are **/
 #define INIT_SWREV                      INIT_FWREV                      /**< FW and SW are same thing in this context **/
 
 // milliseconds until main loop timer function is called. Other timers can bring
 // application out of sleep at higher (or lower) interval.
-#define MAIN_LOOP_INTERVAL_RAW   1000u
-#define ADVERTISING_INTERVAL_RAW 1000u
-#define MAIN_LOOP_INTERVAL_URL   5000u
-#define ADVERTISING_INTERVAL_URL  500u
+#define MAIN_LOOP_INTERVAL_RAW       1000u
+#define ADVERTISING_INTERVAL_RAW     1000u
+#define MAIN_LOOP_INTERVAL_URL       5000u
+#define ADVERTISING_INTERVAL_URL     500u
+#define ADVERTISING_STARTUP_PERIOD   30000u //milliseconds app advertises at startup speed.
+#define ADVERTISING_INTERVAL_STARTUP 100u   //milliseconds app advertises at startup speed.
 
 
 
