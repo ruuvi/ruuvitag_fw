@@ -300,6 +300,45 @@ lis2dh12_ret_t lis2dh12_set_fifo_watermark(size_t count)
 }
 
 /**
+ * Enable activity detection interrupt on pin 2. Interrupt is high for samples where high-passed acceleration exceeds mg
+ */
+lis2dh12_ret_t lis2dh12_set_activity_interrupt_pin_2(uint16_t mg)
+{
+
+    // // Configure activity interrupt - TODO: Implement in driver, add tests.
+    // uint8_t ctrl[1];
+    // // Enable high-pass for Interrupt function 2.
+    // //CTRLREG2 = 0x02
+    // ctrl[0] = LIS2DH12_HPIS2_MASK;
+    // lis2dh12_write_register(LIS2DH12_CTRL_REG2, ctrl, 1);
+
+    lis2dh12_set_highpass(LIS2DH12_HPIS2_MASK);
+
+    // Enable interrupt 2 on X-Y-Z HI/LO.
+    // INT2_CFG = 0x7F
+    // ctrl[0] = 0x7F;
+    // lis2dh12_write_register(LIS2DH12_INT2_CFG, ctrl, 1);
+    lis2dh12_set_interrupt_configuration(0x7F, 2);
+    // Interrupt on 64 mg+ (highpassed, +/-).
+    //INT2_THS= 0x04 // 4 LSB = 64 mg @2G scale
+    // ctrl[0] = LIS2DH12_ACTIVITY_THRESHOLD;
+    // lis2dh12_write_register(LIS2DH12_INT2_THS, ctrl, 1);
+
+    uint8_t threshold = mg / get_mgpb();
+    if(0 == threshold)
+    {
+      threshold = 1;
+    }
+
+    lis2dh12_set_threshold(threshold, 2);
+
+    // Enable Interrupt function 2 on LIS interrupt pin 2 (stays high for 1/ODR).
+    lis2dh12_set_interrupts(LIS2DH12_I2C_INT2_MASK, 2);
+
+    return LIS2DH12_RET_OK;
+}
+
+/**
  *  Set interrupt on pin. Write "0" To disable interrupt on pin. 
  *  NOTE: pin 1 and pin 2 DO NOT support identical configurations.
  *

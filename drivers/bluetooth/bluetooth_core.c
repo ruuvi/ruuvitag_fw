@@ -32,7 +32,7 @@
 #include "ruuvi_endpoints.h"
 #include "ble_event_handlers.h" 
 
-#if APPLICATION_GATT
+#if APP_GATT_PROFILE_ENABLED
 #include "application_service_if.h"
 #endif 
 
@@ -150,7 +150,7 @@ void bluetooth_name_postfix_add(char* name_base, size_t base_length)
 {
     unsigned int addr0 =  NRF_FICR->DEVICEADDR[0];
     char postfix[4] = { 0 };
-    sprintf(postfix,"%x", addr0&0xFFFF);
+    sprintf(postfix,"%04x", addr0&0xFFFF);
     memcpy(name_base + base_length, postfix, sizeof(postfix));
 }
  
@@ -361,7 +361,7 @@ ret_code_t bluetooth_stack_init(void)
     NRF_LOG_INFO("Peer manager init \r\n");
     nrf_delay_ms(10);
     
-    #if APPLICATION_GATT
+    #if APP_GATT_PROFILE_ENABLED
     err_code |= application_services_init();
     NRF_LOG_INFO("Services init status %d\r\n", err_code);
     nrf_delay_ms(10);

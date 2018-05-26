@@ -21,7 +21,7 @@
 #define LIS2DH12_SAMPLERATE_URL     LIS2DH12_RATE_0
 
 // LSB, i.e. scale and resolution affect the threshold //TODO: verify resolution
-// 64 mg on 2G/10bit
-#define LIS2DH12_ACTIVITY_THRESHOLD 0x04
+// 64 mg
+#define LIS2DH12_ACTIVITY_THRESHOLD 64
 
 #endif
