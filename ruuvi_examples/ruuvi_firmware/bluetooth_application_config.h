@@ -8,8 +8,7 @@
 #define APPLICATION_ADV_INTERVAL        1010                            /**< ms. Use value which is not exactly divisible by 1000 ms to be seen by gateways which have limited scan windows in second divisible intervals. **/
 #define APP_TX_POWER                    4                               /**< dBm **/
 #define INIT_FWREV                      "2.2.2"                         /**< Github tag. Do not include specifiers such as "alpha" so you can accept ready binaries as they are **/
-#define INIT_SWREV                      INIT_FWREV                      /**< FW and SW are same thing in this context **/
-#define APP_GATT_PROFILE_ENABLED        1                               /**< GATT profile **/
+#define INIT_SWREV                      INIT_FWREV                      /**< FW and SW are same thing in this context **/                             
 
 // milliseconds until main loop timer function is called. Other timers can bring
 // application out of sleep at higher (or lower) interval.
@@ -38,6 +37,6 @@
 #define APPLICATION_ADVERTISEMENT_TYPE 0x00
 
 //Set to 0 if you don't want to include GATT connectivity. Remember to adjust advertisement type
-#define APPLICATION_GATT 1
+#define APP_GATT_PROFILE_ENABLED        1  
 
 #endif
