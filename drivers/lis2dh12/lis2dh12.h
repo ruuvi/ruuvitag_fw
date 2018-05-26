@@ -210,6 +210,11 @@ lis2dh12_ret_t lis2dh12_set_threshold(uint8_t bits, uint8_t pin);
 lis2dh12_ret_t lis2dh12_set_activity_threshold(uint8_t bits);
 
 /**
+ * Enable activity detection interrupt on pin 2. Interrupt is high for samples where high-passed acceleration exceeds mg
+ */
+lis2dh12_ret_t lis2dh12_set_activity_interrupt_pin_2(uint16_t mg);
+
+/**
  *  Internal functions for reading/writing registers. 
  */
 lis2dh12_ret_t lis2dh12_read_register(uint8_t address, uint8_t* const p_toRead, size_t count);

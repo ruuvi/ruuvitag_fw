@@ -32,7 +32,7 @@
 #include "ruuvi_endpoints.h"
 #include "ble_event_handlers.h" 
 
-#if APPLICATION_GATT
+#if APP_GATT_PROFILE_ENABLED
 #include "application_service_if.h"
 #endif 
 
@@ -361,7 +361,7 @@ ret_code_t bluetooth_stack_init(void)
     NRF_LOG_INFO("Peer manager init \r\n");
     nrf_delay_ms(10);
     
-    #if APPLICATION_GATT
+    #if APP_GATT_PROFILE_ENABLED
     err_code |= application_services_init();
     NRF_LOG_INFO("Services init status %d\r\n", err_code);
     nrf_delay_ms(10);

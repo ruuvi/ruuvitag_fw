@@ -9,6 +9,7 @@
 #define APP_TX_POWER                    4                               /**< dBm **/
 #define INIT_FWREV                      "2.2.2"                         /**< Github tag. Do not include specifiers such as "alpha" so you can accept ready binaries as they are **/
 #define INIT_SWREV                      INIT_FWREV                      /**< FW and SW are same thing in this context **/
+#define APP_GATT_PROFILE_ENABLED        1                               /**< GATT profile **/
 
 // milliseconds until main loop timer function is called. Other timers can bring
 // application out of sleep at higher (or lower) interval.
@@ -19,12 +20,11 @@
 #define ADVERTISING_STARTUP_PERIOD   30000u //milliseconds app advertises at startup speed.
 #define ADVERTISING_INTERVAL_STARTUP 100u   //milliseconds app advertises at startup speed.
 
-
-
 // Base length includes URL scheme prefix, URL is 17 bytes
 #define URL_BASE_LENGTH 9
 #define URL_DATA_LENGTH 9
 #define URL_BASE {0x03, 'r', 'u', 'u', '.', 'v', 'i', '/', '#'}; // https://ruu.vi/#
+
 //Raw v2
 #define RAW_DATA_LENGTH 24
 
@@ -34,7 +34,9 @@
  *  BLE_GAP_ADV_TYPE_ADV_SCAN_IND   0x02      Nonconnectable, scannable
  *  BLE_GAP_ADV_TYPE_ADV_NONCONN_IND   0x03   Nonconnectable, nonscannable
  */
+
 #define APPLICATION_ADVERTISEMENT_TYPE 0x00
+
 //Set to 0 if you don't want to include GATT connectivity. Remember to adjust advertisement type
 #define APPLICATION_GATT 1
 

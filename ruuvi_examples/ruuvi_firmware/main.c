@@ -206,6 +206,7 @@ void main_timer_handler(void * p_context)
     fast_advetising = false;
     if (highres) { bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_RAW);}
     else {bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_URL);}
+    bluetooth_apply_configuration();
   }
 
   // If we have all the sensors.
@@ -286,7 +287,7 @@ ret_code_t lis2dh12_int2_handler(const ruuvi_standard_message_t message)
  */
 int main(void)
 {
-  ret_code_t err_code = NRF_SUCCESS; // counter, gets incremented by each failed init. It is 0 in the end if init was ok.
+  ret_code_t err_code = NRF_SUCCESS; // Error flag, OR any errors to it and check the error code at the end.
 
   // Initialize log.
   err_code |= init_log();
@@ -315,19 +316,20 @@ int main(void)
 
   // Start interrupts.
   err_code |= pin_interrupt_init();
+
   // Initialize button.
   err_code |= pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler);
-
-  // Interrupt handler is defined in lis2dh12_acceleration_handler.c, reads the buffer and passes the data onwards to application as configured.
-  // Try using PROPRIETARY as a target of accelerometer to implement your own logic.
-  err_code |= pin_interrupt_enable(INT_ACC1_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int1_handler);
 
   // Initialize BME 280 and lis2dh12.
   if (model_plus)
   {
     // Clear memory.
     lis2dh12_reset();
-    // Wait for reboot.
+    
+    // Enable LOTOHI interrupt on nRF52 to detect acceleration events.
+    err_code |= pin_interrupt_enable(INT_ACC2_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int2_handler);
+    
+    // Wait for LIS reboot.
     nrf_delay_ms(10);
     // Enable XYZ axes.
     lis2dh12_enable();
@@ -336,29 +338,9 @@ int main(void)
     lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAW);
     lis2dh12_set_resolution(LIS2DH12_RESOLUTION);
 
-    //XXX If you read this, I'm sorry about line below.
-#include "lis2dh12_registers.h"
-    // Configure activity interrupt - TODO: Implement in driver, add tests.
-    uint8_t ctrl[1];
-    // Enable high-pass for Interrupt function 2.
-    //CTRLREG2 = 0x02
-    ctrl[0] = LIS2DH12_HPIS2_MASK;
-    lis2dh12_write_register(LIS2DH12_CTRL_REG2, ctrl, 1);
+    lis2dh12_set_activity_interrupt_pin_2(LIS2DH12_ACTIVITY_THRESHOLD);
 
-    // Enable interrupt 2 on X-Y-Z HI/LO.
-    //INT2_CFG = 0x7F
-    ctrl[0] = 0x7F;
-    lis2dh12_write_register(LIS2DH12_INT2_CFG, ctrl, 1);
-    // Interrupt on 64 mg+ (highpassed, +/-).
-    //INT2_THS= 0x04 // 4 LSB = 64 mg @2G scale
-    ctrl[0] = LIS2DH12_ACTIVITY_THRESHOLD;
-    lis2dh12_write_register(LIS2DH12_INT2_THS, ctrl, 1);
 
-    // Enable LOTOHI interrupt on nRF52.
-    err_code |= pin_interrupt_enable(INT_ACC2_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int2_handler);
-
-    // Enable Interrupt function 2 on LIS interrupt pin 2 (stays high for 1/ODR).
-    lis2dh12_set_interrupts(LIS2DH12_I2C_INT2_MASK, 2);
 
     // Setup BME280 - oversampling must be set for each used sensor.
     bme280_set_oversampling_hum(BME280_HUMIDITY_OVERSAMPLING);
@@ -383,6 +365,8 @@ int main(void)
 
   // Init ok, start watchdog with default wdt event handler (reset).
   init_watchdog(NULL);
+
+  // start advertising
   bluetooth_advertising_start();
 
   // Enter main loop.
