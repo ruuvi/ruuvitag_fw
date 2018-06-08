@@ -1,6 +1,6 @@
 # Ruuvi firmware
- * Adds GATT connectivity with Device Information Service and DFU Service, as well as currently unused Nordic UART Service.
-![GATT](images/gatt.png)
+ * Adds GATT connectivity with Device Information Service and DFU Service, as well as currently unused Nordic UART Service. 
+ * ![GATT](images/gatt.png)
  * Data is sent in [Manufacturer specific format, Ruuvi V5](https://github.com/ruuvi/ruuvi-sensor-protocols).
  * Tag is always connectable and advertises name "RuuviXXXX" in scan response.
  * Uses 16x IIR on BME280, which reduces noise at the expense of slowed response time. Practically the response is limited by enclosure, so
