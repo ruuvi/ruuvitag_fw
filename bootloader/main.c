@@ -90,7 +90,7 @@ int main(void)
 
     (void) NRF_LOG_INIT(NULL);
 
-    NRF_LOG_INFO("Inside boorloader/main\r\n");
+    NRF_LOG_INFO("Inside bootloader/main\r\n");
 
     leds_init();
     buttons_init();
