@@ -9,7 +9,7 @@
  * the file.
  *
  */
-
+/* 17 June 2018 added "bootloader" to log messages.
 /** @file
  *
  * @defgroup bootloader_secure main.c
@@ -36,7 +36,7 @@
 
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
-    NRF_LOG_ERROR("received a fault! id: 0x%08x, pc: 0x&08x\r\n", id, pc);
+    NRF_LOG_ERROR("bootloader received a fault! id: 0x%08x, pc: 0x&08x\r\n", id, pc);
     NVIC_SystemReset();
 }
 
@@ -44,7 +44,7 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 void app_error_handler_bare(uint32_t error_code)
 {
     (void)error_code;
-    NRF_LOG_ERROR("received an error: 0x%08x!\r\n", error_code);
+    NRF_LOG_ERROR("bootloader received an error: 0x%08x!\r\n", error_code);
     NVIC_SystemReset();
 }
 
@@ -90,7 +90,7 @@ int main(void)
 
     (void) NRF_LOG_INIT(NULL);
 
-    NRF_LOG_INFO("Inside main\r\n");
+    NRF_LOG_INFO("Inside bootloader/main\r\n");
 
     leds_init();
     buttons_init();
@@ -106,7 +106,7 @@ int main(void)
     nrf_bootloader_app_start(MAIN_APPLICATION_START_ADDR);
 
     // Should never be reached.
-    NRF_LOG_INFO("After main\r\n");
+    NRF_LOG_INFO("End of bootloader/main\r\n");
 }
 
 /**
