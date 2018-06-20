@@ -87,7 +87,7 @@ struct bme280_driver {
 
 extern struct bme280_driver bme280;
 
-enum BME280_MODE {
+typedef enum BME280_MODE {
 	BME280_MODE_SLEEP  = 0x00,
 	BME280_MODE_FORCED = 0x01,
 	BME280_MODE_NORMAL = 0x03
