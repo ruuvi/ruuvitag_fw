@@ -11,6 +11,6 @@
 ![NFC](images/nfc.png)
  * 1 Hz +4 dBm transmission on RAW mode
  * Consumes approximately 30 uA in RAW mode.
-![Profile](images/profile.png)
+![Profile](images/power_profile_2-2-2.png)
  * Theoretical lifetime is approximately 3 years in RAW mode.
  * Enter bootloader by holding "B" down while resetting, assuming you're running the "Full" hex which contains softdevice + bootloader + application.
