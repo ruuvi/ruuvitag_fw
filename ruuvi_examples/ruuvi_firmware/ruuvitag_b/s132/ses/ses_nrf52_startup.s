@@ -102,7 +102,7 @@ _vectors_end:
   reset_handler:
 
 #ifndef __NO_SYSTEM_INIT
-  ldr r0, =__SRAM_segment_end__
+  ldr r0, =__RAM_segment_end__
   mov sp, r0
   bl SystemInit
 #endif

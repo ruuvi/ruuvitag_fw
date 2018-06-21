@@ -14,7 +14,7 @@
     <ProgramSection alignment="4" load="Yes" runin=".fast_run" name=".fast" />
     <ProgramSection alignment="4" load="Yes" runin=".data_run" name=".data" />
     <ProgramSection alignment="4" load="Yes" runin=".tdata_run" name=".tdata" />
-    <ProgramSection alignment="4" load="No" name=".bootloaderSettings"/>
+    <ProgramSection alignment="4" load="No" place_from_segment_end="Yes" name=".bootloaderSettings"/>
   </MemorySegment>
     <MemorySegment name="RAM" start="$(RAM_PH_START)" size="$(RAM_PH_SIZE)">
     <ProgramSection load="no" name=".reserved_ram" start="$(RAM_PH_START)" size="$(RAM_START)-$(RAM_PH_START)" />

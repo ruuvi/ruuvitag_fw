@@ -15,6 +15,7 @@
       debug_target_connection="J-Link"
       linker_section_placement_file="$(StudioDir)/targets/Cortex_M/flash_placement.xml"
       linker_section_placement_macros="FLASH_PH_START=0x0;FLASH_PH_SIZE=0x80000;RAM_PH_START=0x20000000;RAM_PH_SIZE=0x10000;FLASH_START=0x1f000;FLASH_SIZE=0x56000;RAM_START=0x20002c38;RAM_SIZE=0xd3c8"
+      linker_section_placements_segments="FLASH RX 0x0 0x80000;RAM RWX 0x20000000 0x10000;uicr_bootloader_start_address RX 0x10001014 0x4"
       project_directory=""
       project_type="Executable" />
     <folder Name="Internal Files">
@@ -29,7 +30,7 @@
       debug_additional_load_file="/Users/ojousima/git/ruuvitag_fw/nRF5_SDK_12.3.0_d7731ad/components/softdevice/s132/hex/s132_nrf52_3.0.0_softdevice.hex"
       link_use_linker_script_file="No"
       linker_section_placement_file="flash_placement.xml"
-      linker_section_placement_macros="FLASH_START=0x1F000;SRAM_START=0x20002c38" />
+      linker_section_placement_macros="" />
     <folder Name="Application">
       <file file_name="../../../main.c" />
       <file file_name="../../../application_config.h" />
