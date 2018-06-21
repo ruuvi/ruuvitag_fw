@@ -14,9 +14,11 @@
     <ProgramSection alignment="4" load="Yes" runin=".fast_run" name=".fast" />
     <ProgramSection alignment="4" load="Yes" runin=".data_run" name=".data" />
     <ProgramSection alignment="4" load="Yes" runin=".tdata_run" name=".tdata" />
-    <ProgramSection alignment="4" load="No" place_from_segment_end="Yes" name=".bootloaderSettings"/>
   </MemorySegment>
-    <MemorySegment name="RAM" start="$(RAM_PH_START)" size="$(RAM_PH_SIZE)">
+  <MemorySegment name="BOOTLOADER_SETTINGS" start="0x0007F000" size="0x1000">
+    <ProgramSection alignment="4" load="No" name=".bootloaderSettings"/>
+  </MemorySegment>
+  <MemorySegment name="RAM" start="$(RAM_PH_START)" size="$(RAM_PH_SIZE)">
     <ProgramSection load="no" name=".reserved_ram" start="$(RAM_PH_START)" size="$(RAM_START)-$(RAM_PH_START)" />
     <ProgramSection alignment="0x100" load="No" name=".vectors_ram" start="$(RAM_START)" address_symbol="__app_ram_start__"/>
     <ProgramSection alignment="4" keep="Yes" load="No" name=".fs_data_run" address_symbol="__start_fs_data" end_symbol="__stop_fs_data" />
@@ -29,5 +31,8 @@
     <ProgramSection alignment="4" size="__HEAPSIZE__" load="No" name=".heap" />
     <ProgramSection alignment="8" size="__STACKSIZE__" load="No" place_from_segment_end="Yes" name=".stack" />
     <ProgramSection alignment="8" size="__STACKSIZE_PROCESS__" load="No" name=".stack_process" />
+  </MemorySegment>
+  <MemorySegment name="uicr_bootloader_start_address" start="0x10001014" size="0x4">
+    <ProgramSection alignment="4" keep="Yes" load="Yes" name=".uicr_bootloader_start_address" address_symbol="__start_uicr_bootloader_start_address" end_symbol="__stop_uicr_bootloader_start_address" start = "0x10001014" size="0x4" />
   </MemorySegment>
 </Root>
