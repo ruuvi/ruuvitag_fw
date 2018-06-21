@@ -14,7 +14,7 @@
       debug_start_from_entry_point_symbol="No"
       debug_target_connection="J-Link"
       linker_section_placement_file="$(StudioDir)/targets/Cortex_M/flash_placement.xml"
-      linker_section_placements_segments="FLASH RX 0x00000000 0x00080000;SRAM RWX 0x20000000 0x00010000"
+      linker_section_placement_macros="FLASH_PH_START=0x0;FLASH_PH_SIZE=0x80000;RAM_PH_START=0x20000000;RAM_PH_SIZE=0x10000;FLASH_START=0x1f000;FLASH_SIZE=0x56000;RAM_START=0x20002c38;RAM_SIZE=0xd3c8"
       project_directory=""
       project_type="Executable" />
     <folder Name="Internal Files">
