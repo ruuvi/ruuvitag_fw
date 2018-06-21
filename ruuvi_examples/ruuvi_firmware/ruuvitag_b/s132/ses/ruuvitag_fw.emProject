@@ -36,6 +36,7 @@
       gcc_cplusplus_language_standard="gnu++98"
       gcc_optimization_level="None"
       link_use_linker_script_file="No"
+      linker_output_format="hex"
       linker_printf_fmt_level="long"
       linker_printf_width_precision_supported="Yes"
       linker_section_placement_file="$(ProjectDir)/flash_placement.xml"
