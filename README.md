@@ -129,7 +129,7 @@ For more details, please see [licenses.md](<licenses.md>).
 ## Developing Ruuvi Firmware
 Instructions below are tested using OS X and Ubuntu, but basically any Unix distribution (or even Windows) should be fine. Compilation works also using the *Bash on Ubuntu on Windows* -feature added in the July 2016 update of Windows 10 if you follow the Ubuntu directions. If you've compiled and flashed successfully (or unsuccessfully), please identify yourself on our Slack :)
 
-### Prerequisites (to compile):
+### Prerequisites (to compile with ARMGCC):
 
 The project currently uses the Nordic nRF52 SDK version 12.3.0 (downloaded in the `make` process)
 and thus requires the GNU ARM Embedded Toolchain version 4.9 Q3 2015 (aka 4.9.3) for compiling:
@@ -156,6 +156,12 @@ when using another destination than the `/usr/local` shown above.
 Note that the nRF52 SDK will be downloaded in `make`, so only after this will
 the `$SDK/components/toolchain/gcc/` folder exist in the project (typically
 as the `nRF5_SDK_12.3.0_d7731ad/components/toolchain/gcc/` folder).
+
+### Prerequisites (to compile with Segger Embedded Studio):
+Since Q4 of 2017 Segger Embedded Studio has been free (as in beer) to use with Nordic Semiconductor products
+such as nRF52. You can download latest version (>3.40) from Segger website. 
+
+You'll need to download and unzip the Nordic SDK 12.3 as above. Only Ruuvi Firmware is currently supported with SES, open folder `ruuvi_examples/ruuvi_firmware/ruuvitag_b/ses`To find the project file.
 
 ### Prerequisites (to create DFU distribution .zip packages)
 
