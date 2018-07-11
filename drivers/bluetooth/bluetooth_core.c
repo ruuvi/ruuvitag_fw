@@ -150,7 +150,7 @@ void bluetooth_name_postfix_add(char* name_base, size_t base_length)
 {
     uint32_t mac0 =  NRF_FICR->DEVICEADDR[0]&0xFFFF;
     char postfix[5] = { 0 };
-    snprintf(postfix, 5, "%04x", (mac0));
+    snprintf(postfix, 5, "%04x", (unsigned int)(mac0));
     // ok to write trailing null, altough unnecessary if the base pointer includes it already
     memcpy(name_base + base_length, postfix, sizeof(postfix));
 }

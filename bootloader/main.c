@@ -48,6 +48,13 @@ void app_error_handler_bare(uint32_t error_code)
     NVIC_SystemReset();
 }
 
+void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name)
+{
+    (void)error_code;
+    NRF_LOG_ERROR("received an error: 0x%08x!\r\n", error_code);
+    NVIC_SystemReset();
+}
+
 
 /**@brief Function for initialization of LEDs.
  */
