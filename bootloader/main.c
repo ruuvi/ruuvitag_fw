@@ -9,7 +9,7 @@
  * the file.
  *
  */
-/* 17 June 2018 added "bootloader" to log messages.
+/* 17 June 2018 added "bootloader" to log messages. */
 /** @file
  *
  * @defgroup bootloader_secure main.c
