@@ -75,3 +75,7 @@ nRF5_SDK_12.2.*
 nRF5_SDK_12.3.*
 nRF5_SDK_13.*
 nRF5_SDK_14.*
+
+# SES output
+Output
+*.jlink
