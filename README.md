@@ -159,7 +159,7 @@ as the `nRF5_SDK_12.3.0_d7731ad/components/toolchain/gcc/` folder).
 
 ### Prerequisites (to compile with Segger Embedded Studio):
 Since Q4 of 2017 Segger Embedded Studio has been free (as in beer) to use with Nordic Semiconductor products
-such as nRF52. You can download latest version (>3.40) from Segger website. 
+such as nRF52. You can download latest version (>3.40) from [Segger website](https://www.segger.com/products/development-tools/embedded-studio/). 
 
 You'll need to download and unzip the Nordic SDK 12.3 as above. Only Ruuvi Firmware is currently supported with SES, open folder `ruuvi_examples/ruuvi_firmware/ruuvitag_b/ses`To find the project file.
 
@@ -233,7 +233,7 @@ For more help, please join [Ruuvi Slack](http://slack.ruuvi.com).
 # Flashing
 
 ## With Segger J-Link
-If the device is empty (no SoftDevice S132 + bootloader flashed), you need to flash using SWD interface. The easiest way is to use nRF52 development kit (PCA10036 or PCA10040) with embedded Segger. Steps:
+If the device is empty (no SoftDevice S132 + bootloader flashed), you need to flash using SWD interface. The easiest way is to use nRF52 development kit (PCA10040) with embedded Segger. Steps:
 
 Download and install latest [J-Link](https://www.segger.com/jlink-software.html)
 
@@ -243,11 +243,11 @@ Start the J-Link from command line by typing:
 
 SoftDevice is Nordic Semiconductor's Bluetooth Smart (or ANT) protocol stack. Sources are super secret, but the latest version is always bundled with the SDK. So, let's flash it:
 
-`J-Link>loadfile nRF5_SDK_11.0.0_89a8197/components/softdevice/s132/hex/s132_nrf52_2.0.0_softdevice.hex`
+`J-Link>loadfile nRF5_SDK_12.3.0_d7731ad/components/softdevice/s132/hex/s132_nrf52_2.0.0_softdevice.hex`
 
-After the SoftDevice is flashed successfully, flash the bootloader:
+After the SoftDevice is flashed successfully, flash the [bootloader](https://github.com/ruuvi/ruuvitag_fw/releases/download/1.3.6.1/ruuvitag_b_bootloader_1.0.0.hex):
 
-`J-Link>loadfile bootloader/ruuvitag_b2/dual_bank_ble_s132/armgcc/_build/ruuvitag_b2_bootloader.hex`
+`J-Link>loadfile ruuvitag_b_bootloader_1.0.0.hex`
 
 ## With nrfjprog
 Get nrfjprog from [Nordic's website](http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.tools/dita/tools/nrf5x_command_line_tools/nrf5x_installation.html).
