@@ -27,6 +27,7 @@
 #include "nrf_delay.h"
 
 #include "bluetooth_config.h"
+#include "bluetooth_application_config.h"
 #include "ble_bulk_transfer.h"
 #include "eddystone.h"
 #include "ruuvi_endpoints.h"

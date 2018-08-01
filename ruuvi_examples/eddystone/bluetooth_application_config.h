@@ -8,9 +8,9 @@
 #define APPLICATION_ADV_INTERVAL        500                             /**< ms **/
 #define APP_TX_POWER                    4                               /**< dBm **/
 
-#define INIT_FWREV                          "Eddystone_2.2.1"                             /**< Github tag **/
+#define INIT_FWREV                          "Eddystone_2.3.0"                             /**< Github tag **/
 #define INIT_SWREV                          INIT_FWREV                                    /**< Practicially same thing, as there is no separate SW **/
 
-#define APPLICATION_GATT 1
+#define APP_GATT_PROFILE_ENABLED 1
 
 #endif
