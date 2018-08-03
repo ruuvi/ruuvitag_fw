@@ -235,9 +235,6 @@ init_err_code_t init_sensors(void)
     err_code |= init_lis2dh12();
     //init environmental sensor bme280
     err_code |= init_bme280();
-    //init chain channels
-    chain_handler_init();
-    set_chain_handler(chain_handler);
 
     return err_code;
 }
@@ -264,7 +261,6 @@ init_err_code_t init_watchdog(watchdog_event_handler_t handler)
   err_code |= watchdog_init(handler);
   watchdog_enable();
   return err_code;
-  
 }
 
 /**

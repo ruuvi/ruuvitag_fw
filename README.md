@@ -92,7 +92,7 @@ software packages is split in two parts: dfu_public_key.c and your private key i
 More details on signing and keys are explained on DFU package creation section.
 
 ### BSP
-BSP folder contains "Board Service Packages" which provide abstraction and portability between different boards. If you're interested in creating a custom board, create a custom board header file such as "ruuvitag\_b3.h" and add your board header file to "custom\_boards.h".
+BSP folder contains "Board Support Packages" which provide abstraction and portability between different boards. If you're interested in creating a custom board, create a custom board header file such as "ruuvitag\_b3.h" and add your board header file to "custom\_boards.h".
 
 ### Builds
 Builds are in the Github [project releases](https://github.com/ruuvi/ruuvitag_fw/releases). The released packages are generally tested, but you should rely on [RuuviLab](https://lab.ruuvi.com/dfu/) if you're end-user rather
@@ -129,7 +129,7 @@ For more details, please see [licenses.md](<licenses.md>).
 ## Developing Ruuvi Firmware
 Instructions below are tested using OS X and Ubuntu, but basically any Unix distribution (or even Windows) should be fine. Compilation works also using the *Bash on Ubuntu on Windows* -feature added in the July 2016 update of Windows 10 if you follow the Ubuntu directions. If you've compiled and flashed successfully (or unsuccessfully), please identify yourself on our Slack :)
 
-### Prerequisites (to compile):
+### Prerequisites (to compile with ARMGCC):
 
 The project currently uses the Nordic nRF52 SDK version 12.3.0 (downloaded in the `make` process)
 and thus requires the GNU ARM Embedded Toolchain version 4.9 Q3 2015 (aka 4.9.3) for compiling:
@@ -156,6 +156,12 @@ when using another destination than the `/usr/local` shown above.
 Note that the nRF52 SDK will be downloaded in `make`, so only after this will
 the `$SDK/components/toolchain/gcc/` folder exist in the project (typically
 as the `nRF5_SDK_12.3.0_d7731ad/components/toolchain/gcc/` folder).
+
+### Prerequisites (to compile with Segger Embedded Studio):
+Since Q4 of 2017 Segger Embedded Studio has been free (as in beer) to use with Nordic Semiconductor products
+such as nRF52. You can download latest version (>3.40) from [Segger website](https://www.segger.com/products/development-tools/embedded-studio/). 
+
+You'll need to download and unzip the Nordic SDK 12.3 as above. Only Ruuvi Firmware is currently supported with SES, open folder `ruuvi_examples/ruuvi_firmware/ruuvitag_b/ses`To find the project file.
 
 ### Prerequisites (to create DFU distribution .zip packages)
 
@@ -227,7 +233,7 @@ For more help, please join [Ruuvi Slack](http://slack.ruuvi.com).
 # Flashing
 
 ## With Segger J-Link
-If the device is empty (no SoftDevice S132 + bootloader flashed), you need to flash using SWD interface. The easiest way is to use nRF52 development kit (PCA10036 or PCA10040) with embedded Segger. Steps:
+If the device is empty (no SoftDevice S132 + bootloader flashed), you need to flash using SWD interface. The easiest way is to use nRF52 development kit (PCA10040) with embedded Segger. Steps:
 
 Download and install latest [J-Link](https://www.segger.com/jlink-software.html)
 
@@ -237,11 +243,11 @@ Start the J-Link from command line by typing:
 
 SoftDevice is Nordic Semiconductor's Bluetooth Smart (or ANT) protocol stack. Sources are super secret, but the latest version is always bundled with the SDK. So, let's flash it:
 
-`J-Link>loadfile nRF5_SDK_11.0.0_89a8197/components/softdevice/s132/hex/s132_nrf52_2.0.0_softdevice.hex`
+`J-Link>loadfile nRF5_SDK_12.3.0_d7731ad/components/softdevice/s132/hex/s132_nrf52_2.0.0_softdevice.hex`
 
-After the SoftDevice is flashed successfully, flash the bootloader:
+After the SoftDevice is flashed successfully, flash the [bootloader](https://github.com/ruuvi/ruuvitag_fw/releases/download/1.3.6.1/ruuvitag_b_bootloader_1.0.0.hex):
 
-`J-Link>loadfile bootloader/ruuvitag_b2/dual_bank_ble_s132/armgcc/_build/ruuvitag_b2_bootloader.hex`
+`J-Link>loadfile ruuvitag_b_bootloader_1.0.0.hex`
 
 ## With nrfjprog
 Get nrfjprog from [Nordic's website](http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.tools/dita/tools/nrf5x_command_line_tools/nrf5x_installation.html).

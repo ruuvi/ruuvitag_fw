@@ -27,6 +27,7 @@
 #include "nrf_delay.h"
 
 #include "bluetooth_config.h"
+#include "bluetooth_application_config.h"
 #include "ble_bulk_transfer.h"
 #include "eddystone.h"
 #include "ruuvi_endpoints.h"
@@ -143,14 +144,15 @@ static ble_advdata_manuf_data_t m_manufacturer_data;
 /**
  * Generate name "BASEXXXX", where Base is human-readable (i.e. Ruuvi) and XXXX is  last 4 chars of mac address
  *
- * @param name_base character array with the base name and 4 extra chars of space
+ * @param name_base character array with the base name and 5 extra chars of space (including trailing null)
  * @base_length length of name base, 5 for "RuuviXXXX"
  */
 void bluetooth_name_postfix_add(char* name_base, size_t base_length)
 {
-    unsigned int addr0 =  NRF_FICR->DEVICEADDR[0];
-    char postfix[4] = { 0 };
-    sprintf(postfix,"%04x", addr0&0xFFFF);
+    uint32_t mac0 =  NRF_FICR->DEVICEADDR[0]&0xFFFF;
+    char postfix[5] = { 0 };
+    snprintf(postfix, 5, "%04x", (unsigned int)(mac0));
+    // ok to write trailing null, altough unnecessary if the base pointer includes it already
     memcpy(name_base + base_length, postfix, sizeof(postfix));
 }
  
@@ -163,7 +165,7 @@ ret_code_t bluetooth_set_name(const char* name_base, size_t name_length)
   if(name_length > 15) { return NRF_ERROR_INVALID_PARAM; }
   bool was_advertising = advertising;
   if(advertising) { bluetooth_advertising_stop(); }
-  // base + 4 hex chars
+  // base + 4 hex chars, leave space for trailing null
   char name[20] = { 0 };
   memcpy(name, name_base, name_length);
   bluetooth_name_postfix_add(name, name_length);
