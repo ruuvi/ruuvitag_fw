@@ -63,22 +63,24 @@ void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32
  *  @param tx_pwr power in dBm, -40 ... 16
  *
  */
-void encodeToRawFormat5(uint8_t* data_buffer, bme280_data_t* environmental, acceleration_t* acceleration, uint16_t acceleration_events, uint16_t vbatt, int8_t tx_pwr)
+void encodeToRawFormat5(uint8_t* data_buffer, const bme280_data_t* environmental, const acceleration_t* acceleration, uint16_t acceleration_events, uint16_t vbatt, int8_t tx_pwr)
 {
     static uint32_t packet_counter = 0;
     data_buffer[0] = RAW_FORMAT_2;
-    environmental->temperature *= 2; //Spec calls for 0.005 degree resolution, bme280 gives 0.01
-    data_buffer[1] = (environmental->temperature)>>8;
-    data_buffer[2] = (environmental->temperature)&0xFF;
+    int32_t temperature = environmental->temperature;
+    temperature *= 2; //Spec calls for 0.005 degree resolution, bme280 gives 0.01
+    data_buffer[1] = (temperature)>>8;
+    data_buffer[2] = (temperature)&0xFF;
     uint32_t humidity = environmental->humidity;
     humidity *= 400; 
     humidity /= 1024;
     data_buffer[3] = humidity>>8;
     data_buffer[4] = humidity&0xFF;
     NRF_LOG_DEBUG("Humidity is %d\r\n", humidity/400);
-    environmental->pressure = (uint16_t)((environmental->pressure >> 8) - 50000); //Scale into pa, Shift by -50000 pa as per Ruu.vi interface.
-    data_buffer[5] = (environmental->pressure)>>8;
-    data_buffer[6] = (environmental->pressure)&0xFF;
+    uint32_t pressure = environmental->pressure;
+    pressure = (uint16_t)((pressure >> 8) - 50000); //Scale into pa, Shift by -50000 pa as per Ruu.vi interface.
+    data_buffer[5] = (pressure)>>8;
+    data_buffer[6] = (pressure)&0xFF;
     data_buffer[7] = (acceleration->x)>>8;
     data_buffer[8] = (acceleration->x)&0xFF;
     data_buffer[9] = (acceleration->y)>>8;

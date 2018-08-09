@@ -67,7 +67,7 @@ void encodeToSensorDataFormat(uint8_t* data_buffer, ruuvi_sensor_t* data);
  *  @param acceleration_events counter of acceleration events. Events are configured by application, "value exceeds 1.1 G" recommended.
  *  @param vbatt Voltage of battery in millivolts
  */
-void encodeToRawFormat5(uint8_t* data_buffer, bme280_data_t* environmental, acceleration_t* acceleration, uint16_t acceleration_events, uint16_t vbatt, int8_t tx_pwr);
+void encodeToRawFormat5(uint8_t* data_buffer, const bme280_data_t* environmental, const acceleration_t* acceleration, uint16_t acceleration_events, uint16_t vbatt, int8_t tx_pwr);
 
 
 /**
