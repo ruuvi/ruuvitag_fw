@@ -423,6 +423,7 @@ int main(void)
 //        04 13 FE 7D 7D 2B 75 1D 1D 0B AD 10 00 08 41 00 00 00 00 00
 //                        +  u I did   bad sssss vv vv   ssss is init status example BATTERY_FAILED_INIT; vv vv=vbat=0x0841 ie 2.113v
   bluetooth_set_manufacturer_data(data_buffer, sizeof(data_buffer)); nrf_delay_ms(500u); // keep sending this for a while
+  // sprintf(NFCmsg, "init_status:%04x",init_status); ...
                      }            
 
   // Enter main loop. spinning here interrupts will bring us out frequently
