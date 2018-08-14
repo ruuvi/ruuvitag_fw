@@ -1,7 +1,14 @@
 /** RuuviTag Environment-station  */
-// Version 2.1.1 August 01, 2018
+// Version 2.2.3 August 01, 2018; 
+//  Rewrite initalization continue even if there are failures and announce failure status by may means
 
-// STDLIB
+/* Copyright (c) 2015 Nordic Semiconductor. All Rights Reserved. 
+ * The information contained herein is property of Nordic Semiconductor ASA.
+ * Terms and conditions of usage are described in detail in 
+ * NORDIC SEMICONDUCTOR STANDARD SOFTWARE LICENSE AGREEMENT.
+ * Licensees are granted free, non-transferable use of the information. 
+ NO WARRANTY of ANY KIND is provided. This heading must NOT be removed from the file. */
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <math.h>
@@ -17,6 +24,7 @@
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
 
+//#define NRF_LOG_ENABLED 1   // log code only compiled if ENABLED 
 #define NRF_LOG_MODULE_NAME "MAIN"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -45,7 +53,7 @@
 #include "init.h"
 
 // Configuration
-#include "bluetooth_config.h"
+#include "bluetooth_config.h"      // including  REVision, intervals, APP_TX_POWER
 
 // Constants
 #define DEAD_BEEF               0xDEADBEEF    //!< Value used as error code on stack dump, can be used to identify stack location on stack unwind.
@@ -67,7 +75,6 @@ static uint16_t init_status = 0;   // combined status of all initalizations.  Ho
 #define BLE_FAILED_INIT             0x0020
 #define TIMER_FAILED_INIT           0x0040
 #define RTC_FAILED_INIT             0x0080
-#define PIN_INT_FAILED_INIT         0x0100
 #define PIN_ENA_FAILED_INIT         0x0200
 #define ACCEL_INT_FAILED_INIT       0x0400
 #define ACC_INT_FAILED_INIT         0x0800
@@ -313,51 +320,41 @@ ret_code_t lis2dh12_int2_handler(const ruuvi_standard_message_t message)
 int main(void)
 {
  init_leds();                      // LEDs first (they're easy and cannot fail)  drivers/init/init.c ( RED got set up earlier)
- nrf_delay_ms(1000u);              // sit here for a second with LEDs off
 
-  // Announce version
- for ( int16_t i=0; i<3; i++){   // 3 segment version
-    for ( int16_t v=0; v < version[i]; v++){RED_LED_ON;nrf_delay_ms(100u);RED_LED_OFF; nrf_delay_ms(500u); }
-    nrf_delay_ms(1000u);  }
-  
-
-  // start watchdog now incase some initalization hangs up
+// start watchdog now incase some initalization hangs up. Needs further investigation                             ToDo (_)
 //  init_watchdog(NULL);  // watchdog_default_handler ONLY LOG_ERROR and returns to ??? 
                // do something exciting , wait a few seconds and then keep going (i.e. never permit RESET!)       ToDo (_)
-
-//for ( int16_t i=0; i<13; i++){ RED_LED_ON; nrf_delay_ms(100u); RED_LED_OFF; nrf_delay_ms(200u); } // we got this far DEBUGING
 
   if( init_log() )                                                              init_status |=LOG_FAILED_INIT;       
    else NRF_LOG_DEBUG("LOG initalized \r\n"); // subsequent initalizations assume log is working
 
-
   battery_voltage_init();  // function with no return code (NEEDS rewrite)
-   uint16_t vbat= getBattery();
-   if(      vbat < BATTERY_MIN_V )                                             init_status |=BATTERY_FAILED_INIT;  
+  uint16_t vbat= getBattery();
+  if(      vbat < BATTERY_MIN_V )                                               init_status |=BATTERY_FAILED_INIT;  
     else NRF_LOG_DEBUG("BATTERY initalized \r\n"); 
 
  if(init_sensors() == NRF_SUCCESS )  {   model_plus = true; // really need to be one at a time!!
     NRF_LOG_DEBUG("Sensors initalized \r\n");  }
 
-  set_nfc_callback(app_nfc_callback);   // can this fail?
+  set_nfc_callback(app_nfc_callback);
 //Init NFC ASAP in case we're waking from deep sleep via NFC (todo)
- if( init_nfc() )                                                               init_status |= NFC_FAILED_INIT ; 
-  else NRF_LOG_DEBUG("NFC init \r\n");
+  if( init_nfc() )                                                               init_status |= NFC_FAILED_INIT ; 
+   else NRF_LOG_DEBUG("NFC init \r\n");
+   // outputs ID:DEVICEID,MAC:DEVICEADDR, SW:REVision
 
-// Start (?) interrupts.  can this fail?
- if( pin_interrupt_init() )                                                     init_status |= PIN_INT_FAILED_INIT ; 
-
- if( pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler)  )
-                                                                                init_status |= BUTTON_FAILED_INIT;
+  pin_interrupt_init() 
+    
+  if( pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler)  )
+                                                                                 init_status |= BUTTON_FAILED_INIT;
 // Initialize BLE Stack. Required for timer operation.
- if(  init_ble() )                                                              init_status |= BLE_FAILED_INIT;  
+  if(  init_ble() )                                                              init_status |= BLE_FAILED_INIT;  
   bluetooth_configure_advertisement_type(APPLICATION_ADVERTISEMENT_TYPE);
   bluetooth_tx_power_set(BLE_TX_POWER);
   bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP);
 
-  if( init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )   init_status |= TIMER_FAILED_INIT;
+  if( init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )    init_status |= TIMER_FAILED_INIT;
 
-  if( init_rtc() )                                                              init_status |= RTC_FAILED_INIT; 
+  if( init_rtc() )                                                               init_status |= RTC_FAILED_INIT; 
    NRF_LOG_DEBUG("RTC initalized \r\n"); // Used only for button debounce
 
   if (model_plus)    // Initialize lis2dh12 and BME280 
@@ -387,12 +384,11 @@ int main(void)
     NRF_LOG_DEBUG("BME280 configuration done \r\n");                            // HOW TO init_status |= BME_FAILED_INIT; (_)
   }   
 
-    // show to production QA and anyone else who's watching
-    if (init_status ) { NRF_LOG_WARNING (" -- Initalization error :  %d \r\n", init_status);
+  // show to production QA and anyone else who's watching
+  if (init_status ) { NRF_LOG_WARNING (" -- Initalization error :  %d \r\n", init_status);
                         for ( int16_t i=0; i<13; i++){ RED_LED_ON; nrf_delay_ms(100u); RED_LED_OFF; nrf_delay_ms(200u); }
                         nrf_delay_ms(1000u);  }
  
-
   if (model_plus) GREEN_LED_ON;    // will be turned off in power_manage.
 
   nrf_delay_ms(MAIN_LOOP_INTERVAL_RAW + 100); // Delay before advertising so we get valid data on first packet
@@ -410,7 +406,7 @@ int main(void)
 //  FE 17 16 AA FE 10 F6 03 72 75 75 2E 76 69 2F 23 10 00 00 00
 //                          r  u  u  .  v  i  /  #  ^^^^^--init_status example BATTERY_FAILED_INIT
 
-  // like format 03  too
+  // like format 03
    data_buffer[0]   =   0x13 ;                              // NOT SENSOR_TAG_DATA_FORMAT 03;  (but could be intreperted as such)
    data_buffer[1]   =    254;                                                          // NOT data->humidity;
    data_buffer[2]   =    125;                data_buffer[3]  =    125;                 // NOT data->temperature   
@@ -419,7 +415,7 @@ int main(void)
    data_buffer[8]   =  0x0BAD       >>8;     data_buffer[9]  =   0x0BAD      & 0xFF;   // NOT accy                     bad
    data_buffer[10]  = init_status   >>8;     data_buffer[11] =  init_status  & 0xFF;   // NOT accz                xx xx
    data_buffer[12]  =    vbat       >>8;     data_buffer[13] =    vbat       & 0xFF;
-//  from raspberry pi  
+// Use this to view packet using command line utilities 
 //      export bdaddr='zz yy xx ww vv uu' MAC address least Significant byte FIRST
 //      hcidump --raw |  grep --line-buffered --after-context=2  "$bdaddr"
 //      > 04 3E 2B 02 01 00 01 C2 24 68 3C 10 C7 1F 02 01 06 1B FF 99
@@ -437,8 +433,3 @@ int main(void)
     power_manage();         // calls sd_app_evt_wait
   }
 }
-
-
-
-
-/* vim: set columns=140: */
