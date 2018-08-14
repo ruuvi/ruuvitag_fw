@@ -342,7 +342,7 @@ int main(void)
    else NRF_LOG_DEBUG("NFC init \r\n");
    // outputs ID:DEVICEID,MAC:DEVICEADDR, SW:REVision
 
-  pin_interrupt_init() 
+  pin_interrupt_init(); 
     
   if( pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler)  )
                                                                                  init_status |= BUTTON_FAILED_INIT;
