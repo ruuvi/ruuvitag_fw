@@ -96,7 +96,7 @@ BSP folder contains "Board Support Packages" which provide abstraction and porta
 
 ### Builds
 Builds are in the Github [project releases](https://github.com/ruuvi/ruuvitag_fw/releases). The released packages are generally tested, but you should rely on [RuuviLab](https://lab.ruuvi.com/dfu/) if you're end-user rather
-than developer.
+than a developer.
 
 ### Drivers
 Drivers folder contains the peripheral drivers such as a driver for SPI as well as drives for sensors on PCB. 
@@ -157,6 +157,8 @@ Note that the nRF52 SDK will be downloaded in `make`, so only after this will
 the `$SDK/components/toolchain/gcc/` folder exist in the project (typically
 as the `nRF5_SDK_12.3.0_d7731ad/components/toolchain/gcc/` folder).
 
+You also should download updated [Softdevice 3.1.0](https://www.nordicsemi.com/eng/nordic/Products/nRF52832/S132-SD-v3/56261) from Nordic Semiconductor, SDK ships with 3.0.0
+
 ### Prerequisites (to compile with Segger Embedded Studio):
 Since Q4 of 2017 Segger Embedded Studio has been free (as in beer) to use with Nordic Semiconductor products
 such as nRF52. You can download latest version (>3.40) from [Segger website](https://www.segger.com/products/development-tools/embedded-studio/). 
@@ -211,7 +213,7 @@ nrfutil pkg generate --debug-mode --application _build/ruuvi_firmware.hex --hw-v
 ```
 
 Debug mode skips various version checks which is useful for development. Packages have to be signed,
-RuuviTag ship with bootloader that accepts packages signed with the `keys/ruuvi_open_private.pem` key.
+RuuviTag ships with [a debug bootloader](https://github.com/ruuvi/ruuvitag_fw/releases/download/1.3.6.1/ruuvitag_b_bootloader_1.0.0.hex) that accepts packages signed with the `keys/ruuvi_open_private.pem` key. 
 
 More examples and details can be found at [nrfutil repository](https://github.com/NordicSemiconductor/pc-nrfutil).
 
@@ -243,7 +245,9 @@ Start the J-Link from command line by typing:
 
 SoftDevice is Nordic Semiconductor's Bluetooth Smart (or ANT) protocol stack. Sources are super secret, but the latest version is always bundled with the SDK. So, let's flash it:
 
-`J-Link>loadfile nRF5_SDK_12.3.0_d7731ad/components/softdevice/s132/hex/s132_nrf52_2.0.0_softdevice.hex`
+`J-Link>loadfile nRF5_SDK_12.3.0_d7731ad/components/softdevice/s132/hex/s132_nrf52_3.0.0_softdevice.hex`
+
+*Note* You might also want to update the softdevice to 3.1.0.
 
 After the SoftDevice is flashed successfully, flash the [bootloader](https://github.com/ruuvi/ruuvitag_fw/releases/download/1.3.6.1/ruuvitag_b_bootloader_1.0.0.hex):
 
@@ -279,3 +283,21 @@ https://github.com/NordicSemiconductor/IOS-nRF-Toolbox
 7. Press DFU OTA button
 8. After completed, press it again! And again! No more cables needed ^^
 9. Now you can update SoftDevice and/or bootloader and/or application using DFU OTA. Cool, huh?
+
+# Versioning
+
+## 1.x
+RuuviTags ship with 1.x version firmware, currently 1.2.12. 
+The firmware is built on Nordic SDK 12.3 and uses Softdevice S132 v3.1.0.
+The tag does not have GATT connectability and it broadcasts in RAWv1 mode by default.
+Source code is in v1-backports branch
+
+## 2.x
+2.x branch has some experimental features, such as GATT connection. 
+The firmware broadcasts in RAWv2 format by default.
+The firmware is built on Nordic SDK 12.3 and uses Softdevice S132 v3.1.0, generally switching between 
+1.x and 2.x applications is easy.
+
+## 3.x
+3.x firmware is a complete rewrite of Ruuvi code, and builds on top of Nordic SDK15 / S132 6.x
+3.x is currently at alpha stage and it can be downloaded from https://github.com/ruuvi/ruuvi.firmware.c
