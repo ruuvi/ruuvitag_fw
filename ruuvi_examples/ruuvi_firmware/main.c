@@ -91,7 +91,7 @@ static uint8_t data_buffer[RAW_DATA_LENGTH] = { 0 };
 static bool model_plus = false;          // Flag for sensors available
 static bool highres = true;              // Flag for used mode
 static bool fast_advertising = true;     // Connectable mode
-static bool fast_advertising_start = 0;  // Timestamp of when tag became connectable
+static uint64_t fast_advertising_start = 0;  // Timestamp of when tag became connectable
 static uint64_t debounce = false;        // Flag for avoiding double presses
 static uint16_t acceleration_events = 0; // Number of times accelerometer has triggered
 
@@ -144,6 +144,8 @@ void change_mode(void* data, uint16_t length)
 static void become_connectable(void* data, uint16_t length)
 {
   fast_advertising_start = millis();
+  fast_advertising = true;
+  bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP);
   bluetooth_configure_advertisement_type(STARTUP_ADVERTISEMENT_TYPE);
   bluetooth_apply_configuration();
 }
@@ -158,10 +160,7 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
   //Change mode on button press
   //Use scheduler, do not use peripherals in interrupt conext (SPI write halts)
   GREEN_LED_ON;
-  RED_LED_ON;
-
-  bluetooth_apply_configuration();
-  
+  RED_LED_ON;  
   app_sched_event_put (NULL, 0, change_mode);
   app_sched_event_put (NULL, 0, become_connectable);
 
@@ -190,8 +189,8 @@ void app_nfc_callback(void* p_context, nfc_t2t_event_t event, const uint8_t* p_d
     break;
     case NFC_T2T_EVENT_FIELD_OFF:
     NRF_LOG_INFO("NFC Field lost \r\n");
-    bluetooth_apply_configuration();
     app_sched_event_put (NULL, 0, reinit_nfc);
+    app_sched_event_put (NULL, 0, become_connectable);
     break;
     case NFC_T2T_EVENT_DATA_READ:
     NRF_LOG_INFO("Data read\r\n");
@@ -206,15 +205,15 @@ void app_nfc_callback(void* p_context, nfc_t2t_event_t event, const uint8_t* p_d
 static void power_manage(void)
 {
   // Clear both leds before sleep.
-  nrf_gpio_pin_set(LED_GREEN);
-  nrf_gpio_pin_set(LED_RED);
+  GREEN_LED_OFF;
+  RED_LED_OFF;
 
   uint32_t err_code = sd_app_evt_wait();
   APP_ERROR_CHECK(err_code);
 
   // Signal mode by led color.
-  if (highres) { nrf_gpio_pin_clear(LED_RED); }
-  else { nrf_gpio_pin_clear(LED_GREEN); }
+  if (highres) { RED_LED_ON; }
+  else { GREEN_LED_ON; }
 }
 
 
@@ -236,7 +235,7 @@ void main_timer_handler(void * p_context)
   lis2dh12_sensor_buffer_t buffer;
   int32_t acc[3] = {0};
 
-  if (fast_advertising && (millis() - fast_advertising_start > ADVERTISING_STARTUP_PERIOD))
+  if (fast_advertising && ((millis() - fast_advertising_start) > ADVERTISING_STARTUP_PERIOD))
   {
     fast_advertising = false;
     bluetooth_configure_advertisement_type(APPLICATION_ADVERTISEMENT_TYPE);
@@ -336,31 +335,32 @@ int main(void)
 {
    // LEDs first (they're easy and cannot fail)  drivers/init/init.c
   init_leds();
+  RED_LED_ON;
+
+  if( init_log() ) { init_status |=LOG_FAILED_INIT; }
+  else { NRF_LOG_INFO("LOG initalized \r\n"); } // subsequent initalizations assume log is working
 
   // start watchdog now incase program hangs up.
   // watchdog_default_handler logs error and resets the tag.
   init_watchdog(NULL);
 
-  if( init_log() ) { init_status |=LOG_FAILED_INIT; }
-  else { NRF_LOG_DEBUG("LOG initalized \r\n"); } // subsequent initalizations assume log is working
-
   // Battery voltage initialization cannot fail under any reasonable circumstance.
   battery_voltage_init(); 
   uint16_t vbat = getBattery();
   if( vbat < BATTERY_MIN_V ) { init_status |=BATTERY_FAILED_INIT; }
-  else NRF_LOG_DEBUG("BATTERY initalized \r\n"); 
+  else NRF_LOG_INFO("BATTERY initalized \r\n"); 
 
   if(init_sensors() == NRF_SUCCESS )
   {
    model_plus = true;
-   NRF_LOG_DEBUG("Sensors initalized \r\n");  
+   NRF_LOG_INFO("Sensors initalized \r\n");  
  }
 
  // Init NFC ASAP in case we're waking from deep sleep via NFC (todo)
  // outputs ID:DEVICEID ,MAC:DEVICEADDR, SW:REVision
  set_nfc_callback(app_nfc_callback);
  if( init_nfc() ) { init_status |= NFC_FAILED_INIT; } 
- else { NRF_LOG_DEBUG("NFC init \r\n"); }
+ else { NRF_LOG_INFO("NFC init \r\n"); }
 
  pin_interrupt_init(); 
 
@@ -381,7 +381,7 @@ if( init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )
 }
 
 if( init_rtc() ) { init_status |= RTC_FAILED_INIT; }
-else { NRF_LOG_DEBUG("RTC initalized \r\n"); }
+else { NRF_LOG_INFO("RTC initalized \r\n"); }
 
   // Initialize lis2dh12 and BME280 - TODO: Differentiate LIS2DH12 and BME280 
 if (model_plus)    
@@ -402,7 +402,7 @@ if (model_plus)
     lis2dh12_set_resolution(LIS2DH12_RESOLUTION);
 
     lis2dh12_set_activity_interrupt_pin_2(LIS2DH12_ACTIVITY_THRESHOLD);
-    NRF_LOG_DEBUG("Accelerameter configuration done \r\n");
+    NRF_LOG_INFO("Accelerameter configuration done \r\n");
 
             // oversampling must be set for each used sensor.
     bme280_set_oversampling_hum  (BME280_HUMIDITY_OVERSAMPLING);
@@ -411,7 +411,7 @@ if (model_plus)
     bme280_set_iir(BME280_IIR);
     bme280_set_interval(BME280_DELAY);
     bme280_set_mode(BME280_MODE_NORMAL);
-    NRF_LOG_DEBUG("BME280 configuration done \r\n");
+    NRF_LOG_INFO("BME280 configuration done \r\n");
   }   
 
   // Log errors, add a note to NFC, blink RED to visually indicate the problem
@@ -427,15 +427,17 @@ if (model_plus)
       nrf_delay_ms(500u); 
     }
   }
-  nrf_delay_ms(1000u);
   
-  // will be turned off in power_manage.
-  if (model_plus)
+  // Turn green led on if model+ with no errors.
+  // Power manage turns led off
+  if (model_plus & !init_status)
   {
     GREEN_LED_ON;
   }
 
   // Delay before advertising so we get valid data on first packet
+  // Turn off red led, leave green on to signal model+ without errors
+  RED_LED_OFF;
   nrf_delay_ms(MAIN_LOOP_INTERVAL_RAW + 100); 
 
   bluetooth_advertising_start(); 
