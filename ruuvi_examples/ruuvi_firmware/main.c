@@ -199,11 +199,11 @@ void main_timer_handler(void * p_context)
   uint32_t raw_h = 0;
   lis2dh12_sensor_buffer_t buffer;
   int32_t acc[3] = {0};
-  static bool fast_advetising = true;
+  static bool fast_advertising = true;
 
-  if (fast_advetising && millis() > ADVERTISING_STARTUP_PERIOD)
+  if (fast_advertising && millis() > ADVERTISING_STARTUP_PERIOD)
   {
-    fast_advetising = false;
+    fast_advertising = false;
     if (highres) { bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_RAW);}
     else {bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_URL);}
     bluetooth_apply_configuration();
