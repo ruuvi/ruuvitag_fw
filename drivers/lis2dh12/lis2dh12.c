@@ -55,6 +55,7 @@ void timer_lis2dh12_event_handler(void* p_context);
 static lis2dh12_scale_t      state_scale = LIS2DH12_SCALE16G;
 static lis2dh12_resolution_t state_resolution = LIS2DH12_RES10BIT;
 static const uint8_t lis2dh12_mgpb_map[] = {1,2,4,12};
+static const uint8_t lis2dh12_int_threshold_map[] = {16,32,62,186}; // mg / 1 LSB, see datasheet table 55.
 
 /**
  *  Initializes LIS2DH12, and puts it in sleep mode.
@@ -253,6 +254,19 @@ uint8_t get_mgpb()
     }
 }
 
+/** Return interrupt threshold factor for current state **/
+uint8_t get_int_threshold_mgpb()
+{
+    switch(state_scale)
+    {
+        case LIS2DH12_SCALE2G:  return lis2dh12_int_threshold_map[0];
+        case LIS2DH12_SCALE4G:  return lis2dh12_int_threshold_map[1];
+        case LIS2DH12_SCALE8G:  return lis2dh12_int_threshold_map[2];
+        case LIS2DH12_SCALE16G: return lis2dh12_int_threshold_map[3];
+        default:                return 0;
+    }
+}
+
 lis2dh12_ret_t lis2dh12_read_samples(lis2dh12_sensor_buffer_t* buffer, size_t count)
 {
      lis2dh12_ret_t err_code = LIS2DH12_RET_OK;
@@ -324,7 +338,7 @@ lis2dh12_ret_t lis2dh12_set_activity_interrupt_pin_2(uint16_t mg)
     // ctrl[0] = LIS2DH12_ACTIVITY_THRESHOLD;
     // lis2dh12_write_register(LIS2DH12_INT2_THS, ctrl, 1);
 
-    uint8_t threshold = mg / get_mgpb();
+    uint8_t threshold = mg / get_int_threshold_mgpb();
     if(0 == threshold)
     {
       threshold = 1;
