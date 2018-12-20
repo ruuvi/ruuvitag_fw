@@ -31,6 +31,12 @@ Please check if any work is being done on the task you're interested in and eith
 (for example by commenting on an appropriate Trello card).
 
 ## Contributing code to RuuviTag
+### First ask for comments
+  - Unless there is something *critical*, no changes to versions 1.2.12 which ships from tag in factory will be accepted
+  - Changes to 2.x branch should be discussed at [Forum](https://f.ruuvi.com) and [Slack](http://ruuvi.slack.com)
+  - Changes that will be only on your personal fork can be done without asking anything from anyone :)
+
+### Once there is a consensus
 Contributing is done by forking Ruuvi's main repository and making a branch which contains your work.
 Once you're happy with your branch, please submit a pull request to Ruuvi's master branch through GitHub's web interface.
 
@@ -42,11 +48,11 @@ Once you're made a pull request, Ruuvi Team will run an automated Jenkins check 
 Please be sure that the main makefile compiles the code you've made.
 If the Jenkins tests pass, your work is manually reviewed and tested.
 We'll also ask you to explicitly accept that code is published under BSD-3 License. 
-Please add your information to [Contributors list](<licenses/Ruuvi licenses.md>).
+Please add your information to [Contributors list](<licenses/Ruuvi_licenses.md>).
 
 Once we've reviewed your code, it will be merged into Ruuvi's main branch.
-Once we've merged your code, we'll do our best to maintain the compatibility in future work of Ruuvi's software.
-So you do not have to worry about some library change obsoleting your application.
+Once we've merged your code, we'll do our best to maintain the compatibility in future work of Ruuvi's software,
+so you do not have to worry about some library change obsoleting your application.
 
 ## Contributing other services, examples, integrations
 Aside from code that runs in RuuviTag, there's a lot of applications which use something that RuuviTag produces, for example weather logging services, tracking services etc.

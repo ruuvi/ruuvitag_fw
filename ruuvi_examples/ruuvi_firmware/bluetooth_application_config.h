@@ -7,7 +7,7 @@
 #define APP_DEVICE_NAME_LENGTH          APPLICATION_DEVICE_NAME_LENGTH
 #define APPLICATION_ADV_INTERVAL        1010                            /**< ms. Use value which is not exactly divisible by 1000 ms to be seen by gateways which have limited scan windows in second divisible intervals. **/
 #define APP_TX_POWER                    4                               /**< dBm **/
-#define INIT_FWREV                      "2.2.2"                         /**< Github tag. Do not include specifiers such as "alpha" so you can accept ready binaries as they are **/
+#define INIT_FWREV                      "2.3.1"                         /**< Github tag. Do not include specifiers such as "alpha" so you can accept ready binaries as they are **/
 #define INIT_SWREV                      INIT_FWREV                      /**< FW and SW are same thing in this context **/                             
 
 // milliseconds until main loop timer function is called. Other timers can bring
@@ -33,8 +33,10 @@
  *  BLE_GAP_ADV_TYPE_ADV_SCAN_IND   0x02      Nonconnectable, scannable
  *  BLE_GAP_ADV_TYPE_ADV_NONCONN_IND   0x03   Nonconnectable, nonscannable
  */
-
-#define APPLICATION_ADVERTISEMENT_TYPE 0x00
+// Most of the time
+#define APPLICATION_ADVERTISEMENT_TYPE 0x03
+// After boot or user interaction, such as button press and NFC read
+#define STARTUP_ADVERTISEMENT_TYPE     0x00
 
 //Set to 0 if you don't want to include GATT connectivity. Remember to adjust advertisement type
 #define APP_GATT_PROFILE_ENABLED        1  
