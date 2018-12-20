@@ -16,6 +16,7 @@
 // Nordic SDK
 #include "ble_advdata.h"
 #include "ble_advertising.h"
+#include "ble_radio_notification.h"
 #include "nordic_common.h"
 #include "softdevice_handler.h"
 #include "app_scheduler.h"
@@ -94,6 +95,8 @@ static bool fast_advertising = true;     // Connectable mode
 static uint64_t fast_advertising_start = 0;  // Timestamp of when tag became connectable
 static uint64_t debounce = false;        // Flag for avoiding double presses
 static uint16_t acceleration_events = 0; // Number of times accelerometer has triggered
+static volatile uint16_t vbat = 0; //Update in interrupt after radio activity.
+static uint64_t last_battery_measurement = 0; // Timestamp of VBat update.
 
 static ruuvi_sensor_t data;
 
@@ -268,11 +271,6 @@ void main_timer_handler(void * p_context)
     raw_t = (int32_t) temp;
   }
 
-  // Get battery voltage
-  //static uint32_t vbat_update_counter;
-  static uint16_t vbat = 0;
-  vbat = getBattery();
-
   // Embed data into structure for parsing.
   parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
   NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d x: %d y: %d z: %d\r\n", raw_t, raw_p, raw_h, acc[0], acc[1], acc[2]);
@@ -316,6 +314,21 @@ ret_code_t lis2dh12_int2_handler(const ruuvi_standard_message_t message)
   return NRF_SUCCESS;
 }
 
+/**
+ * Task to run on radio activity
+ * This function is in interrupt context, avoid long processing or using peripherals.
+ *
+ * parameter active: True if radio is going to be active after event, false if radio was turned off (after tx/rx)
+ */
+static void on_radio_evt(bool active)
+{
+  // If radio is turned off (was active) and enough time has passed since last measurement
+  if(false == active && millis() - last_battery_measurement > APPLICATION_BATTERY_INTERVAL)
+  {
+    vbat = getBattery();
+    last_battery_measurement = millis();
+  }
+}
 
 /**  This is where it all starts ++++++++++++++++++++++++++++++++++++++++++ 
  main is entered as a result of one of SEVERAL events:
@@ -340,52 +353,59 @@ int main(void)
   if( init_log() ) { init_status |=LOG_FAILED_INIT; }
   else { NRF_LOG_INFO("LOG initalized \r\n"); } // subsequent initalizations assume log is working
 
-  // start watchdog now incase program hangs up.
+  // start watchdog now in case program hangs up.
   // watchdog_default_handler logs error and resets the tag.
   init_watchdog(NULL);
 
   // Battery voltage initialization cannot fail under any reasonable circumstance.
   battery_voltage_init(); 
-  uint16_t vbat = getBattery();
+  vbat = getBattery();
+
   if( vbat < BATTERY_MIN_V ) { init_status |=BATTERY_FAILED_INIT; }
   else NRF_LOG_INFO("BATTERY initalized \r\n"); 
 
   if(init_sensors() == NRF_SUCCESS )
   {
-   model_plus = true;
-   NRF_LOG_INFO("Sensors initalized \r\n");  
- }
+    model_plus = true;
+    NRF_LOG_INFO("Sensors initialized \r\n");  
+  }
 
- // Init NFC ASAP in case we're waking from deep sleep via NFC (todo)
- // outputs ID:DEVICEID ,MAC:DEVICEADDR, SW:REVision
- set_nfc_callback(app_nfc_callback);
- if( init_nfc() ) { init_status |= NFC_FAILED_INIT; } 
- else { NRF_LOG_INFO("NFC init \r\n"); }
+  // Init NFC ASAP in case we're waking from deep sleep via NFC (todo)
+  // outputs ID:DEVICEID ,MAC:DEVICEADDR, SW:REVision
+  set_nfc_callback(app_nfc_callback);
+  if( init_nfc() ) { init_status |= NFC_FAILED_INIT; } 
+  else { NRF_LOG_INFO("NFC init \r\n"); }
 
- pin_interrupt_init(); 
+  pin_interrupt_init(); 
 
- if( pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler) ) 
- {
-  init_status |= BUTTON_FAILED_INIT;
-}
+  if( pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler) ) 
+  {
+    init_status |= BUTTON_FAILED_INIT;
+  }
 
   // Initialize BLE Stack. Starts LFCLK required for timer operation.
-if( init_ble() ) { init_status |= BLE_FAILED_INIT; }
-bluetooth_configure_advertisement_type(STARTUP_ADVERTISEMENT_TYPE);
-bluetooth_tx_power_set(BLE_TX_POWER);
-bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP);
+  if( init_ble() ) { init_status |= BLE_FAILED_INIT; }
+  bluetooth_configure_advertisement_type(STARTUP_ADVERTISEMENT_TYPE);
+  bluetooth_tx_power_set(BLE_TX_POWER);
+  bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP);
+  // Priorities 2 and 3 are after SD timing critical events. 
+  // 6, 7 after SD non-critical events.
+  // Triggers ADC, so use 3. 
+  ble_radio_notification_init(3,
+                              NRF_RADIO_NOTIFICATION_DISTANCE_800US,
+                              on_radio_evt);
 
-if( init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )
-{
-  init_status |= TIMER_FAILED_INIT;
-}
+  if( init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )
+  {
+    init_status |= TIMER_FAILED_INIT;
+  }
 
-if( init_rtc() ) { init_status |= RTC_FAILED_INIT; }
-else { NRF_LOG_INFO("RTC initalized \r\n"); }
+  if( init_rtc() ) { init_status |= RTC_FAILED_INIT; }
+  else { NRF_LOG_INFO("RTC initalized \r\n"); }
 
   // Initialize lis2dh12 and BME280 - TODO: Differentiate LIS2DH12 and BME280 
-if (model_plus)    
-{
+  if (model_plus)    
+  {
     lis2dh12_reset(); // Clear memory.
     
     // Enable Low-To-Hi rising edge trigger interrupt on nRF52 to detect acceleration events.
@@ -404,7 +424,7 @@ if (model_plus)
     lis2dh12_set_activity_interrupt_pin_2(LIS2DH12_ACTIVITY_THRESHOLD);
     NRF_LOG_INFO("Accelerameter configuration done \r\n");
 
-            // oversampling must be set for each used sensor.
+    // oversampling must be set for each used sensor.
     bme280_set_oversampling_hum  (BME280_HUMIDITY_OVERSAMPLING);
     bme280_set_oversampling_temp (BME280_TEMPERATURE_OVERSAMPLING);
     bme280_set_oversampling_press(BME280_PRESSURE_OVERSAMPLING);
@@ -443,11 +463,11 @@ if (model_plus)
   bluetooth_advertising_start(); 
   NRF_LOG_INFO("Advertising started\r\n");
 
-  // Enter main loop. spinning here interrupts will bring us out frequently
-  // accelerometer invokes lis2dh12_int2_handler
+  // Enter main loop. Executes tasks scheduled by timers and interrupts.
   for (;;)
   {
     app_sched_execute();
-    power_manage();         // calls sd_app_evt_wait
+    // Sleep until next event.
+    power_manage();
   }
 }
