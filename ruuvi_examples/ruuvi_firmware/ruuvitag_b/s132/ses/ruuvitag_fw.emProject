@@ -93,7 +93,6 @@
       <file file_name="../../../../../sdk_overrides/nrf_drv_wdt.c" />
       <file file_name="../../../../../nRF5_SDK_12.3.0_d7731ad/components/drivers_nrf/saadc/nrf_drv_saadc.c" />
       <file file_name="../../../../../nRF5_SDK_12.3.0_d7731ad/components/drivers_nrf/spi_master/nrf_drv_spi.c" />
-      <file file_name="../../../../../nRF5_SDK_12.3.0_d7731ad/components/nfc/t2t_lib/hal_t2t/hal_nfc_t2t.c" />
       <file file_name="../../../../../nRF5_SDK_12.3.0_d7731ad/components/nfc/ndef/text/nfc_text_rec.c" />
       <file file_name="../../../../../nRF5_SDK_12.3.0_d7731ad/components/drivers_nrf/rtc/nrf_drv_rtc.c" />
       <file file_name="../../../../../nRF5_SDK_12.3.0_d7731ad/components/nfc/ndef/generic/record/nfc_ndef_record.c" />
@@ -101,6 +100,7 @@
       <file file_name="../../../../../nRF5_SDK_12.3.0_d7731ad/components/drivers_nrf/timer/nrf_drv_timer.c" />
       <file file_name="../../../../../nRF5_SDK_12.3.0_d7731ad/components/drivers_nrf/hal/nrf_saadc.c" />
       <file file_name="../../../../../sdk_overrides/ble_radio_notification.c" />
+      <file file_name="../../../../../sdk_overrides/hal_nfc_t2t.c" />
     </folder>
     <folder Name="nRF_Libraries">
       <file file_name="../../../../../sdk_overrides/app_button.c" />
