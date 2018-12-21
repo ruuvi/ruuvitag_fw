@@ -88,22 +88,38 @@ static size_t NFC_message_length = sizeof(NFC_message);
 #define GREEN_LED_ON  nrf_gpio_pin_clear(LED_GREEN)
 #define GREEN_LED_OFF nrf_gpio_pin_set(LED_GREEN)
 
-// Payload requires 9 characters
-static char url_buffer[URL_BASE_LENGTH + URL_DATA_LENGTH] = URL_BASE;
-static uint8_t data_buffer[RAW_DATA_LENGTH] = { 0 };
+static uint8_t data_buffer[RAWv2_DATA_LENGTH] = { 0 };
 static bool model_plus = false;          // Flag for sensors available
-static bool highres = true;              // Flag for used mode
 static bool fast_advertising = true;     // Connectable mode
 static uint64_t fast_advertising_start = 0;  // Timestamp of when tag became connectable
 static uint64_t debounce = false;        // Flag for avoiding double presses
 static uint16_t acceleration_events = 0; // Number of times accelerometer has triggered
 static volatile uint16_t vbat = 0; //Update in interrupt after radio activity.
 static uint64_t last_battery_measurement = 0; // Timestamp of VBat update.
-
 static ruuvi_sensor_t data;
 
 static void main_timer_handler(void * p_context);
 
+// Possible modes of the app
+typedef enum 
+{
+  RAWv1,
+  RAWv2_FAST,
+  RAWv2_SLOW
+}tag_mode_t;
+static tag_mode_t tag_mode = RAWv1;
+// Rates of advertising. These must match the tag mode enum.
+static const uint16_t advertising_rates[] = {
+  ADVERTISING_INTERVAL_RAW,
+  ADVERTISING_INTERVAL_RAW,
+  ADVERTISING_INTERVAL_RAW_SLOW
+};
+// Rates of advertising. These must match the tag mode enum.
+static const uint16_t advertising_sizes[] = {
+  RAWv1_DATA_LENGTH,
+  RAWv2_DATA_LENGTH,
+  RAWv2_DATA_LENGTH
+};
 
 /**@brief Handler for button press.
  * Called in scheduler, out of interrupt context.
@@ -113,31 +129,33 @@ void change_mode(void* data, uint16_t length)
   // Avoid double presses
   if ((millis() - debounce) < DEBOUNCE_THRESHOLD) { return; }
   debounce = millis();
-  highres = !highres;
+  tag_mode++;
+  app_timer_stop(main_timer_id);
   if (model_plus)
   {
-    if (highres)
-    {
-      //TODO: #define sample rate for application
-      lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAW);
-      // Reconfigure application sample rate for RAW mode
-      app_timer_stop(main_timer_id);
-      app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 1000 ms
-      bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_RAW); // Broadcast only updated data, assuming there is an active receiver nearby.
-      bluetooth_apply_configuration();
+    switch(tag_mode)
+    {  
+      case RAWv2_SLOW:
+        lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAWv2);
+        app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW_SLOW, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+        break;
+
+      case RAWv2_FAST:
+        lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAWv2);
+        app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+        break;
+
+      case RAWv1:
+      default:
+        lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAWv1);
+        app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+        tag_mode = RAWv1;
+        break;
     }
-    else
-    {
-      // Stop accelerometer as it's not useful on URL mode.
-      lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_URL);
-      // Reconfigure application sample rate for URL mode.
-      app_timer_stop(main_timer_id);
-      app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_URL, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 5000 ms
-      bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_URL); // Broadcast often to "hit" occasional background scans.
-      bluetooth_apply_configuration();
-    }
+    bluetooth_configure_advertising_interval(advertising_rates[tag_mode]);
+    bluetooth_apply_configuration();
   }
-  NRF_LOG_INFO("Updating in %d mode\r\n", (uint32_t) highres);
+  NRF_LOG_INFO("Updating in %d mode\r\n", (uint32_t) tag_mode);
   main_timer_handler(NULL);
 }
 
@@ -156,7 +174,7 @@ static void become_connectable(void* data, uint16_t length)
 }
 
 /**
- * Reboots tag.
+ * Reboots tag. Enters bootloader as button is pressed on boot
  */
 static void reboot(void* p_context)
 {
@@ -240,16 +258,14 @@ static void power_manage(void)
   APP_ERROR_CHECK(err_code);
 
   // Signal mode by led color.
-  if (highres) { RED_LED_ON; }
+  if (RAWv1 == tag_mode) { RED_LED_ON; }
   else { GREEN_LED_ON; }
 }
 
 
 static void updateAdvertisement(void)
 {
-  ret_code_t err_code = NRF_SUCCESS;
-  if (highres) { err_code |= bluetooth_set_manufacturer_data(data_buffer, sizeof(data_buffer)); }
-  else { err_code |= bluetooth_set_eddystone_url(url_buffer, sizeof(url_buffer)); }
+  bluetooth_set_manufacturer_data(data_buffer, advertising_sizes[tag_mode]);
 }
 
 
@@ -267,8 +283,8 @@ static void main_timer_handler(void * p_context)
   {
     fast_advertising = false;
     bluetooth_configure_advertisement_type(APPLICATION_ADVERTISEMENT_TYPE);
-    if (highres) { bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_RAW); }
-    else { bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_URL); }
+
+    bluetooth_configure_advertising_interval(advertising_rates[tag_mode]);
     bluetooth_apply_configuration();
   }
 
@@ -300,18 +316,23 @@ static void main_timer_handler(void * p_context)
   parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
   NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d x: %d y: %d z: %d\r\n", raw_t, raw_p, raw_h, acc[0], acc[1], acc[2]);
   NRF_LOG_DEBUG("VBAT: %d send %d \r\n", vbat, data.vbat);
-  if (highres)
+  // Prepare bytearray to broadcast.
+  bme280_data_t environmental;
+  environmental.temperature = raw_t;
+  environmental.humidity = raw_h;
+  environmental.pressure = raw_p;
+
+  switch(tag_mode)
   {
-    // Prepare bytearray to broadcast.
-    bme280_data_t environmental;
-    environmental.temperature = raw_t;
-    environmental.humidity = raw_h;
-    environmental.pressure = raw_p;
-    encodeToRawFormat5(data_buffer, &environmental, &buffer.sensor, acceleration_events, vbat, BLE_TX_POWER);
-  }
-  else
-  {
-    encodeToUrlDataFromat(url_buffer, URL_BASE_LENGTH, &data);
+    case RAWv2_FAST:
+    case RAWv2_SLOW:
+      encodeToRawFormat5(data_buffer, &environmental, &buffer.sensor, acceleration_events, vbat, BLE_TX_POWER);
+      break;
+    
+    case RAWv1:
+    default:
+      encodeToSensorDataFormat(data_buffer, &data);
+      break;
   }
 
   updateAdvertisement();
@@ -450,7 +471,7 @@ int main(void)
     // Enable XYZ axes.
     lis2dh12_enable();
     lis2dh12_set_scale(LIS2DH12_SCALE);
-    lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAW);
+    lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAWv1);
     lis2dh12_set_resolution(LIS2DH12_RESOLUTION);
 
     lis2dh12_set_activity_interrupt_pin_2(LIS2DH12_ACTIVITY_THRESHOLD);
