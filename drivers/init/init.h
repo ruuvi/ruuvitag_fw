@@ -94,11 +94,12 @@ init_err_code_t init_nfc(void);
  * Requires low-frequency clock source initialized by BLE init
  *
  * @param main_timer_id pointer to timer data structure
+ * @param mode mode of the timer, APP_TIMER_MODE_REPEATED or APP_TIMER_MODE_SINGLESHOT
  * @param main_interval Interval at which the main loop should be run in ms
  * @param timer_handler function to be called at main interval
  *
  */
-init_err_code_t init_timer(app_timer_id_t main_timer_id, uint32_t main_interval, void (*timer_handler)(void *));
+init_err_code_t init_timer(app_timer_id_t main_timer_id, app_timer_mode_t mode, uint32_t main_interval, void (*timer_handler)(void *));
 
 /**
  * Initialize leds

@@ -23,6 +23,7 @@
 #include "app_timer_appsh.h"
 #include "nrf_drv_clock.h"
 #include "nrf_gpio.h"
+#include "nrf_drv_gpiote.h"
 #include "nrf_delay.h"
 
 //#define NRF_LOG_ENABLED 1   // log code only compiled if ENABLED 
@@ -61,6 +62,7 @@
 
 // ID for main loop timer.
 APP_TIMER_DEF(main_timer_id);                 // Creates timer id for our program.
+APP_TIMER_DEF(reset_timer_id);                 // Creates timer id for our program.
 
 static uint16_t init_status = 0;   // combined status of all initalizations.  Zero when all are complete if no errors occured.
 static uint8_t NFC_message[100];   // NFC message buffer has 4 records, up to 128 bytes each minus some overhead for NFC NDEF data keeping. 
@@ -153,19 +155,35 @@ static void become_connectable(void* data, uint16_t length)
   bluetooth_apply_configuration();
 }
 
+/**
+ * Reboots tag.
+ */
+static void reboot(void)
+{
+  NVIC_SystemReset();
+}
 
 /**@brief Function for handling button events.
  * Schedulers call to handler.
  */
 ret_code_t button_press_handler(const ruuvi_standard_message_t message)
 {
-  NRF_LOG_INFO("Button\r\n");
-  //Change mode on button press
-  //Use scheduler, do not use peripherals in interrupt conext (SPI write halts)
-  GREEN_LED_ON;
-  RED_LED_ON;  
-  app_sched_event_put (NULL, 0, change_mode);
-  app_sched_event_put (NULL, 0, become_connectable);
+  if(NRF_GPIOTE_POLARITY_HITOLO == message.payload[0])
+  {
+    NRF_LOG_INFO("Button pressed\r\n");
+    //Change mode on button press
+    //Use scheduler, do not use peripherals in interrupt conext (SPI write halts)
+    GREEN_LED_ON;
+    RED_LED_ON;  
+    app_sched_event_put (NULL, 0, change_mode);
+    app_sched_event_put (NULL, 0, become_connectable);
+    // Start timer to reboot tag.
+
+  }
+  if(NRF_GPIOTE_POLARITY_LOTOHI == message.payload[0])
+  {
+     NRF_LOG_INFO("Button released\r\n");
+  }
 
   return ENDPOINT_SUCCESS;
 }
@@ -378,7 +396,7 @@ int main(void)
 
   pin_interrupt_init(); 
 
-  if( pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler) ) 
+  if( pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIO_PIN_PULLUP, button_press_handler) ) 
   {
     init_status |= BUTTON_FAILED_INIT;
   }
@@ -395,7 +413,12 @@ int main(void)
                               NRF_RADIO_NOTIFICATION_DISTANCE_800US,
                               on_radio_evt);
 
-  if( init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )
+  // Initialize repeated timer for sensor read and single-shot timer for button reset
+  if( init_timer(main_timer_id, APP_TIMER_MODE_REPEATED, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )
+  {
+    init_status |= TIMER_FAILED_INIT;
+  }
+  if( init_timer(button_timer_id, APP_TIMER_MODE_SINGLE_SHOT, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )
   {
     init_status |= TIMER_FAILED_INIT;
   }
@@ -409,7 +432,7 @@ int main(void)
     lis2dh12_reset(); // Clear memory.
     
     // Enable Low-To-Hi rising edge trigger interrupt on nRF52 to detect acceleration events.
-    if (pin_interrupt_enable(INT_ACC2_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int2_handler) )
+    if (pin_interrupt_enable(INT_ACC2_PIN, NRF_GPIOTE_POLARITY_LOTOHI, NRF_GPIO_PIN_NOPULL, lis2dh12_int2_handler) )
     {
       init_status |= ACC_INT_FAILED_INIT;
     }

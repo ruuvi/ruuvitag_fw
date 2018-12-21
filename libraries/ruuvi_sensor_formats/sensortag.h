@@ -57,7 +57,7 @@ void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32
  *  Parses sensor values into RuuviTag format.
  *  @param char* data_buffer character array with length of 14 bytes
  */
-void encodeToSensorDataFormat(uint8_t* data_buffer, ruuvi_sensor_t* data);
+void encodeToSensorDataFormat(uint8_t* data_buffer, const ruuvi_sensor_t* data);
 
 /**
  *  Parses sensor values into propesed format. 
