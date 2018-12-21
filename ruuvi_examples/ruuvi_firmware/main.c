@@ -26,7 +26,6 @@
 #include "nrf_drv_gpiote.h"
 #include "nrf_delay.h"
 
-//#define NRF_LOG_ENABLED 1   // log code only compiled if ENABLED 
 #define NRF_LOG_MODULE_NAME "MAIN"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -35,6 +34,7 @@
 #include "bsp.h"
 
 // Drivers
+#include "flash.h"
 #include "lis2dh12.h"
 #include "lis2dh12_acceleration_handler.h"
 #include "bme280.h"
@@ -82,6 +82,10 @@ static size_t NFC_message_length = sizeof(NFC_message);
 #define BUTTON_FAILED_INIT          0x2000
 #define BME_FAILED_INIT             0x4000
 
+// File and record for app mode
+#define FDS_FILE_ID 1
+#define FDS_RECORD_ID 1
+
 // define unconfusing macros for LEDs
 #define RED_LED_ON    nrf_gpio_pin_clear(LED_RED)
 #define RED_LED_OFF   nrf_gpio_pin_set(LED_RED)
@@ -97,8 +101,6 @@ static uint16_t acceleration_events = 0; // Number of times accelerometer has tr
 static volatile uint16_t vbat = 0; //Update in interrupt after radio activity.
 static uint64_t last_battery_measurement = 0; // Timestamp of VBat update.
 static ruuvi_sensor_t data;
-
-static void main_timer_handler(void * p_context);
 
 // Possible modes of the app
 typedef enum 
@@ -121,6 +123,9 @@ static const uint16_t advertising_sizes[] = {
   RAWv2_DATA_LENGTH
 };
 
+// Prototype declaration
+static void main_timer_handler(void * p_context);
+
 /**@brief Handler for button press.
  * Called in scheduler, out of interrupt context.
  */
@@ -129,7 +134,7 @@ void change_mode(void* data, uint16_t length)
   // Avoid double presses
   if ((millis() - debounce) < DEBOUNCE_THRESHOLD) { return; }
   debounce = millis();
-  tag_mode++;
+  tag_mode_t mode = *(tag_mode_t*)data;
   app_timer_stop(main_timer_id);
   if (model_plus)
   {
@@ -155,7 +160,7 @@ void change_mode(void* data, uint16_t length)
     bluetooth_configure_advertising_interval(advertising_rates[tag_mode]);
     bluetooth_apply_configuration();
   }
-  NRF_LOG_INFO("Updating in %d mode\r\n", (uint32_t) tag_mode);
+  NRF_LOG_INFO("Updating to %d mode\r\n", (uint32_t) tag_mode);
   main_timer_handler(NULL);
 }
 
@@ -196,8 +201,9 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
     //Change mode on button press
     //Use scheduler, do not use peripherals in interrupt conext (SPI write halts)
     GREEN_LED_ON;
-    RED_LED_ON;  
-    app_sched_event_put (NULL, 0, change_mode);
+    RED_LED_ON;
+    tag_mode++;
+    app_sched_event_put (&tag_mode, 0, change_mode);
     app_sched_event_put (NULL, 0, become_connectable);
     // Start timer to reboot tag.
     app_timer_start(reset_timer_id, APP_TIMER_TICKS(BUTTON_RESET_TIME, RUUVITAG_APP_TIMER_PRESCALER), NULL);
@@ -208,6 +214,12 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
      NRF_LOG_INFO("Button released\r\n");
      // Cancel reset
      app_timer_stop(reset_timer_id);
+
+     // Store mode to flash
+     flash_record_set(FDS_FILE_ID, FDS_RECORD_ID, sizeof(tag_mode), &tag_mode);
+     size_t flash_space_remaining;
+     flash_free_size_get(&flash_space_remaining);
+     NRF_LOG_INFO("Stored mode in flash, space remaining %d bytes\r\n", flash_space_remaining);
   }
 
   return ENDPOINT_SUCCESS;
@@ -441,6 +453,21 @@ int main(void)
                               NRF_RADIO_NOTIFICATION_DISTANCE_800US,
                               on_radio_evt);
 
+  if(flash_init())
+  {
+    NRF_LOG_ERROR("Failed to init flash \r\n");
+  }
+  else if (flash_record_get(FDS_FILE_ID, FDS_RECORD_ID, sizeof(tag_mode), &tag_mode))
+  {
+   NRF_LOG_INFO("Did not find mode in flash, is this first boot? \r\n");
+  }
+  else 
+  {
+    NRF_LOG_INFO("Loaded mode %d from flash\r\n", tag_mode);
+  }
+  // Enter stored mode after boot - or default mode if store mode was not found
+  app_sched_event_put (&tag_mode, 0, change_mode);
+  
   // Initialize repeated timer for sensor read and single-shot timer for button reset
   if( init_timer(main_timer_id, APP_TIMER_MODE_REPEATED, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )
   {
@@ -485,7 +512,7 @@ int main(void)
     bme280_set_interval(BME280_DELAY);
     bme280_set_mode(BME280_MODE_NORMAL);
     NRF_LOG_INFO("BME280 configuration done \r\n");
-  }   
+  }
 
   // Log errors, add a note to NFC, blink RED to visually indicate the problem
   if (init_status )
