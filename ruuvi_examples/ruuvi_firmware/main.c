@@ -158,17 +158,21 @@ static void become_connectable(void* data, uint16_t length)
 /**
  * Reboots tag.
  */
-static void reboot(void)
+static void reboot(void* p_context)
 {
   NVIC_SystemReset();
 }
 
 /**@brief Function for handling button events.
  * Schedulers call to handler.
+ *
+ * @param message. A struct containing data about the event. 
+ *                 message.payload[0] has pin number (4)
+ *                 message.payload[1] has pin state, 1 if high, 0 if low.
  */
 ret_code_t button_press_handler(const ruuvi_standard_message_t message)
 {
-  if(NRF_GPIOTE_POLARITY_HITOLO == message.payload[0])
+  if(false == message.payload[1])
   {
     NRF_LOG_INFO("Button pressed\r\n");
     //Change mode on button press
@@ -178,11 +182,14 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
     app_sched_event_put (NULL, 0, change_mode);
     app_sched_event_put (NULL, 0, become_connectable);
     // Start timer to reboot tag.
+    app_timer_start(reset_timer_id, APP_TIMER_TICKS(BUTTON_RESET_TIME, RUUVITAG_APP_TIMER_PRESCALER), NULL);
 
   }
-  if(NRF_GPIOTE_POLARITY_LOTOHI == message.payload[0])
+  if(true == message.payload[1])
   {
      NRF_LOG_INFO("Button released\r\n");
+     // Cancel reset
+     app_timer_stop(reset_timer_id);
   }
 
   return ENDPOINT_SUCCESS;
@@ -248,7 +255,7 @@ static void updateAdvertisement(void)
 
 /**@brief Timeout handler for the repeated timer
  */
-void main_timer_handler(void * p_context)
+static void main_timer_handler(void * p_context)
 {
   int32_t  raw_t  = 0;
   uint32_t raw_p = 0;
@@ -418,10 +425,12 @@ int main(void)
   {
     init_status |= TIMER_FAILED_INIT;
   }
-  if( init_timer(button_timer_id, APP_TIMER_MODE_SINGLE_SHOT, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )
+  if( init_timer(reset_timer_id, APP_TIMER_MODE_SINGLE_SHOT, BUTTON_RESET_TIME, reboot) )
   {
     init_status |= TIMER_FAILED_INIT;
   }
+  // Init starts timers, stop the reset
+  app_timer_stop(reset_timer_id);
 
   if( init_rtc() ) { init_status |= RTC_FAILED_INIT; }
   else { NRF_LOG_INFO("RTC initalized \r\n"); }
@@ -445,7 +454,7 @@ int main(void)
     lis2dh12_set_resolution(LIS2DH12_RESOLUTION);
 
     lis2dh12_set_activity_interrupt_pin_2(LIS2DH12_ACTIVITY_THRESHOLD);
-    NRF_LOG_INFO("Accelerameter configuration done \r\n");
+    NRF_LOG_INFO("Accelerometer configuration done \r\n");
 
     // oversampling must be set for each used sensor.
     bme280_set_oversampling_hum  (BME280_HUMIDITY_OVERSAMPLING);

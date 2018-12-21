@@ -29,7 +29,8 @@ static void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t actio
   //Call event handler with empty message TODO: invalid message add context?
   NRF_LOG_DEBUG("Handling pin event\r\n");
   ruuvi_standard_message_t message;
-  message.payload[0] = action;
+  message.payload[0] = pin;
+  message.payload[1] = nrf_gpio_pin_read(pin);
   if (NULL != pin_event_handlers[pin]) { (pin_event_handlers[pin])(message);}
 }
 /**

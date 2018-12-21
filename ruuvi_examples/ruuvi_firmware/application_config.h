@@ -8,6 +8,8 @@
 // Milliseconds until new batteryreading is taken on radio interrupt.
 // Use cached value otherse.
 #define APPLICATION_BATTERY_INTERVAL 10000u
+// Milliseconds to hold down the button before reset
+#define BUTTON_RESET_TIME 3000u
 
 // 1, 2, 4, 8, 16.
 // Oversampling increases current consumption, but lowers noise.
