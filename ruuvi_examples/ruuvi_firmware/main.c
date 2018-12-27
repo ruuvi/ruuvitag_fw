@@ -96,20 +96,21 @@ static uint8_t data_buffer[RAWv2_DATA_LENGTH] = { 0 };
 static bool model_plus = false;          // Flag for sensors available
 static bool fast_advertising = true;     // Connectable mode
 static uint64_t fast_advertising_start = 0;  // Timestamp of when tag became connectable
-static uint64_t debounce = false;        // Flag for avoiding double presses
+static uint64_t debounce = 0;        // Flag for avoiding double presses
 static uint16_t acceleration_events = 0; // Number of times accelerometer has triggered
 static volatile uint16_t vbat = 0; //Update in interrupt after radio activity.
 static uint64_t last_battery_measurement = 0; // Timestamp of VBat update.
 static ruuvi_sensor_t data;
+static uint8_t advertisement_delay = 0; //Random, static delay to reduce collisions.
 
 // Possible modes of the app
-typedef enum 
-{
-  RAWv1,
-  RAWv2_FAST,
-  RAWv2_SLOW
-}tag_mode_t;
-static tag_mode_t tag_mode = RAWv1;
+#define RAWv1 0
+#define RAWv2_FAST 1
+#define RAWv2_SLOW 2
+
+// Must be UINT32_T as flash storage operated in 4-byte chunks
+// Will get loaded from flash, this is default.
+static uint32_t tag_mode = RAWv1;
 // Rates of advertising. These must match the tag mode enum.
 static const uint16_t advertising_rates[] = {
   ADVERTISING_INTERVAL_RAW,
@@ -131,10 +132,7 @@ static void main_timer_handler(void * p_context);
  */
 void change_mode(void* data, uint16_t length)
 {
-  // Avoid double presses
-  if ((millis() - debounce) < DEBOUNCE_THRESHOLD) { return; }
-  debounce = millis();
-  tag_mode_t mode = *(tag_mode_t*)data;
+  uint32_t mode = *(uint32_t*)data;
   app_timer_stop(main_timer_id);
   if (model_plus)
   {
@@ -157,7 +155,7 @@ void change_mode(void* data, uint16_t length)
         tag_mode = RAWv1;
         break;
     }
-    bluetooth_configure_advertising_interval(advertising_rates[tag_mode]);
+    bluetooth_configure_advertising_interval(advertising_rates[tag_mode] + advertisement_delay);
     bluetooth_apply_configuration();
   }
   NRF_LOG_INFO("Updating to %d mode\r\n", (uint32_t) tag_mode);
@@ -173,9 +171,31 @@ static void become_connectable(void* data, uint16_t length)
 {
   fast_advertising_start = millis();
   fast_advertising = true;
-  bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP);
+  bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP + advertisement_delay);
   bluetooth_configure_advertisement_type(STARTUP_ADVERTISEMENT_TYPE);
   bluetooth_apply_configuration();
+}
+
+/**
+ * Stores current mode to flash, given in parameters.
+ *
+ * Data is address of the tag_mode.
+ * length is length of the address, not data.
+ *
+ */
+static void store_mode(void* data, uint16_t length)
+{
+  flash_record_set(FDS_FILE_ID, FDS_RECORD_ID, sizeof(tag_mode), data);
+  size_t flash_space_remaining;
+  flash_free_size_get(&flash_space_remaining);
+  NRF_LOG_INFO("Stored mode in flash, Largest continuous space remaining %d bytes\r\n", flash_space_remaining);
+  if(4000 > flash_space_remaining)
+  {
+    NRF_LOG_INFO("Flash space is almost use, running gc\r\n")
+    flash_gc_run();
+    flash_free_size_get(&flash_space_remaining);
+    NRF_LOG_INFO("Continuous space remaining after gc %d bytes\r\n", flash_space_remaining);
+  }
 }
 
 /**
@@ -188,6 +208,7 @@ static void reboot(void* p_context)
 
 /**@brief Function for handling button events.
  * Schedulers call to handler.
+ * Use scheduler, do not use peripherals in interrupt context (SPI/Flash writes won't complete.)
  *
  * @param message. A struct containing data about the event. 
  *                 message.payload[0] has pin number (4)
@@ -195,16 +216,14 @@ static void reboot(void* p_context)
  */
 ret_code_t button_press_handler(const ruuvi_standard_message_t message)
 {
+  // Avoid double presses
+  if ((millis() - debounce) < DEBOUNCE_THRESHOLD) { return ENDPOINT_SUCCESS; }
+  debounce = millis();
   if(false == message.payload[1])
   {
     NRF_LOG_INFO("Button pressed\r\n");
-    //Change mode on button press
-    //Use scheduler, do not use peripherals in interrupt conext (SPI write halts)
     GREEN_LED_ON;
     RED_LED_ON;
-    tag_mode++;
-    app_sched_event_put (&tag_mode, 0, change_mode);
-    app_sched_event_put (NULL, 0, become_connectable);
     // Start timer to reboot tag.
     app_timer_start(reset_timer_id, APP_TIMER_TICKS(BUTTON_RESET_TIME, RUUVITAG_APP_TIMER_PRESCALER), NULL);
 
@@ -215,11 +234,17 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
      // Cancel reset
      app_timer_stop(reset_timer_id);
 
-     // Store mode to flash
-     flash_record_set(FDS_FILE_ID, FDS_RECORD_ID, sizeof(tag_mode), &tag_mode);
-     size_t flash_space_remaining;
-     flash_free_size_get(&flash_space_remaining);
-     NRF_LOG_INFO("Stored mode in flash, space remaining %d bytes\r\n", flash_space_remaining);
+     // Update mode
+     tag_mode++;
+     if(tag_mode > 2) { tag_mode = 0; }
+     app_sched_event_put (&tag_mode, sizeof(&tag_mode), change_mode);
+     if(APP_GATT_PROFILE_ENABLED)
+     {
+       app_sched_event_put (NULL, 0, become_connectable);
+     }
+
+     // Schedule store mode to flash
+     app_sched_event_put (&tag_mode, sizeof(&tag_mode), store_mode);
   }
 
   return ENDPOINT_SUCCESS;
@@ -243,17 +268,24 @@ void app_nfc_callback(void* p_context, nfc_t2t_event_t event, const uint8_t* p_d
   switch (event)
   {
     case NFC_T2T_EVENT_FIELD_ON:
-    NRF_LOG_INFO("NFC Field detected \r\n");
-    break;
+      NRF_LOG_INFO("NFC Field detected \r\n");
+      break;
+
     case NFC_T2T_EVENT_FIELD_OFF:
-    NRF_LOG_INFO("NFC Field lost \r\n");
-    app_sched_event_put (NULL, 0, reinit_nfc);
-    app_sched_event_put (NULL, 0, become_connectable);
-    break;
+      NRF_LOG_INFO("NFC Field lost \r\n");
+      app_sched_event_put (NULL, 0, reinit_nfc);
+      if(APP_GATT_PROFILE_ENABLED)
+      {
+        app_sched_event_put (NULL, 0, become_connectable);
+      }
+      break;
+
     case NFC_T2T_EVENT_DATA_READ:
-    NRF_LOG_INFO("Data read\r\n");
+      NRF_LOG_INFO("Data read\r\n");
+      break;
+    
     default:
-    break;
+      break;
   }
 }
 
@@ -268,10 +300,6 @@ static void power_manage(void)
 
   uint32_t err_code = sd_app_evt_wait();
   APP_ERROR_CHECK(err_code);
-
-  // Signal mode by led color.
-  if (RAWv1 == tag_mode) { RED_LED_ON; }
-  else { GREEN_LED_ON; }
 }
 
 
@@ -281,10 +309,12 @@ static void updateAdvertisement(void)
 }
 
 
-/**@brief Timeout handler for the repeated timer
- */
-static void main_timer_handler(void * p_context)
+static void main_sensor_task(void* p_data, uint16_t length)
 {
+  // Signal mode by led color.
+  if (RAWv1 == tag_mode) { RED_LED_ON; }
+  else { GREEN_LED_ON; }
+
   int32_t  raw_t  = 0;
   uint32_t raw_p = 0;
   uint32_t raw_h = 0;
@@ -296,7 +326,7 @@ static void main_timer_handler(void * p_context)
     fast_advertising = false;
     bluetooth_configure_advertisement_type(APPLICATION_ADVERTISEMENT_TYPE);
 
-    bluetooth_configure_advertising_interval(advertising_rates[tag_mode]);
+    bluetooth_configure_advertising_interval(advertising_rates[tag_mode] + advertisement_delay);
     bluetooth_apply_configuration();
   }
 
@@ -349,6 +379,13 @@ static void main_timer_handler(void * p_context)
 
   updateAdvertisement();
   watchdog_feed();
+}
+
+/**@brief Timeout handler for the repeated timer
+ */
+static void main_timer_handler(void * p_context)
+{
+  app_sched_event_put (NULL, 0, main_sensor_task);
 }
 
 
@@ -441,21 +478,21 @@ int main(void)
     init_status |= BUTTON_FAILED_INIT;
   }
 
-  // Initialize BLE Stack. Starts LFCLK required for timer operation.
-  if( init_ble() ) { init_status |= BLE_FAILED_INIT; }
-  bluetooth_configure_advertisement_type(STARTUP_ADVERTISEMENT_TYPE);
-  bluetooth_tx_power_set(BLE_TX_POWER);
-  bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP);
-  // Priorities 2 and 3 are after SD timing critical events. 
-  // 6, 7 after SD non-critical events.
-  // Triggers ADC, so use 3. 
-  ble_radio_notification_init(3,
-                              NRF_RADIO_NOTIFICATION_DISTANCE_800US,
-                              on_radio_evt);
-
+  // BLE init inits peer manager which uses flash.
+  // Init flash first and check if GC needs to be run
   if(flash_init())
   {
     NRF_LOG_ERROR("Failed to init flash \r\n");
+  }
+  size_t flash_space_remaining = 0;
+  flash_free_size_get(&flash_space_remaining);
+  NRF_LOG_INFO("Largest continuous space remaining %d bytes\r\n", flash_space_remaining);
+  if(4000 > flash_space_remaining)
+  {
+    NRF_LOG_INFO("Flash space is almost used, running gc\r\n")
+    flash_gc_run();
+    flash_free_size_get(&flash_space_remaining);
+    NRF_LOG_INFO("Continuous space remaining after gc %d bytes\r\n", flash_space_remaining);
   }
   else if (flash_record_get(FDS_FILE_ID, FDS_RECORD_ID, sizeof(tag_mode), &tag_mode))
   {
@@ -465,14 +502,27 @@ int main(void)
   {
     NRF_LOG_INFO("Loaded mode %d from flash\r\n", tag_mode);
   }
+
+  // Initialize BLE Stack. Starts LFCLK required for timer operation.
+  if( init_ble() ) { init_status |= BLE_FAILED_INIT; }
+  advertisement_delay = NRF_FICR->DEVICEID[0]&0x0F;
+
+  // Priorities 2 and 3 are after SD timing critical events. 
+  // 6, 7 after SD non-critical events.
+  // Triggers ADC, so use 3. 
+  ble_radio_notification_init(3,
+                              NRF_RADIO_NOTIFICATION_DISTANCE_800US,
+                              on_radio_evt);
+
   // Enter stored mode after boot - or default mode if store mode was not found
-  app_sched_event_put (&tag_mode, 0, change_mode);
+  app_sched_event_put (&tag_mode, sizeof(&tag_mode), change_mode);
   
   // Initialize repeated timer for sensor read and single-shot timer for button reset
   if( init_timer(main_timer_id, APP_TIMER_MODE_REPEATED, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )
   {
     init_status |= TIMER_FAILED_INIT;
   }
+  
   if( init_timer(reset_timer_id, APP_TIMER_MODE_SINGLE_SHOT, BUTTON_RESET_TIME, reboot) )
   {
     init_status |= TIMER_FAILED_INIT;
@@ -535,11 +585,16 @@ int main(void)
     GREEN_LED_ON;
   }
 
-  // Delay before advertising so we get valid data on first packet
   // Turn off red led, leave green on to signal model+ without errors
   RED_LED_OFF;
-  nrf_delay_ms(MAIN_LOOP_INTERVAL_RAW + 100); 
+  app_sched_event_put (NULL, 0, main_sensor_task);
+  app_sched_execute();
+  nrf_delay_ms(MAIN_LOOP_INTERVAL_RAW + 100);
 
+  // 
+  bluetooth_configure_advertisement_type(STARTUP_ADVERTISEMENT_TYPE);
+  bluetooth_tx_power_set(BLE_TX_POWER);
+  bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP);
   bluetooth_advertising_start(); 
   NRF_LOG_INFO("Advertising started\r\n");
 

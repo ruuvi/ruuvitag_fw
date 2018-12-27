@@ -16,7 +16,7 @@
 #define ADVERTISING_INTERVAL_RAW      2010u
 #define MAIN_LOOP_INTERVAL_RAW_SLOW   6010u
 #define ADVERTISING_INTERVAL_RAW_SLOW 6010u
-#define ADVERTISING_STARTUP_PERIOD    30000u //milliseconds app advertises at startup speed.
+#define ADVERTISING_STARTUP_PERIOD    5000u //milliseconds app advertises at startup speed.
 #define ADVERTISING_INTERVAL_STARTUP  100u   //milliseconds app advertises at startup speed.
 
 //Raw v2
@@ -29,12 +29,17 @@
  *  BLE_GAP_ADV_TYPE_ADV_SCAN_IND   0x02      Nonconnectable, scannable
  *  BLE_GAP_ADV_TYPE_ADV_NONCONN_IND   0x03   Nonconnectable, nonscannable
  */
-// Most of the time
+// Most of the time non-connectable
 #define APPLICATION_ADVERTISEMENT_TYPE 0x03
-// After boot or user interaction, such as button press and NFC read
-#define STARTUP_ADVERTISEMENT_TYPE     0x00
 
 //Set to 0 if you don't want to include GATT connectivity. Remember to adjust advertisement type
-#define APP_GATT_PROFILE_ENABLED        1  
+#define APP_GATT_PROFILE_ENABLED        0
+
+// After boot or user interaction, such as button press and NFC read
+#if APP_GATT_PROFILE_ENABLED
+  #define STARTUP_ADVERTISEMENT_TYPE     0x03
+#else
+  #define STARTUP_ADVERTISEMENT_TYPE     0x00
+#endif
 
 #endif
