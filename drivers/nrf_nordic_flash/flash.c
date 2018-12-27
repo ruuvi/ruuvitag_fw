@@ -176,7 +176,8 @@ ret_code_t flash_free_size_get(size_t* size)
   {
     .file_id           = page_id,
     .key               = record_id,
-    .data.p_chunks     = &chunk
+    .data.p_chunks     = &chunk,
+    .data.num_chunks   = 1
   };
 
   err_code |= fds_record_find(page_id, record_id, &desc, &tok);
