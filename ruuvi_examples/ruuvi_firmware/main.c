@@ -132,7 +132,6 @@ static void main_timer_handler(void * p_context);
  */
 void change_mode(void* data, uint16_t length)
 {
-  uint32_t mode = *(uint32_t*)data;
   app_timer_stop(main_timer_id);
   if (model_plus)
   {

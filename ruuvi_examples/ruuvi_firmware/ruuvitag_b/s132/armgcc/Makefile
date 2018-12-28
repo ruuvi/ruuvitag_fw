@@ -24,6 +24,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../drivers/init/init.c \
   $(PROJ_DIR)/../../drivers/lis2dh12/lis2dh12.c \
   $(PROJ_DIR)/../../drivers/lis2dh12/lis2dh12_acceleration_handler.c \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_flash/flash.c \
   $(PROJ_DIR)/../../drivers/nrf_nordic_nfc/nfc.c \
   $(PROJ_DIR)/../../drivers/pwm/pwm.c \
   $(PROJ_DIR)/../../drivers/rng/rng.c \
@@ -38,6 +39,7 @@ SRC_FILES += \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/chain_channels.c \
   $(PROJ_DIR)/../../libraries/ruuvi_sensor_formats/sensortag.c \
   $(PROJ_DIR)/../../sdk_overrides/app_button.c \
+  $(PROJ_DIR)/../../sdk_overrides/ble_radio_notification.c \
   $(PROJ_DIR)/../../sdk_overrides/nrf_drv_wdt.c \
   $(PROJ_DIR)/ble_services/application_ble_event_handlers.c \
   $(PROJ_DIR)/ble_services/application_service_if.c \
@@ -115,6 +117,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/../../drivers/bme280 \
   $(PROJ_DIR)/../../drivers/init \
   $(PROJ_DIR)/../../drivers/lis2dh12 \
+  $(PROJ_DIR)/../../drivers/nrf_nordic_flash \
   $(PROJ_DIR)/../../drivers/nrf_nordic_nfc \
   $(PROJ_DIR)/../../drivers/nrf_nordic_pininterrupt \
   $(PROJ_DIR)/../../drivers/pwm/ \
@@ -132,6 +135,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/ble/ble_advertising \
   $(SDK_ROOT)/components/ble/ble_dtm \
   $(SDK_ROOT)/components/ble/ble_racp \
+  $(SDK_ROOT)/components/ble/ble_radio_notification/ \
   $(SDK_ROOT)/components/ble/ble_services/ble_ancs_c \
   $(SDK_ROOT)/components/ble/ble_services/ble_ans_c \
   $(SDK_ROOT)/components/ble/ble_services/ble_bas \
