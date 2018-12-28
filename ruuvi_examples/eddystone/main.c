@@ -349,7 +349,7 @@ int main(void)
   err_code |= pin_interrupt_init();
 
   // Initialize button.
-  err_code |= pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler);
+  err_code |= pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, NRF_GPIO_PIN_PULLUP, button_press_handler);
 
   NRF_LOG_INFO("Start!\r\n");
   // Enter main loop.
