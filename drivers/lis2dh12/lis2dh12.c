@@ -568,19 +568,19 @@ static uint8_t scale_interrupt_threshold(int16_t threshold_mg)
   uint8_t divisor;
   switch(state_scale)
   {
-    case 2:
+    case LIS2DH12_FS_2G:
       divisor = 16;
       break;
 
-    case 4:
+    case LIS2DH12_FS_4G:
       divisor = 32;
       break;
 
-    case 8:
+    case LIS2DH12_FS_8G:
       divisor = 62;
       break;
 
-    case 16:
+    case LIS2DH12_FS_16G:
       divisor = 186;
       break;
 
