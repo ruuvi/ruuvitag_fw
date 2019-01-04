@@ -224,22 +224,26 @@ static void reboot(void* p_context)
 ret_code_t button_press_handler(const ruuvi_standard_message_t message)
 {
   // Avoid double presses
-  if ((millis() - debounce) < DEBOUNCE_THRESHOLD) { return ENDPOINT_SUCCESS; }
-  debounce = millis();
-  if(false == message.payload[1])
+  static bool pressed = false;
+  if(false == message.payload[1] && ((millis() - debounce) > DEBOUNCE_THRESHOLD) && !pressed)
   {
     NRF_LOG_INFO("Button pressed\r\n");
     GREEN_LED_ON;
     RED_LED_ON;
     // Start timer to reboot tag.
     app_timer_start(reset_timer_id, APP_TIMER_TICKS(BUTTON_RESET_TIME, RUUVITAG_APP_TIMER_PRESCALER), NULL);
-
+    pressed = true;
   }
-  if(true == message.payload[1])
+  if(true == message.payload[1] &&  pressed)
   {
      NRF_LOG_INFO("Button released\r\n");
+     pressed = false;
      // Cancel reset
      app_timer_stop(reset_timer_id);
+
+     // Clear leds
+     GREEN_LED_OFF;
+     RED_LED_OFF;
 
      // Update mode
      tag_mode++;
@@ -254,6 +258,7 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
      app_sched_event_put (NULL, 0, store_mode);
   }
 
+  debounce = millis();
   return ENDPOINT_SUCCESS;
 }
 
@@ -303,10 +308,12 @@ void app_nfc_callback(void* p_context, nfc_t2t_event_t event, const uint8_t* p_d
  */
 static void power_manage(void)
 {
-  // Clear both leds before sleep.
+  // Clear both leds before sleep if not indicating button press
+  if (nrf_gpio_pin_read(BUTTON_1))
+  {
   GREEN_LED_OFF;
   RED_LED_OFF;
-
+  }
   uint32_t err_code = sd_app_evt_wait();
   APP_ERROR_CHECK(err_code);
 }

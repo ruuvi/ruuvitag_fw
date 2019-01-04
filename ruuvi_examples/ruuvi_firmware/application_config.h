@@ -4,7 +4,7 @@
 #include "bme280.h"
 #include "lis2dh12.h"
 // Milliseconds before new button press is accepted. Applies both to rising and falling edge
-#define DEBOUNCE_THRESHOLD 25u
+#define DEBOUNCE_THRESHOLD 100u
 // Milliseconds until new batteryreading is taken on radio interrupt.
 // Use cached value otherse.
 #define APPLICATION_BATTERY_INTERVAL 10000u
