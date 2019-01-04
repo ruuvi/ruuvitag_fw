@@ -16,15 +16,16 @@
 // Nordic SDK
 #include "ble_advdata.h"
 #include "ble_advertising.h"
+#include "ble_radio_notification.h"
 #include "nordic_common.h"
 #include "softdevice_handler.h"
 #include "app_scheduler.h"
 #include "app_timer_appsh.h"
 #include "nrf_drv_clock.h"
 #include "nrf_gpio.h"
+#include "nrf_drv_gpiote.h"
 #include "nrf_delay.h"
 
-//#define NRF_LOG_ENABLED 1   // log code only compiled if ENABLED 
 #define NRF_LOG_MODULE_NAME "MAIN"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -33,6 +34,7 @@
 #include "bsp.h"
 
 // Drivers
+#include "flash.h"
 #include "lis2dh12.h"
 #include "lis2dh12_acceleration_handler.h"
 #include "bme280.h"
@@ -60,6 +62,7 @@
 
 // ID for main loop timer.
 APP_TIMER_DEF(main_timer_id);                 // Creates timer id for our program.
+APP_TIMER_DEF(reset_timer_id);                 // Creates timer id for our program.
 
 static uint16_t init_status = 0;   // combined status of all initalizations.  Zero when all are complete if no errors occured.
 static uint8_t NFC_message[100];   // NFC message buffer has 4 records, up to 128 bytes each minus some overhead for NFC NDEF data keeping. 
@@ -79,60 +82,82 @@ static size_t NFC_message_length = sizeof(NFC_message);
 #define BUTTON_FAILED_INIT          0x2000
 #define BME_FAILED_INIT             0x4000
 
+// File and record for app mode
+#define FDS_FILE_ID 1
+#define FDS_RECORD_ID 1
+
 // define unconfusing macros for LEDs
 #define RED_LED_ON    nrf_gpio_pin_clear(LED_RED)
 #define RED_LED_OFF   nrf_gpio_pin_set(LED_RED)
 #define GREEN_LED_ON  nrf_gpio_pin_clear(LED_GREEN)
 #define GREEN_LED_OFF nrf_gpio_pin_set(LED_GREEN)
 
-// Payload requires 9 characters
-static char url_buffer[URL_BASE_LENGTH + URL_DATA_LENGTH] = URL_BASE;
-static uint8_t data_buffer[RAW_DATA_LENGTH] = { 0 };
+static uint8_t data_buffer[RAWv2_DATA_LENGTH] = { 0 };
 static bool model_plus = false;          // Flag for sensors available
-static bool highres = true;              // Flag for used mode
 static bool fast_advertising = true;     // Connectable mode
 static uint64_t fast_advertising_start = 0;  // Timestamp of when tag became connectable
-static uint64_t debounce = false;        // Flag for avoiding double presses
+static uint64_t debounce = 0;        // Flag for avoiding double presses
 static uint16_t acceleration_events = 0; // Number of times accelerometer has triggered
-
+static volatile uint16_t vbat = 0; //Update in interrupt after radio activity.
+static uint64_t last_battery_measurement = 0; // Timestamp of VBat update.
 static ruuvi_sensor_t data;
+static uint8_t advertisement_delay = 0; //Random, static delay to reduce collisions.
 
+// Possible modes of the app
+#define RAWv1 0
+#define RAWv2_FAST 1
+#define RAWv2_SLOW 2
+
+// Must be UINT32_T as flash storage operated in 4-byte chunks
+// Will get loaded from flash, this is default.
+static uint32_t tag_mode = RAWv1;
+// Rates of advertising. These must match the tag mode enum.
+static const uint16_t advertising_rates[] = {
+  ADVERTISING_INTERVAL_RAW,
+  ADVERTISING_INTERVAL_RAW,
+  ADVERTISING_INTERVAL_RAW_SLOW
+};
+// Rates of advertising. These must match the tag mode enum.
+static const uint16_t advertising_sizes[] = {
+  RAWv1_DATA_LENGTH,
+  RAWv2_DATA_LENGTH,
+  RAWv2_DATA_LENGTH
+};
+
+// Prototype declaration
 static void main_timer_handler(void * p_context);
-
 
 /**@brief Handler for button press.
  * Called in scheduler, out of interrupt context.
  */
 void change_mode(void* data, uint16_t length)
 {
-  // Avoid double presses
-  if ((millis() - debounce) < DEBOUNCE_THRESHOLD) { return; }
-  debounce = millis();
-  highres = !highres;
+  app_timer_stop(main_timer_id);
   if (model_plus)
   {
-    if (highres)
-    {
-      //TODO: #define sample rate for application
-      lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAW);
-      // Reconfigure application sample rate for RAW mode
-      app_timer_stop(main_timer_id);
-      app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 1000 ms
-      bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_RAW); // Broadcast only updated data, assuming there is an active receiver nearby.
-      bluetooth_apply_configuration();
+    switch(tag_mode)
+    {  
+      case RAWv2_SLOW:
+        lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAWv2);
+        app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW_SLOW, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+        break;
+
+      case RAWv2_FAST:
+        lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAWv2);
+        app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+        break;
+
+      case RAWv1:
+      default:
+        lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAWv1);
+        app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+        tag_mode = RAWv1;
+        break;
     }
-    else
-    {
-      // Stop accelerometer as it's not useful on URL mode.
-      lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_URL);
-      // Reconfigure application sample rate for URL mode.
-      app_timer_stop(main_timer_id);
-      app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_URL, RUUVITAG_APP_TIMER_PRESCALER), NULL); // 1 event / 5000 ms
-      bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_URL); // Broadcast often to "hit" occasional background scans.
-      bluetooth_apply_configuration();
-    }
+    bluetooth_configure_advertising_interval(advertising_rates[tag_mode] + advertisement_delay);
+    bluetooth_apply_configuration();
   }
-  NRF_LOG_INFO("Updating in %d mode\r\n", (uint32_t) highres);
+  NRF_LOG_INFO("Updating to %d mode\r\n", (uint32_t) tag_mode);
   main_timer_handler(NULL);
 }
 
@@ -145,24 +170,81 @@ static void become_connectable(void* data, uint16_t length)
 {
   fast_advertising_start = millis();
   fast_advertising = true;
-  bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP);
+  bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP + advertisement_delay);
   bluetooth_configure_advertisement_type(STARTUP_ADVERTISEMENT_TYPE);
   bluetooth_apply_configuration();
 }
 
+/**
+ * Stores current mode to flash, given in parameters.
+ *
+ * Data is address of the tag_mode.
+ * length is length of the address, not data.
+ *
+ */
+static void store_mode(void* data, uint16_t length)
+{
+  flash_record_set(FDS_FILE_ID, FDS_RECORD_ID, sizeof(tag_mode), data);
+  size_t flash_space_remaining;
+  flash_free_size_get(&flash_space_remaining);
+  NRF_LOG_INFO("Stored mode in flash, Largest continuous space remaining %d bytes\r\n", flash_space_remaining);
+  if(4000 > flash_space_remaining)
+  {
+    NRF_LOG_INFO("Flash space is almost use, running gc\r\n")
+    flash_gc_run();
+    flash_free_size_get(&flash_space_remaining);
+    NRF_LOG_INFO("Continuous space remaining after gc %d bytes\r\n", flash_space_remaining);
+  }
+}
+
+/**
+ * Reboots tag. Enters bootloader as button is pressed on boot
+ */
+static void reboot(void* p_context)
+{
+  NVIC_SystemReset();
+}
 
 /**@brief Function for handling button events.
  * Schedulers call to handler.
+ * Use scheduler, do not use peripherals in interrupt context (SPI/Flash writes won't complete.)
+ *
+ * @param message. A struct containing data about the event. 
+ *                 message.payload[0] has pin number (4)
+ *                 message.payload[1] has pin state, 1 if high, 0 if low.
  */
 ret_code_t button_press_handler(const ruuvi_standard_message_t message)
 {
-  NRF_LOG_INFO("Button\r\n");
-  //Change mode on button press
-  //Use scheduler, do not use peripherals in interrupt conext (SPI write halts)
-  GREEN_LED_ON;
-  RED_LED_ON;  
-  app_sched_event_put (NULL, 0, change_mode);
-  app_sched_event_put (NULL, 0, become_connectable);
+  // Avoid double presses
+  if ((millis() - debounce) < DEBOUNCE_THRESHOLD) { return ENDPOINT_SUCCESS; }
+  debounce = millis();
+  if(false == message.payload[1])
+  {
+    NRF_LOG_INFO("Button pressed\r\n");
+    GREEN_LED_ON;
+    RED_LED_ON;
+    // Start timer to reboot tag.
+    app_timer_start(reset_timer_id, APP_TIMER_TICKS(BUTTON_RESET_TIME, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+
+  }
+  if(true == message.payload[1])
+  {
+     NRF_LOG_INFO("Button released\r\n");
+     // Cancel reset
+     app_timer_stop(reset_timer_id);
+
+     // Update mode
+     tag_mode++;
+     if(tag_mode > 2) { tag_mode = 0; }
+     app_sched_event_put (&tag_mode, sizeof(&tag_mode), change_mode);
+     if(APP_GATT_PROFILE_ENABLED)
+     {
+       app_sched_event_put (NULL, 0, become_connectable);
+     }
+
+     // Schedule store mode to flash
+     app_sched_event_put (&tag_mode, sizeof(&tag_mode), store_mode);
+  }
 
   return ENDPOINT_SUCCESS;
 }
@@ -185,17 +267,24 @@ void app_nfc_callback(void* p_context, nfc_t2t_event_t event, const uint8_t* p_d
   switch (event)
   {
     case NFC_T2T_EVENT_FIELD_ON:
-    NRF_LOG_INFO("NFC Field detected \r\n");
-    break;
+      NRF_LOG_INFO("NFC Field detected \r\n");
+      break;
+
     case NFC_T2T_EVENT_FIELD_OFF:
-    NRF_LOG_INFO("NFC Field lost \r\n");
-    app_sched_event_put (NULL, 0, reinit_nfc);
-    app_sched_event_put (NULL, 0, become_connectable);
-    break;
+      NRF_LOG_INFO("NFC Field lost \r\n");
+      app_sched_event_put (NULL, 0, reinit_nfc);
+      if(APP_GATT_PROFILE_ENABLED)
+      {
+        app_sched_event_put (NULL, 0, become_connectable);
+      }
+      break;
+
     case NFC_T2T_EVENT_DATA_READ:
-    NRF_LOG_INFO("Data read\r\n");
+      NRF_LOG_INFO("Data read\r\n");
+      break;
+    
     default:
-    break;
+      break;
   }
 }
 
@@ -210,25 +299,21 @@ static void power_manage(void)
 
   uint32_t err_code = sd_app_evt_wait();
   APP_ERROR_CHECK(err_code);
-
-  // Signal mode by led color.
-  if (highres) { RED_LED_ON; }
-  else { GREEN_LED_ON; }
 }
 
 
 static void updateAdvertisement(void)
 {
-  ret_code_t err_code = NRF_SUCCESS;
-  if (highres) { err_code |= bluetooth_set_manufacturer_data(data_buffer, sizeof(data_buffer)); }
-  else { err_code |= bluetooth_set_eddystone_url(url_buffer, sizeof(url_buffer)); }
+  bluetooth_set_manufacturer_data(data_buffer, advertising_sizes[tag_mode]);
 }
 
 
-/**@brief Timeout handler for the repeated timer
- */
-void main_timer_handler(void * p_context)
+static void main_sensor_task(void* p_data, uint16_t length)
 {
+  // Signal mode by led color.
+  if (RAWv1 == tag_mode) { RED_LED_ON; }
+  else { GREEN_LED_ON; }
+
   int32_t  raw_t  = 0;
   uint32_t raw_p = 0;
   uint32_t raw_h = 0;
@@ -239,8 +324,8 @@ void main_timer_handler(void * p_context)
   {
     fast_advertising = false;
     bluetooth_configure_advertisement_type(APPLICATION_ADVERTISEMENT_TYPE);
-    if (highres) { bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_RAW); }
-    else { bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_URL); }
+
+    bluetooth_configure_advertising_interval(advertising_rates[tag_mode] + advertisement_delay);
     bluetooth_apply_configuration();
   }
 
@@ -268,31 +353,38 @@ void main_timer_handler(void * p_context)
     raw_t = (int32_t) temp;
   }
 
-  // Get battery voltage
-  //static uint32_t vbat_update_counter;
-  static uint16_t vbat = 0;
-  vbat = getBattery();
-
   // Embed data into structure for parsing.
   parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
   NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d x: %d y: %d z: %d\r\n", raw_t, raw_p, raw_h, acc[0], acc[1], acc[2]);
   NRF_LOG_DEBUG("VBAT: %d send %d \r\n", vbat, data.vbat);
-  if (highres)
+  // Prepare bytearray to broadcast.
+  bme280_data_t environmental;
+  environmental.temperature = raw_t;
+  environmental.humidity = raw_h;
+  environmental.pressure = raw_p;
+
+  switch(tag_mode)
   {
-    // Prepare bytearray to broadcast.
-    bme280_data_t environmental;
-    environmental.temperature = raw_t;
-    environmental.humidity = raw_h;
-    environmental.pressure = raw_p;
-    encodeToRawFormat5(data_buffer, &environmental, &buffer.sensor, acceleration_events, vbat, BLE_TX_POWER);
-  }
-  else
-  {
-    encodeToUrlDataFromat(url_buffer, URL_BASE_LENGTH, &data);
+    case RAWv2_FAST:
+    case RAWv2_SLOW:
+      encodeToRawFormat5(data_buffer, &environmental, &buffer.sensor, acceleration_events, vbat, BLE_TX_POWER);
+      break;
+    
+    case RAWv1:
+    default:
+      encodeToSensorDataFormat(data_buffer, &data);
+      break;
   }
 
   updateAdvertisement();
   watchdog_feed();
+}
+
+/**@brief Timeout handler for the repeated timer
+ */
+static void main_timer_handler(void * p_context)
+{
+  app_sched_event_put (NULL, 0, main_sensor_task);
 }
 
 
@@ -316,6 +408,21 @@ ret_code_t lis2dh12_int2_handler(const ruuvi_standard_message_t message)
   return NRF_SUCCESS;
 }
 
+/**
+ * Task to run on radio activity
+ * This function is in interrupt context, avoid long processing or using peripherals.
+ *
+ * parameter active: True if radio is going to be active after event, false if radio was turned off (after tx/rx)
+ */
+static void on_radio_evt(bool active)
+{
+  // If radio is turned off (was active) and enough time has passed since last measurement
+  if(false == active && millis() - last_battery_measurement > APPLICATION_BATTERY_INTERVAL)
+  {
+    vbat = getBattery();
+    last_battery_measurement = millis();
+  }
+}
 
 /**  This is where it all starts ++++++++++++++++++++++++++++++++++++++++++ 
  main is entered as a result of one of SEVERAL events:
@@ -340,56 +447,98 @@ int main(void)
   if( init_log() ) { init_status |=LOG_FAILED_INIT; }
   else { NRF_LOG_INFO("LOG initalized \r\n"); } // subsequent initalizations assume log is working
 
-  // start watchdog now incase program hangs up.
+  // start watchdog now in case program hangs up.
   // watchdog_default_handler logs error and resets the tag.
   init_watchdog(NULL);
 
   // Battery voltage initialization cannot fail under any reasonable circumstance.
   battery_voltage_init(); 
-  uint16_t vbat = getBattery();
+  vbat = getBattery();
+
   if( vbat < BATTERY_MIN_V ) { init_status |=BATTERY_FAILED_INIT; }
   else NRF_LOG_INFO("BATTERY initalized \r\n"); 
 
   if(init_sensors() == NRF_SUCCESS )
   {
-   model_plus = true;
-   NRF_LOG_INFO("Sensors initalized \r\n");  
- }
+    model_plus = true;
+    NRF_LOG_INFO("Sensors initialized \r\n");  
+  }
 
- // Init NFC ASAP in case we're waking from deep sleep via NFC (todo)
- // outputs ID:DEVICEID ,MAC:DEVICEADDR, SW:REVision
- set_nfc_callback(app_nfc_callback);
- if( init_nfc() ) { init_status |= NFC_FAILED_INIT; } 
- else { NRF_LOG_INFO("NFC init \r\n"); }
+  // Init NFC ASAP in case we're waking from deep sleep via NFC (todo)
+  // outputs ID:DEVICEID ,MAC:DEVICEADDR, SW:REVision
+  set_nfc_callback(app_nfc_callback);
+  if( init_nfc() ) { init_status |= NFC_FAILED_INIT; } 
+  else { NRF_LOG_INFO("NFC init \r\n"); }
 
- pin_interrupt_init(); 
+  pin_interrupt_init(); 
 
- if( pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler) ) 
- {
-  init_status |= BUTTON_FAILED_INIT;
-}
+  if( pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIO_PIN_PULLUP, button_press_handler) ) 
+  {
+    init_status |= BUTTON_FAILED_INIT;
+  }
+
+  // BLE init inits peer manager which uses flash.
+  // Init flash first and check if GC needs to be run
+  if(flash_init())
+  {
+    NRF_LOG_ERROR("Failed to init flash \r\n");
+  }
+  size_t flash_space_remaining = 0;
+  flash_free_size_get(&flash_space_remaining);
+  NRF_LOG_INFO("Largest continuous space remaining %d bytes\r\n", flash_space_remaining);
+  if(4000 > flash_space_remaining)
+  {
+    NRF_LOG_INFO("Flash space is almost used, running gc\r\n")
+    flash_gc_run();
+    flash_free_size_get(&flash_space_remaining);
+    NRF_LOG_INFO("Continuous space remaining after gc %d bytes\r\n", flash_space_remaining);
+  }
+  else if (flash_record_get(FDS_FILE_ID, FDS_RECORD_ID, sizeof(tag_mode), &tag_mode))
+  {
+   NRF_LOG_INFO("Did not find mode in flash, is this first boot? \r\n");
+  }
+  else 
+  {
+    NRF_LOG_INFO("Loaded mode %d from flash\r\n", tag_mode);
+  }
 
   // Initialize BLE Stack. Starts LFCLK required for timer operation.
-if( init_ble() ) { init_status |= BLE_FAILED_INIT; }
-bluetooth_configure_advertisement_type(STARTUP_ADVERTISEMENT_TYPE);
-bluetooth_tx_power_set(BLE_TX_POWER);
-bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP);
+  if( init_ble() ) { init_status |= BLE_FAILED_INIT; }
+  advertisement_delay = NRF_FICR->DEVICEID[0]&0x0F;
 
-if( init_timer(main_timer_id, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )
-{
-  init_status |= TIMER_FAILED_INIT;
-}
+  // Priorities 2 and 3 are after SD timing critical events. 
+  // 6, 7 after SD non-critical events.
+  // Triggers ADC, so use 3. 
+  ble_radio_notification_init(3,
+                              NRF_RADIO_NOTIFICATION_DISTANCE_800US,
+                              on_radio_evt);
 
-if( init_rtc() ) { init_status |= RTC_FAILED_INIT; }
-else { NRF_LOG_INFO("RTC initalized \r\n"); }
+  // Enter stored mode after boot - or default mode if store mode was not found
+  app_sched_event_put (&tag_mode, sizeof(&tag_mode), change_mode);
+  
+  // Initialize repeated timer for sensor read and single-shot timer for button reset
+  if( init_timer(main_timer_id, APP_TIMER_MODE_REPEATED, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )
+  {
+    init_status |= TIMER_FAILED_INIT;
+  }
+  
+  if( init_timer(reset_timer_id, APP_TIMER_MODE_SINGLE_SHOT, BUTTON_RESET_TIME, reboot) )
+  {
+    init_status |= TIMER_FAILED_INIT;
+  }
+  // Init starts timers, stop the reset
+  app_timer_stop(reset_timer_id);
+
+  if( init_rtc() ) { init_status |= RTC_FAILED_INIT; }
+  else { NRF_LOG_INFO("RTC initalized \r\n"); }
 
   // Initialize lis2dh12 and BME280 - TODO: Differentiate LIS2DH12 and BME280 
-if (model_plus)    
-{
+  if (model_plus)    
+  {
     lis2dh12_reset(); // Clear memory.
     
     // Enable Low-To-Hi rising edge trigger interrupt on nRF52 to detect acceleration events.
-    if (pin_interrupt_enable(INT_ACC2_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int2_handler) )
+    if (pin_interrupt_enable(INT_ACC2_PIN, NRF_GPIOTE_POLARITY_LOTOHI, NRF_GPIO_PIN_NOPULL, lis2dh12_int2_handler) )
     {
       init_status |= ACC_INT_FAILED_INIT;
     }
@@ -398,13 +547,13 @@ if (model_plus)
     // Enable XYZ axes.
     lis2dh12_enable();
     lis2dh12_set_scale(LIS2DH12_SCALE);
-    lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAW);
+    lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAWv1);
     lis2dh12_set_resolution(LIS2DH12_RESOLUTION);
 
     lis2dh12_set_activity_interrupt_pin_2(LIS2DH12_ACTIVITY_THRESHOLD);
-    NRF_LOG_INFO("Accelerameter configuration done \r\n");
+    NRF_LOG_INFO("Accelerometer configuration done \r\n");
 
-            // oversampling must be set for each used sensor.
+    // oversampling must be set for each used sensor.
     bme280_set_oversampling_hum  (BME280_HUMIDITY_OVERSAMPLING);
     bme280_set_oversampling_temp (BME280_TEMPERATURE_OVERSAMPLING);
     bme280_set_oversampling_press(BME280_PRESSURE_OVERSAMPLING);
@@ -412,7 +561,7 @@ if (model_plus)
     bme280_set_interval(BME280_DELAY);
     bme280_set_mode(BME280_MODE_NORMAL);
     NRF_LOG_INFO("BME280 configuration done \r\n");
-  }   
+  }
 
   // Log errors, add a note to NFC, blink RED to visually indicate the problem
   if (init_status )
@@ -435,19 +584,24 @@ if (model_plus)
     GREEN_LED_ON;
   }
 
-  // Delay before advertising so we get valid data on first packet
   // Turn off red led, leave green on to signal model+ without errors
   RED_LED_OFF;
-  nrf_delay_ms(MAIN_LOOP_INTERVAL_RAW + 100); 
+  app_sched_event_put (NULL, 0, main_sensor_task);
+  app_sched_execute();
+  nrf_delay_ms(MAIN_LOOP_INTERVAL_RAW + 100);
 
+  // 
+  bluetooth_configure_advertisement_type(STARTUP_ADVERTISEMENT_TYPE);
+  bluetooth_tx_power_set(BLE_TX_POWER);
+  bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP);
   bluetooth_advertising_start(); 
   NRF_LOG_INFO("Advertising started\r\n");
 
-  // Enter main loop. spinning here interrupts will bring us out frequently
-  // accelerometer invokes lis2dh12_int2_handler
+  // Enter main loop. Executes tasks scheduled by timers and interrupts.
   for (;;)
   {
     app_sched_execute();
-    power_manage();         // calls sd_app_evt_wait
+    // Sleep until next event.
+    power_manage();
   }
 }

@@ -209,8 +209,8 @@ void test_lis2dh12(void)
 {
   // Enable LOTOHI interrupt on nRF52 -- note: this uses local handler, not the one defined in acceleration_handler.
   // TODO: Test the acceleration_handler logic?
-  pin_interrupt_enable(INT_ACC1_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int1_handler);
-  pin_interrupt_enable(INT_ACC2_PIN, NRF_GPIOTE_POLARITY_LOTOHI, lis2dh12_int2_handler);
+  pin_interrupt_enable(INT_ACC1_PIN, NRF_GPIOTE_POLARITY_LOTOHI, NRF_GPIO_PIN_PULLDOWN, lis2dh12_int1_handler);
+  pin_interrupt_enable(INT_ACC2_PIN, NRF_GPIOTE_POLARITY_LOTOHI, NRF_GPIO_PIN_PULLDOWN, lis2dh12_int2_handler);
   
   //Reset lis
   //Clear memory

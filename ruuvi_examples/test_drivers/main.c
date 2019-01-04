@@ -162,7 +162,7 @@ int main(void)
   lis2dh12_enable();
 
   
-  err_code |= pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, button_press_handler);
+  err_code |= pin_interrupt_enable(BSP_BUTTON_0, NRF_GPIOTE_POLARITY_HITOLO, NRF_GPIO_PIN_PULLUP, button_press_handler);
 
   NRF_LOG_INFO("Interrupt init status %s\r\n", (uint32_t)ERR_TO_STR(err_code));
 

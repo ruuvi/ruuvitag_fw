@@ -7,6 +7,6 @@
 #include "ruuvi_endpoints.h"
 
 ret_code_t pin_interrupt_init();
-ret_code_t pin_interrupt_enable(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t polarity, message_handler handler);
+ret_code_t pin_interrupt_enable(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t polarity, nrf_gpio_pin_pull_t pull, message_handler handler);
 
 #endif

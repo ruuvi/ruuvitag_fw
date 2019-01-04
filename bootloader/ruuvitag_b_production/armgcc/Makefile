@@ -10,6 +10,7 @@ $(OUTPUT_DIRECTORY)/ruuvitag_b_bootloader.out: \
 
 # Source files common to all targets
 SRC_FILES += \
+  $(PROJ_DIR)/nrf_ble_dfu.c \
   $(PROJ_DIR)/dfu_public_key.c \
   $(PROJ_DIR)/main.c \
   $(SDK_ROOT)/examples/dfu/bootloader_secure/dfu-cc.pb.c \
@@ -36,7 +37,6 @@ SRC_FILES += \
   $(SDK_ROOT)/components/drivers_nrf/common/nrf_drv_common.c \
   $(SDK_ROOT)/components/drivers_nrf/rng/nrf_drv_rng.c \
   $(SDK_ROOT)/components/drivers_nrf/hal/nrf_nvmc.c \
-  $(SDK_ROOT)/components/libraries/bootloader/ble_dfu/nrf_ble_dfu.c \
   $(SDK_ROOT)/external/segger_rtt/RTT_Syscalls_GCC.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \

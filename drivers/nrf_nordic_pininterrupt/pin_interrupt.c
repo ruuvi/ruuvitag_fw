@@ -29,6 +29,8 @@ static void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t actio
   //Call event handler with empty message TODO: invalid message add context?
   NRF_LOG_DEBUG("Handling pin event\r\n");
   ruuvi_standard_message_t message;
+  message.payload[0] = pin;
+  message.payload[1] = nrf_gpio_pin_read(pin);
   if (NULL != pin_event_handlers[pin]) { (pin_event_handlers[pin])(message);}
 }
 /**
@@ -40,31 +42,16 @@ static void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t actio
  *
  *  Message handler is called with an empty message on event.
  */
-ret_code_t pin_interrupt_enable(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t polarity, message_handler handler)
+ret_code_t pin_interrupt_enable(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t polarity, nrf_gpio_pin_pull_t pull, message_handler handler)
 {
-  NRF_LOG_INFO("Enabling\r\n");
+  NRF_LOG_INFO("Enabling pin interrupt\r\n");
   ret_code_t err_code = NRF_SUCCESS;
   nrf_drv_gpiote_in_config_t in_config = {
     .is_watcher = false,               \
     .hi_accuracy = false,              \
-    .pull = NRF_GPIO_PIN_NOPULL,       \
+    .pull = pull,       \
     .sense = polarity                  \
   };
-  switch (polarity)
-  {
-  case NRF_GPIOTE_POLARITY_TOGGLE:
-    in_config.pull = NRF_GPIO_PIN_NOPULL;
-    break;
-  case NRF_GPIOTE_POLARITY_HITOLO:
-    NRF_LOG_INFO("Pull-up\r\n");
-    in_config.pull = NRF_GPIO_PIN_PULLUP;
-    break;
-  case NRF_GPIOTE_POLARITY_LOTOHI:
-    in_config.pull = NRF_GPIO_PIN_PULLDOWN;
-    break;
-  default:
-    return 1; //TODO proper error code
-  }
   pin_event_handlers[pin] = handler;
   err_code |= nrf_drv_gpiote_in_init(pin, &in_config, in_pin_handler);
 
