@@ -122,6 +122,7 @@
       <file file_name="../../../../../nRF5_SDK_12.3.0_d7731ad/components/libraries/queue/nrf_queue.c" />
       <file file_name="../../../../../nRF5_SDK_12.3.0_d7731ad/components/libraries/util/sdk_mapped_flags.c" />
       <file file_name="../../../../../nRF5_SDK_12.3.0_d7731ad/components/libraries/timer/app_timer_appsh.c" />
+      <file file_name="../../../../../nRF5_SDK_12.3.0_d7731ad/components/libraries/crc16/crc16.c" />
     </folder>
     <folder Name="nRF_Log">
       <file file_name="../../../../../nRF5_SDK_12.3.0_d7731ad/components/libraries/log/src/nrf_log_backend_serial.c" />

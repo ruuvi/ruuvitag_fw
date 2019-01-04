@@ -13,17 +13,25 @@
 #define TIMER1_ENABLED  1
 #define TIMER2_ENABLED  1
 #define TIMER3_ENABLED  1
-#define TIMER4_ENABLED  0  //Required by NFC
+#define TIMER4_ENABLED  0  // Required by NFC
 #define NFC_HAL_ENABLED 1
-#define CRC16_ENABLED   1  //CRC required by DFU
-#define CRC32_ENABLED   1
-#define NRF_LOG_ENABLED 1  // Disable log printout by default to save space
+#define FDS_CRC_ENABLED 1  // Driver checks if value is defined, comment this line out to disable CRC
+#if FDS_CRC_ENABLED
+  #define CRC16_ENABLED   FDS_CRC_ENABLED  
+  #define CRC32_ENABLED   FDS_CRC_ENABLED  
+#endif
+#define NRF_LOG_ENABLED 0  // Disable log printout by default to save space
 
 #if APP_GATT_PROFILE_ENABLED
   #define BLE_DIS_ENABLED 1  //Device information service
   #define BLE_NUS_ENABLED 1  //Nordic UART Service
   #define BLE_DFU_ENABLED 1  //DFU service
+#else
+  #define BLE_DIS_ENABLED 0  //Device information service
+  #define BLE_NUS_ENABLED 0  //Nordic UART Service
+  #define BLE_DFU_ENABLED 0  //DFU service
 #endif
+#define BLE_UUID_COUNT BLE_DIS_ENABLED + BLE_NUS_ENABLED + BLE_DFU_ENABLED
 
 // While this application does not require 10 pages, 
 // Eddystone might have previous, valid configuration.
