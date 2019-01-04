@@ -17,19 +17,22 @@
 #define NFC_HAL_ENABLED 1
 #define CRC16_ENABLED   1  //CRC required by DFU
 #define CRC32_ENABLED   1
-#define NRF_LOG_ENABLED 1
+#define NRF_LOG_ENABLED 1  // Disable log printout by default to save space
 
 #if APP_GATT_PROFILE_ENABLED
-#define BLE_DIS_ENABLED 1  //Device information service
-#define BLE_NUS_ENABLED 1  //Nordic UART Service
-#define BLE_DFU_ENABLED 1  //DFU service
+  #define BLE_DIS_ENABLED 1  //Device information service
+  #define BLE_NUS_ENABLED 1  //Nordic UART Service
+  #define BLE_DFU_ENABLED 1  //DFU service
 #endif
 
-// Fix error if there is leftover configuration flash
+// While this application does not require 10 pages, 
+// Eddystone might have previous, valid configuration.
+// Conserve enough space for the eddystone data + this application
+// to avoid out of space when validating filesystem at boot. 
 #define FDS_OP_QUEUE_SIZE 10
 #define FDS_CHUNK_QUEUE_SIZE 15
 #define FDS_MAX_USERS 8
-#define FDS_VIRTUAL_PAGES 3
+#define FDS_VIRTUAL_PAGES 10
 #define FDS_VIRTUAL_PAGE_SIZE 1024
 
 

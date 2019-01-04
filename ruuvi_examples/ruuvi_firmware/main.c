@@ -267,7 +267,9 @@ void app_nfc_callback(void* p_context, nfc_t2t_event_t event, const uint8_t* p_d
   switch (event)
   {
     case NFC_T2T_EVENT_FIELD_ON:
+      // NFC activation causes tag to hang sometimes. Fix this by reseting tag after a delay on NFC read.
       NRF_LOG_INFO("NFC Field detected \r\n");
+      app_timer_start(reset_timer_id, APP_TIMER_TICKS(NFC_RESET_DELAY, RUUVITAG_APP_TIMER_PRESCALER), NULL);
       break;
 
     case NFC_T2T_EVENT_FIELD_OFF:
