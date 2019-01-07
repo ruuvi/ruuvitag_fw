@@ -37,9 +37,9 @@
 
 // After boot or user interaction, such as button press and NFC read
 #if APP_GATT_PROFILE_ENABLED
-  #define STARTUP_ADVERTISEMENT_TYPE     0x03
-#else
   #define STARTUP_ADVERTISEMENT_TYPE     0x00
+#else
+  #define STARTUP_ADVERTISEMENT_TYPE     0x03
 #endif
 
 #endif
