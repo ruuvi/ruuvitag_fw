@@ -323,10 +323,9 @@ ret_code_t bluetooth_stack_init(void)
     NRF_LOG_DEBUG("Attribute table size: %d\r\n", ble_enable_params.gatts_enable_params.attr_tab_size);
     #endif
     
-    //Adjust UUID count TODO refactor into application
-    #define BLE_UUID_COUNT 10
+    
     #ifdef BLE_UUID_COUNT
-    ble_enable_params.common_enable_params.vs_uuid_count = BLE_UUID_COUNT;
+      ble_enable_params.common_enable_params.vs_uuid_count = BLE_UUID_COUNT;
     #endif
     NRF_LOG_INFO("Softdevice configuration ready, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));       
     nrf_delay_ms(10);
@@ -339,9 +338,6 @@ ret_code_t bluetooth_stack_init(void)
     #if (NRF_SD_BLE_API_VERSION == 3)
       ble_enable_params.gatt_enable_params.att_mtu = NRF_BLE_MAX_MTU_SIZE;
     #endif
-
-    //Init filesystem
-    err_code |= fs_init();
 
     // Subscribe for BLE events.
     err_code |= softdevice_ble_evt_handler_set(ble_evt_dispatch);
@@ -358,15 +354,18 @@ ret_code_t bluetooth_stack_init(void)
     NRF_LOG_INFO("Softdevice enabled, status: %s\r\n", (uint32_t)ERR_TO_STR(err_code));
     nrf_delay_ms(10);
 
-    //Enable peer manager, erase bonds
-    peer_manager_init(true);
-    NRF_LOG_INFO("Peer manager init \r\n");
-    nrf_delay_ms(10);
-    
     #if APP_GATT_PROFILE_ENABLED
-    err_code |= application_services_init();
-    NRF_LOG_INFO("Services init status %d\r\n", err_code);
-    nrf_delay_ms(10);
+      //Enable peer manager, erase bonds
+      //Init filesystem
+      err_code |= fs_init();
+      peer_manager_init(true);
+      NRF_LOG_INFO("Peer manager init \r\n");
+      nrf_delay_ms(10);
+    
+    
+      err_code |= application_services_init();
+      NRF_LOG_INFO("Services init status %d\r\n", err_code);
+      nrf_delay_ms(10);
     #endif 
     
     gap_params_init();

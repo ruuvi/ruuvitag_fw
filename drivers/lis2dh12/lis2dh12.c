@@ -50,11 +50,14 @@ For a detailed description see the detailed description in @ref LIS2DH12.h
 /* PROTOTYPES *************************************************************************************/
 static lis2dh12_ret_t selftest(void);
 void timer_lis2dh12_event_handler(void* p_context);
+static int16_t rawToMg(int16_t raw_acceleration);
+static uint8_t scale_interrupt_threshold(int16_t threshold_mg);
 
 /* VARIABLES **************************************************************************************/
 static lis2dh12_scale_t      state_scale = LIS2DH12_SCALE16G;
 static lis2dh12_resolution_t state_resolution = LIS2DH12_RES10BIT;
-static const uint8_t lis2dh12_mgpb_map[] = {1,2,4,12};
+
+
 
 /**
  *  Initializes LIS2DH12, and puts it in sleep mode.
@@ -240,38 +243,18 @@ lis2dh12_ret_t lis2dh12_set_fifo_mode(lis2dh12_fifo_mode_t mode)
     return err_code;
 }
 
-/** Return factor for current state **/
-uint8_t get_mgpb()
-{
-    switch(state_scale)
-    {
-        case LIS2DH12_SCALE2G:  return lis2dh12_mgpb_map[0];
-        case LIS2DH12_SCALE4G:  return lis2dh12_mgpb_map[1];
-        case LIS2DH12_SCALE8G:  return lis2dh12_mgpb_map[2];
-        case LIS2DH12_SCALE16G: return lis2dh12_mgpb_map[3];
-        default:                return 0;
-    }
-}
-
 lis2dh12_ret_t lis2dh12_read_samples(lis2dh12_sensor_buffer_t* buffer, size_t count)
 {
      lis2dh12_ret_t err_code = LIS2DH12_RET_OK;
      size_t bytes_to_read = count*sizeof(lis2dh12_sensor_buffer_t);
      NRF_LOG_DEBUG("Reading %d bytes \r\n", bytes_to_read);
      err_code |= lis2dh12_read_register(LIS2DH12_OUT_X_L, (uint8_t*)buffer, count*sizeof(lis2dh12_sensor_buffer_t));
-     uint8_t mgpb = get_mgpb();
      // Use constant bitshift, so we don't have to adjust mgpb with resolution
-     uint8_t justify = 4; 
      for(int ii = 0; ii < count; ii++)
      {
-        NRF_LOG_DEBUG("Before justification %d \r\n", buffer[ii].sensor.z);
-        buffer[ii].sensor.x >>= justify;
-        buffer[ii].sensor.y >>= justify;
-        buffer[ii].sensor.z >>= justify;
-        NRF_LOG_DEBUG("Before scaling %d \r\n", buffer[ii].sensor.z);
-        buffer[ii].sensor.x *= mgpb;
-        buffer[ii].sensor.y *= mgpb;
-        buffer[ii].sensor.z *= mgpb;
+        buffer[ii].sensor.x = rawToMg(buffer[ii].sensor.x);
+        buffer[ii].sensor.y = rawToMg(buffer[ii].sensor.y);
+        buffer[ii].sensor.z = rawToMg(buffer[ii].sensor.z);
      }
      return err_code;
 }
@@ -324,7 +307,7 @@ lis2dh12_ret_t lis2dh12_set_activity_interrupt_pin_2(uint16_t mg)
     // ctrl[0] = LIS2DH12_ACTIVITY_THRESHOLD;
     // lis2dh12_write_register(LIS2DH12_INT2_THS, ctrl, 1);
 
-    uint8_t threshold = mg / get_mgpb();
+    uint8_t threshold = scale_interrupt_threshold(mg);
     if(0 == threshold)
     {
       threshold = 1;
@@ -374,21 +357,6 @@ lis2dh12_ret_t lis2dh12_set_interrupt_configuration(uint8_t cfg, uint8_t functio
 }
 
 /**
- *  Setup number of LSBs needed to trigger activity interrupt.
- *  Note: this targets only pin 2, and only if activity interrupt is enabled.
- *
- *  @param bits number of LSBs required to trigger the interrupt, max 0x7F
- *
- *  @return error code from stack
- */
-lis2dh12_ret_t lis2dh12_set_activity_threshold(uint8_t bits)
-{
-  uint8_t ctrl[1];
-  ctrl[0] = bits;
-  return lis2dh12_write_register(LIS2DH12_ACT_THS, ctrl, 1);
-}
-
-/**
  * Setup high-pass functions of lis2dh12. Select mode, cutoff frequency, filter data, click, interrputs.
  *
  * @param highpass byte to write to filter, resets previous settings.
@@ -411,7 +379,7 @@ lis2dh12_ret_t lis2dh12_set_highpass(uint8_t highpass)
  */
 lis2dh12_ret_t lis2dh12_set_threshold(uint8_t bits, uint8_t pin)
 {
-  if(1 != pin && 2 != pin){ return LIS2DH12_RET_INVALID; }
+  if((1 != pin && 2 != pin) || bits > 0x7F){ return LIS2DH12_RET_INVALID; }
   uint8_t ctrl[1];
   ctrl[0] = bits;
   uint8_t target_reg = LIS2DH12_INT1_THS;
@@ -434,6 +402,197 @@ static lis2dh12_ret_t selftest(void)
     lis2dh12_read_register(LIS2DH12_WHO_AM_I, value, 1);
     if(LIS2DH12_I_AM_MASK != value[0]) { NRF_LOG_ERROR("WHO_AM_I: %x\r\n", value[0])}
     return (LIS2DH12_I_AM_MASK == value[0]) ? LIS2DH12_RET_OK : LIS2DH12_RET_ERROR;
+}
+
+/**
+ * Conversion functions from 
+ * https://github.com/STMicroelectronics/STMems_Standard_C_drivers/blob/3e3b7528dfacb223aea250daf4e512e335f17509/lis2dh12_STdC/driver/lis2dh12_reg.c#L104
+ */
+static inline int16_t lis2dh12_from_fs2_hr_to_mg(int16_t lsb)
+{
+  return (lsb / 16 ) * 1;
+}
+
+static inline int16_t lis2dh12_from_fs4_hr_to_mg(int16_t lsb)
+{
+  return (lsb / 16 ) * 2;
+}
+
+static inline int16_t lis2dh12_from_fs8_hr_to_mg(int16_t lsb)
+{
+  return (lsb / 16 ) * 4;
+}
+
+static inline int16_t lis2dh12_from_fs16_hr_to_mg(int16_t lsb)
+{
+  return (lsb / 16) * 12;
+}
+
+static inline int16_t lis2dh12_from_fs2_nm_to_mg(int16_t lsb)
+{
+  return (lsb / 64) * 4;
+}
+
+static inline int16_t lis2dh12_from_fs4_nm_to_mg(int16_t lsb)
+{
+  return (lsb / 64) * 8;
+}
+
+static inline int16_t lis2dh12_from_fs8_nm_to_mg(int16_t lsb)
+{
+  return (lsb / 64) * 16;
+}
+
+static inline int16_t lis2dh12_from_fs16_nm_to_mg(int16_t lsb)
+{
+  return (lsb / 64) * 48;
+}
+
+static inline int16_t lis2dh12_from_fs2_lp_to_mg(int16_t lsb)
+{
+  return (lsb / 256) * 16;
+}
+
+static inline int16_t lis2dh12_from_fs4_lp_to_mg(int16_t lsb)
+{
+  return (lsb / 256) * 32;
+}
+
+static inline int16_t lis2dh12_from_fs8_lp_to_mg(int16_t lsb)
+{
+  return (lsb / 256) * 64;
+}
+
+static inline int16_t lis2dh12_from_fs16_lp_to_mg(int16_t lsb)
+{
+  return (lsb / 256) * 192;
+}
+
+
+/**
+ * Convert raw value to acceleration in mg. Reads scale and resolution from state variables.
+ *
+ * @param raw_acceleration raw ADC value from LIS2DH12
+ * @return int16_t representing acceleration in milli-G. 
+ */
+static int16_t rawToMg(int16_t raw_acceleration)
+{
+  switch(state_scale)
+  {
+    case LIS2DH12_SCALE2G:
+      switch(state_resolution)
+      {
+        case LIS2DH12_RES8BIT:
+          return lis2dh12_from_fs2_lp_to_mg(raw_acceleration);
+
+        case LIS2DH12_RES10BIT:
+          return  lis2dh12_from_fs2_nm_to_mg(raw_acceleration);
+
+        case LIS2DH12_RES12BIT:
+          return  lis2dh12_from_fs2_hr_to_mg(raw_acceleration);
+
+        default:
+          break;
+      }
+      break;
+
+    case LIS2DH12_SCALE4G:
+      switch(state_resolution)
+      {
+        case LIS2DH12_RES8BIT:
+          return  lis2dh12_from_fs4_lp_to_mg(raw_acceleration);
+
+        case LIS2DH12_RES10BIT:
+          return  lis2dh12_from_fs4_nm_to_mg(raw_acceleration);
+
+        case LIS2DH12_RES12BIT:
+          return  lis2dh12_from_fs4_hr_to_mg(raw_acceleration);
+      }
+      break;
+
+    case LIS2DH12_SCALE8G:
+      switch(state_resolution)
+      {
+        case LIS2DH12_RES8BIT:
+          return  lis2dh12_from_fs8_lp_to_mg(raw_acceleration);
+
+        case LIS2DH12_RES10BIT:
+          return  lis2dh12_from_fs8_nm_to_mg(raw_acceleration);
+
+        case LIS2DH12_RES12BIT:
+          return  lis2dh12_from_fs8_hr_to_mg(raw_acceleration);
+
+        default:
+          break;
+      }
+    break;
+
+    case LIS2DH12_SCALE16G:
+      switch(state_resolution)
+      {
+        case LIS2DH12_RES8BIT:
+          return  lis2dh12_from_fs16_lp_to_mg(raw_acceleration);
+
+        case LIS2DH12_RES10BIT:
+          return  lis2dh12_from_fs16_nm_to_mg(raw_acceleration);
+
+        case LIS2DH12_RES12BIT:
+          return  lis2dh12_from_fs16_hr_to_mg(raw_acceleration);
+
+        default:
+          break;
+      }
+    break;
+
+    default:
+      break;
+  }
+  // reached only in case of an error, return "smallest representable value"
+  return 0x8000;
+}
+
+/**
+ * Return correct threshold setting for activity interrupt at
+ * given threshold. Scales threshold upwards to next value.
+ *
+ * @param threshold_mg desired threshold. Will be converted to positive value if negative value is given.
+ * @return threshold to set or 0x7F (max) if given threshold is not possible.
+ */
+static uint8_t scale_interrupt_threshold(int16_t threshold_mg)
+{
+  // Adjust for scale
+  // 1 LSb = 16 mg @ FS = 2 g
+  // 1 LSb = 32 mg @ FS = 4 g
+  // 1 LSb = 62 mg @ FS = 8 g
+  // 1 LSb = 186 mg @ FS = 16 g
+  uint8_t divisor;
+  switch(state_scale)
+  {
+    case LIS2DH12_FS_2G:
+      divisor = 16;
+      break;
+
+    case LIS2DH12_FS_4G:
+      divisor = 32;
+      break;
+
+    case LIS2DH12_FS_8G:
+      divisor = 62;
+      break;
+
+    case LIS2DH12_FS_16G:
+      divisor = 186;
+      break;
+
+    default:
+      divisor = 16;
+      break;
+  }
+
+  if(threshold_mg < 0) { threshold_mg = 0 - threshold_mg; }
+  uint8_t threshold = (threshold_mg/divisor) + 1;
+  if(threshold > 0x7F) { threshold = 0x7F; }
+  return threshold;
 }
 
 /**

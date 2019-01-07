@@ -110,7 +110,7 @@ static uint8_t advertisement_delay = 0; //Random, static delay to reduce collisi
 
 // Must be UINT32_T as flash storage operated in 4-byte chunks
 // Will get loaded from flash, this is default.
-static uint32_t tag_mode = RAWv1;
+static uint32_t tag_mode __attribute__ ((aligned (4))) = RAWv1;
 // Rates of advertising. These must match the tag mode enum.
 static const uint16_t advertising_rates[] = {
   ADVERTISING_INTERVAL_RAW,
@@ -184,16 +184,24 @@ static void become_connectable(void* data, uint16_t length)
  */
 static void store_mode(void* data, uint16_t length)
 {
-  flash_record_set(FDS_FILE_ID, FDS_RECORD_ID, sizeof(tag_mode), data);
-  size_t flash_space_remaining;
-  flash_free_size_get(&flash_space_remaining);
-  NRF_LOG_INFO("Stored mode in flash, Largest continuous space remaining %d bytes\r\n", flash_space_remaining);
-  if(4000 > flash_space_remaining)
+  // Point the record directly to word-aligned tag mode rather than data pointer passed as context.
+  ret_code_t err_code = flash_record_set(FDS_FILE_ID, FDS_RECORD_ID, sizeof(tag_mode), &tag_mode);
+  if(err_code)
   {
-    NRF_LOG_INFO("Flash space is almost use, running gc\r\n")
-    flash_gc_run();
+   NRF_LOG_WARNING("Error in flash write %X\r\n", err_code);
+  }
+  else
+  {
+    size_t flash_space_remaining;
     flash_free_size_get(&flash_space_remaining);
-    NRF_LOG_INFO("Continuous space remaining after gc %d bytes\r\n", flash_space_remaining);
+    NRF_LOG_INFO("Stored mode in flash, Largest continuous space remaining %d bytes\r\n", flash_space_remaining);
+    if(4000 > flash_space_remaining)
+    {
+      NRF_LOG_INFO("Flash space is almost used, running gc\r\n")
+      flash_gc_run();
+      flash_free_size_get(&flash_space_remaining);
+      NRF_LOG_INFO("Continuous space remaining after gc %d bytes\r\n", flash_space_remaining);
+    }
   }
 }
 
@@ -216,22 +224,26 @@ static void reboot(void* p_context)
 ret_code_t button_press_handler(const ruuvi_standard_message_t message)
 {
   // Avoid double presses
-  if ((millis() - debounce) < DEBOUNCE_THRESHOLD) { return ENDPOINT_SUCCESS; }
-  debounce = millis();
-  if(false == message.payload[1])
+  static bool pressed = false;
+  if(false == message.payload[1] && ((millis() - debounce) > DEBOUNCE_THRESHOLD) && !pressed)
   {
     NRF_LOG_INFO("Button pressed\r\n");
     GREEN_LED_ON;
     RED_LED_ON;
     // Start timer to reboot tag.
     app_timer_start(reset_timer_id, APP_TIMER_TICKS(BUTTON_RESET_TIME, RUUVITAG_APP_TIMER_PRESCALER), NULL);
-
+    pressed = true;
   }
-  if(true == message.payload[1])
+  if(true == message.payload[1] &&  pressed)
   {
      NRF_LOG_INFO("Button released\r\n");
+     pressed = false;
      // Cancel reset
      app_timer_stop(reset_timer_id);
+
+     // Clear leds
+     GREEN_LED_OFF;
+     RED_LED_OFF;
 
      // Update mode
      tag_mode++;
@@ -243,9 +255,10 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
      }
 
      // Schedule store mode to flash
-     app_sched_event_put (&tag_mode, sizeof(&tag_mode), store_mode);
+     app_sched_event_put (NULL, 0, store_mode);
   }
 
+  debounce = millis();
   return ENDPOINT_SUCCESS;
 }
 
@@ -267,7 +280,9 @@ void app_nfc_callback(void* p_context, nfc_t2t_event_t event, const uint8_t* p_d
   switch (event)
   {
     case NFC_T2T_EVENT_FIELD_ON:
+      // NFC activation causes tag to hang sometimes. Fix this by reseting tag after a delay on NFC read.
       NRF_LOG_INFO("NFC Field detected \r\n");
+      app_timer_start(reset_timer_id, APP_TIMER_TICKS(NFC_RESET_DELAY, RUUVITAG_APP_TIMER_PRESCALER), NULL);
       break;
 
     case NFC_T2T_EVENT_FIELD_OFF:
@@ -293,10 +308,12 @@ void app_nfc_callback(void* p_context, nfc_t2t_event_t event, const uint8_t* p_d
  */
 static void power_manage(void)
 {
-  // Clear both leds before sleep.
+  // Clear both leds before sleep if not indicating button press
+  if (nrf_gpio_pin_read(BUTTON_1))
+  {
   GREEN_LED_OFF;
   RED_LED_OFF;
-
+  }
   uint32_t err_code = sd_app_evt_wait();
   APP_ERROR_CHECK(err_code);
 }
@@ -477,8 +494,20 @@ int main(void)
     init_status |= BUTTON_FAILED_INIT;
   }
 
-  // BLE init inits peer manager which uses flash.
-  // Init flash first and check if GC needs to be run
+  // Initialize BLE Stack. Starts LFCLK required for timer operation.
+  if( init_ble() ) { init_status |= BLE_FAILED_INIT; }
+  advertisement_delay = NRF_FICR->DEVICEID[0]&0x0F;
+
+  // Priorities 2 and 3 are after SD timing critical events. 
+  // 6, 7 after SD non-critical events.
+  // Triggers ADC, so use 3. 
+  ble_radio_notification_init(3,
+                              NRF_RADIO_NOTIFICATION_DISTANCE_800US,
+                              on_radio_evt);
+
+  // If GATT is enabled BLE init inits peer manager which uses flash.
+  // BLE init should handle insufficient space gracefully (i.e. erase flash and proceed). 
+  // Flash must be initialized after softdevice. 
   if(flash_init())
   {
     NRF_LOG_ERROR("Failed to init flash \r\n");
@@ -502,17 +531,6 @@ int main(void)
     NRF_LOG_INFO("Loaded mode %d from flash\r\n", tag_mode);
   }
 
-  // Initialize BLE Stack. Starts LFCLK required for timer operation.
-  if( init_ble() ) { init_status |= BLE_FAILED_INIT; }
-  advertisement_delay = NRF_FICR->DEVICEID[0]&0x0F;
-
-  // Priorities 2 and 3 are after SD timing critical events. 
-  // 6, 7 after SD non-critical events.
-  // Triggers ADC, so use 3. 
-  ble_radio_notification_init(3,
-                              NRF_RADIO_NOTIFICATION_DISTANCE_800US,
-                              on_radio_evt);
-
   // Enter stored mode after boot - or default mode if store mode was not found
   app_sched_event_put (&tag_mode, sizeof(&tag_mode), change_mode);
   
@@ -530,7 +548,7 @@ int main(void)
   app_timer_stop(reset_timer_id);
 
   if( init_rtc() ) { init_status |= RTC_FAILED_INIT; }
-  else { NRF_LOG_INFO("RTC initalized \r\n"); }
+  else { NRF_LOG_INFO("RTC initialized \r\n"); }
 
   // Initialize lis2dh12 and BME280 - TODO: Differentiate LIS2DH12 and BME280 
   if (model_plus)    
@@ -586,9 +604,9 @@ int main(void)
 
   // Turn off red led, leave green on to signal model+ without errors
   RED_LED_OFF;
+  nrf_delay_ms(500);
   app_sched_event_put (NULL, 0, main_sensor_task);
   app_sched_execute();
-  nrf_delay_ms(MAIN_LOOP_INTERVAL_RAW + 100);
 
   // 
   bluetooth_configure_advertisement_type(STARTUP_ADVERTISEMENT_TYPE);

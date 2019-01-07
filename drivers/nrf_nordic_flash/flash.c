@@ -47,6 +47,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "fstorage.h"
+#include "nrf_delay.h"
 #include "nrf_error.h"
 
 #if defined(FDS_CRC_ENABLED)
@@ -285,7 +286,13 @@ ret_code_t flash_init(void)
   (void) fds_register(fds_evt_handler);
   rc |= fds_init();
   // Wait for init ok
-  while(!m_fds_initialized);
+  uint8_t timeout = 1;
+  while(!m_fds_initialized)
+  {
+    // Return error if FDS does not initialize
+    if(!timeout++) { return 1; }
+    nrf_delay_ms(1);
+  }
 
   // Read filesystem status
   fds_stat_t stat = {0};

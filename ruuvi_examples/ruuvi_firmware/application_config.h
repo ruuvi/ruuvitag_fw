@@ -4,12 +4,14 @@
 #include "bme280.h"
 #include "lis2dh12.h"
 // Milliseconds before new button press is accepted. Applies both to rising and falling edge
-#define DEBOUNCE_THRESHOLD 25u
+#define DEBOUNCE_THRESHOLD 100u
 // Milliseconds until new batteryreading is taken on radio interrupt.
 // Use cached value otherse.
 #define APPLICATION_BATTERY_INTERVAL 10000u
 // Milliseconds to hold down the button before reset
 #define BUTTON_RESET_TIME 3000u
+// Milliseconds after NFC field detection to reset
+#define NFC_RESET_DELAY   10000u
 
 // 1, 2, 4, 8, 16.
 // Oversampling increases current consumption, but lowers noise.
@@ -25,7 +27,7 @@
 #define LIS2DH12_SAMPLERATE_RAWv2   LIS2DH12_RATE_10
 #define LIS2DH12_SAMPLERATE_RAWv1   LIS2DH12_RATE_1
 
-// LSB, i.e. scale and resolution affect the threshold
+// mg, scaled to bits by driver
 #define LIS2DH12_ACTIVITY_THRESHOLD 64
 
 #endif

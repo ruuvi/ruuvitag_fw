@@ -13,23 +13,34 @@
 #define TIMER1_ENABLED  1
 #define TIMER2_ENABLED  1
 #define TIMER3_ENABLED  1
-#define TIMER4_ENABLED  0  //Required by NFC
+#define TIMER4_ENABLED  0  // Required by NFC
 #define NFC_HAL_ENABLED 1
-#define CRC16_ENABLED   1  //CRC required by DFU
-#define CRC32_ENABLED   1
-#define NRF_LOG_ENABLED 1
+#define FDS_CRC_ENABLED 1  // Driver checks if value is defined, comment this line out to disable CRC
+#if FDS_CRC_ENABLED
+  #define CRC16_ENABLED   FDS_CRC_ENABLED  
+  #define CRC32_ENABLED   FDS_CRC_ENABLED  
+#endif
+#define NRF_LOG_ENABLED 0  // Disable log printout by default to save space
 
 #if APP_GATT_PROFILE_ENABLED
-#define BLE_DIS_ENABLED 1  //Device information service
-#define BLE_NUS_ENABLED 1  //Nordic UART Service
-#define BLE_DFU_ENABLED 1  //DFU service
+  #define BLE_DIS_ENABLED 1  //Device information service
+  #define BLE_NUS_ENABLED 1  //Nordic UART Service
+  #define BLE_DFU_ENABLED 1  //DFU service
+#else
+  #define BLE_DIS_ENABLED 0  //Device information service
+  #define BLE_NUS_ENABLED 0  //Nordic UART Service
+  #define BLE_DFU_ENABLED 0  //DFU service
 #endif
+#define BLE_UUID_COUNT BLE_DIS_ENABLED + BLE_NUS_ENABLED + BLE_DFU_ENABLED
 
-// Fix error if there is leftover configuration flash
+// While this application does not require 10 pages, 
+// Eddystone might have previous, valid configuration.
+// Conserve enough space for the eddystone data + this application
+// to avoid out of space when validating filesystem at boot. 
 #define FDS_OP_QUEUE_SIZE 10
 #define FDS_CHUNK_QUEUE_SIZE 15
 #define FDS_MAX_USERS 8
-#define FDS_VIRTUAL_PAGES 3
+#define FDS_VIRTUAL_PAGES 10
 #define FDS_VIRTUAL_PAGE_SIZE 1024
 
 
