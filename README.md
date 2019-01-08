@@ -29,15 +29,15 @@
 |   |-- rtc
 |   `-- spi
 |
++-- keys
+|   `-- ruuvi_open_private.pem
+|
 |-- libraries
 |   +-- base64
 |   |-- base91
 |   |-- data_structures
 |   |-- dsp
 |   `-- rust_allocator
-|
-+-- keys
-|   `-- ruuvi_open_private.pem
 |
 +-- ruuvi_examples
 |   +-- APPLICATION
@@ -55,19 +55,14 @@
 |   |   |   |   |   +-- board_bsp_configuration
 |   |   |   |   |   +-- board_bluetooth_configuration
 |   |   +-- application files
-|   sdk_overrides
-|   +-- override_1.c
-|   +-- etc
-+-- Makefile
-|   +-- ble_app_beacon
-|   | `-- ruuvitag_<HW_version>
-|   |
+|.  |
 |   +-- eddystone
 |   | +-- ble_services
 |   | |-- occ ...
 |   | `-- ruuvitag_<HW_version>
 |   |
 |   `-- ruuvi_firmware
+|     +-- main
 |     +-- ble_services
 |     `-- ruuvitag_<HW_version>
 |       `-- s132
@@ -79,8 +74,9 @@
 |              +-- bluetooth_board_configuration 
 |              +-- bsp_board_configuration
 |              `-- sdk_board_configuration
-|-- sdk_overrides
++-- sdk_overrides
 +-- nRF5_SDK_<vesion>
++-- Makefile
 +-- README.md
 ```
 
