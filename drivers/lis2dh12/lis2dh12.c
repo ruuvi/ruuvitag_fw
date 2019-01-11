@@ -287,6 +287,7 @@ lis2dh12_ret_t lis2dh12_set_fifo_watermark(size_t count)
  */
 lis2dh12_ret_t lis2dh12_set_activity_interrupt_pin_2(uint16_t mg)
 {
+    uint8_t cfg = 0;
 
     // // Configure activity interrupt - TODO: Implement in driver, add tests.
     // uint8_t ctrl[1];
@@ -301,7 +302,10 @@ lis2dh12_ret_t lis2dh12_set_activity_interrupt_pin_2(uint16_t mg)
     // INT2_CFG = 0x7F
     // ctrl[0] = 0x7F;
     // lis2dh12_write_register(LIS2DH12_INT2_CFG, ctrl, 1);
-    lis2dh12_set_interrupt_configuration(0x7F, 2);
+    cfg |= LIS2DH12_6D_MASK | LIS2DH12_ZHIE_MASK | LIS2DH12_ZLIE_MASK;
+    cfg |= LIS2DH12_YHIE_MASK | LIS2DH12_YLIE_MASK;
+    cfg |= LIS2DH12_XHIE_MASK | LIS2DH12_XLIE_MASK;
+    lis2dh12_set_interrupt_configuration(cfg, 2);
     // Interrupt on 64 mg+ (highpassed, +/-).
     //INT2_THS= 0x04 // 4 LSB = 64 mg @2G scale
     // ctrl[0] = LIS2DH12_ACTIVITY_THRESHOLD;
