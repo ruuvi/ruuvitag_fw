@@ -142,6 +142,21 @@ lis2dh12_ret_t lis2dh12_set_scale(lis2dh12_scale_t scale)
 }
 
 /**
+ * Return full scale in mg for current state
+ */
+int lis2dh12_get_full_scale()
+{
+    switch(state_scale)
+    {
+        case LIS2DH12_SCALE2G:  return 2000;
+        case LIS2DH12_SCALE4G:  return 4000;
+        case LIS2DH12_SCALE8G:  return 8000;
+        case LIS2DH12_SCALE16G: return 16000;
+        default:                return 0;
+    }
+}
+
+/**
  *  Sets resolution to lis2dh12in bits
  *  valid values are in enum lis2dh12_resolution_t
  *  Invalid resolution will put device to normal power (10 bit) mode.
@@ -209,6 +224,39 @@ lis2dh12_ret_t lis2dh12_set_sample_rate(lis2dh12_sample_rate_t sample_rate)
         err_code |= lis2dh12_read_register(LIS2DH12_CTRL_REG6, ctrl, 1);
     }
     return err_code;
+}
+
+/**
+ * Get sample rate.
+ */
+lis2dh12_ret_t lis2dh12_get_sample_rate(lis2dh12_sample_rate_t *sample_rate)
+{
+    lis2dh12_ret_t err_code = LIS2DH12_RET_OK;
+    uint8_t ctrl[1] = {0};
+    err_code |= lis2dh12_read_register(LIS2DH12_CTRL_REG1, ctrl, 1);
+    NRF_LOG_DEBUG("Read samplerate %x, status %d\r\n", ctrl[0], err_code);
+    ctrl[0] &= LIS2DH12_ODR_MASK;
+    *sample_rate = ctrl[0];
+    return err_code;
+}
+
+/**
+ * Convert sample_rate values to frequency.
+ */
+int lis2dh12_odr_to_hz(lis2dh12_sample_rate_t sample_rate)
+{
+    sample_rate &= LIS2DH12_ODR_MASK;
+    switch(sample_rate) {
+        case LIS2DH12_RATE_0: return 0;
+        case LIS2DH12_RATE_1: return 1;
+        case LIS2DH12_RATE_10: return 10;
+        case LIS2DH12_RATE_25: return 25;
+        case LIS2DH12_RATE_50: return 50;
+        case LIS2DH12_RATE_100: return 100;
+        case LIS2DH12_RATE_200: return 200;
+        case LIS2DH12_RATE_400: return 400;
+        default: return 0; /** 1k+ rates not implemented */
+    }
 }
 
 /**
@@ -378,6 +426,74 @@ lis2dh12_ret_t lis2dh12_set_threshold(uint8_t bits, uint8_t pin)
   uint8_t target_reg = LIS2DH12_INT1_THS;
   if(2 == pin) { target_reg = LIS2DH12_INT2_THS;} 
   return lis2dh12_write_register(target_reg, ctrl, 1);
+}
+
+/**
+ * Enable tap detection interrupt with click_cfg, threshold, time limit,
+ * window, latency and interrupt pin (1 or 2).
+ *
+ * STM App note (en.DM00365457.pdf) advices that (double) tap detection
+ * does not work well with data rates lower than 400 Hz. LIS2DH12 consumes
+ * 4 uA at 10 Hz in normal mode and 73 uA at 400 Hz. For some applications
+ * you may get away with a lower sampling rate combined with lower
+ * acceleration threshold, but both false positives and false negatives
+ * increase.
+ *
+ * These parameters detect double taps well (no false positives on moving,
+ * reliable detection) on Ruuvitag with LIS2DH12 data rate set to 400 Hz:
+ * lis2dh12_set_tap_interrupt(LIS2DH12_ZD_MASK, 1000, 100, 100, 400, 1)
+ */
+lis2dh12_ret_t lis2dh12_set_tap_interrupt(uint8_t click_cfg, int threshold_mg, int timelimit_ms, int latency_ms, int window_ms, uint8_t pin)
+{
+    int reg;
+    uint8_t value;
+    lis2dh12_sample_rate_t sample_rate;
+    lis2dh12_ret_t err_code = LIS2DH12_RET_OK;
+
+    if (pin == 1) {
+        value = LIS2DH12_I1_CLICK;
+    } else if (pin == 2) {
+        value = LIS2DH12_I2C_CCK_EN_MASK;
+    } else {
+        return LIS2DH12_RET_INVALID;
+    }
+    /* Enable click interrupt on pin */
+    err_code |= lis2dh12_set_interrupts(value, pin);
+
+    /* Turn on high pass filter for click detection */
+    err_code |= lis2dh12_read_register(LIS2DH12_CTRL_REG2, &value, 1);
+    value |= LIS2DH12_HPCLICK_MASK;
+    value &= ~LIS2DH12_HPCF_MASK; // Largest highpass cutoff frequency
+    err_code |= lis2dh12_write_register(LIS2DH12_CTRL_REG2, &value, 1);
+
+    value = click_cfg;
+    err_code |= lis2dh12_write_register(LIS2DH12_CLICK_CFG, &value, 1);
+
+    /* Set threshold */
+    reg = (128*threshold_mg) / lis2dh12_get_full_scale();
+    value = (uint8_t) (reg > LIS2DH12_CLK_THS_MASK) ? LIS2DH12_CLK_THS_MASK : reg; // clip to max value (7 bits)
+    value = (value < 1) ? 1 : value; // at least 1
+    // LIR_CLICK bit will be (implicitly) set to 0
+    err_code |= lis2dh12_write_register(LIS2DH12_CLICK_THS, &value, 1);
+
+    /* Set time limit */
+    err_code |= lis2dh12_get_sample_rate(&sample_rate);
+    reg = (timelimit_ms * lis2dh12_odr_to_hz(sample_rate)) / 1e3; // time limit in measurement cycles
+    value = (uint8_t) (reg > LIS2DH12_TLI_MASK) ? LIS2DH12_TLI_MASK : reg; // clip to max value (7 bits)
+    value = (value < 1) ? 1 : value; // at least 1 cycle
+    err_code |= lis2dh12_write_register(LIS2DH12_TIME_LIMIT, &value, 1);
+
+    /* Set latency */
+    reg = (latency_ms * lis2dh12_odr_to_hz(sample_rate)) / 1e3;
+    value = (uint8_t) (reg > 0xFF) ? 0xFF : reg ; // clip to max value (8 bits)
+    err_code |= lis2dh12_write_register(LIS2DH12_TIME_LATENCY, &value, 1);
+
+    /* Set window */
+    reg = (window_ms * lis2dh12_odr_to_hz(sample_rate)) / 1e3;
+    value = (uint8_t) (reg > 0xFF) ? 0xFF : reg ; // clip to max value (8 bits)
+    err_code |= lis2dh12_write_register(LIS2DH12_TIME_WINDOW, &value, 1);
+
+    return err_code;
 }
 
 /* INTERNAL FUNCTIONS *****************************************************************************/
