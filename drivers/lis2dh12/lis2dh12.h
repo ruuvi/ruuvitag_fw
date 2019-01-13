@@ -181,14 +181,6 @@ lis2dh12_ret_t lis2dh12_set_interrupts(uint8_t interrupts, uint8_t pin);
 lis2dh12_ret_t lis2dh12_set_interrupt_configuration(uint8_t cfg, uint8_t function);
 
 /**
- * Setup high-pass functions of lis2dh12. Select mode, cutoff frequency, filter data, click, interrputs.
- *
- * @param highpass byte to write to filter, resets previous settings.
- * @return error code from SPI write. 
- */
-lis2dh12_ret_t lis2dh12_set_highpass(uint8_t highpass);
-
-/**
  *  Setup number of LSBs needed to trigger AOI interrupt function. 
  *  Note: this targets function 1 or 2, not pin. 
  *

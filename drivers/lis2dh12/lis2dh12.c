@@ -295,13 +295,15 @@ lis2dh12_ret_t lis2dh12_set_activity_interrupt_pin_2(uint16_t mg)
     // //CTRLREG2 = 0x02
     // ctrl[0] = LIS2DH12_HPIS2_MASK;
     // lis2dh12_write_register(LIS2DH12_CTRL_REG2, ctrl, 1);
-
-    lis2dh12_set_highpass(LIS2DH12_HPIS2_MASK);
+    lis2dh12_read_register(LIS2DH12_CTRL_REG2, &cfg, 1);
+    cfg |= LIS2DH12_HPIS2_MASK;
+    lis2dh12_write_register(LIS2DH12_CTRL_REG2, &cfg, 1);
 
     // Enable interrupt 2 on X-Y-Z HI/LO.
     // INT2_CFG = 0x7F
     // ctrl[0] = 0x7F;
     // lis2dh12_write_register(LIS2DH12_INT2_CFG, ctrl, 1);
+    cfg = 0;
     cfg |= LIS2DH12_6D_MASK | LIS2DH12_ZHIE_MASK | LIS2DH12_ZLIE_MASK;
     cfg |= LIS2DH12_YHIE_MASK | LIS2DH12_YLIE_MASK;
     cfg |= LIS2DH12_XHIE_MASK | LIS2DH12_XLIE_MASK;
@@ -358,19 +360,6 @@ lis2dh12_ret_t lis2dh12_set_interrupt_configuration(uint8_t cfg, uint8_t functio
   uint8_t target_reg = LIS2DH12_INT1_CFG;
   if( 2 == function ) { target_reg = LIS2DH12_INT2_CFG; }
   return lis2dh12_write_register(target_reg, ctrl, 1);
-}
-
-/**
- * Setup high-pass functions of lis2dh12. Select mode, cutoff frequency, filter data, click, interrputs.
- *
- * @param highpass byte to write to filter, resets previous settings.
- * @return error code from SPI write. 
- */
-lis2dh12_ret_t lis2dh12_set_highpass(uint8_t highpass)
-{
-    uint8_t ctrl[1];
-    ctrl[0] = highpass;
-    return lis2dh12_write_register(LIS2DH12_CTRL_REG2, ctrl, 1);
 }
 
 /**
