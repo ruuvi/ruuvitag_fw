@@ -1,4 +1,10 @@
 /** RuuviTag Environment-station  */
+// Version 2.4.1 January 07, 2019 modes now  RAWv1(RED), RAWv2_FAST(GREEN) and RAWv2_SLOW(GREEN) preserved in flash. (URL removed) 
+//               long button hold or NFC triggers reset.
+//               short button or NFC  triggers become_connectable i.e. fast_advertising  BUT
+//                 default is always non-connectable, non-scannable (see bluetooth_application_config.h) 
+//               accelerometer (lis2dh12) reewritten as pre STM
+//               Only get battery voltage from ADC after radio has been quiet
 // Version 2.2.3 August 01, 2018; 
 //  Rewrite initalization continue even if there are failures and announce failure status by may means
 
