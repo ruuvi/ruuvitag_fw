@@ -1,3 +1,4 @@
+// 01/07/19 make constants static:  data_code[]={'d','t'}; id_code[]={'i','d'}; addr_code[]={'a','d'}; version_code[]={'s','w'};
 #include "nfc.h"
 
 #include <stdint.h>
