@@ -1,6 +1,8 @@
 #ifndef BLUETOOTH_APP_CONFIG
 #define BLUETOOTH_APP_CONFIG
-
+// 01/07/19 version 2.4.1 slow down loops to 2s from 1s; 
+//           modes now: v1 ; v2 ; v2 slow 6s. drop URL
+//           compiletime define STARTUP_ADVERTISEMENT_TYPE 00 | 03 Nonconnectable, nonscannabl(default)  reduce STARTUP to 5s from 30s
 #define APPLICATION_DEVICE_NAME         "Ruuvi"                         /**< BLE name displayed in scan response. */
 #define APPLICATION_DEVICE_NAME_LENGTH  5                               /**< number of characters in above string, excluding null */
 #define APP_DEVICE_NAME                 APPLICATION_DEVICE_NAME         /**< TODO: Refactoring **/

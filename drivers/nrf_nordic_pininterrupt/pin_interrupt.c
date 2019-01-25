@@ -1,3 +1,6 @@
+// 01/07/19 in_pin_handler: add pin and  nrf_gpio_pin_read(pin) to pin_event_handlers[pin] message
+//           pin_interrupt_enable:  add  nrf_gpio_pin_pull_t pull argument(but not used) and 
+//                                  drop in_config.pull (pullup, pulldown, nopull) setting based on polarity
 #include "pin_interrupt.h"
 #include <stdbool.h>
 #include "nrf.h"
