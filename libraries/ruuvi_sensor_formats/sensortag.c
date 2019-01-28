@@ -1,5 +1,7 @@
+// 01/07/19 don;t change temperature, pressure in structure!,
+//          add (restore) encodeToSensorDataFormat format v1 (03)
+//          to do: drop URL formater (base64 )
 #include "sensortag.h"
-
 
 #include <stdint.h>
 #include "nrf52.h"
