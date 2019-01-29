@@ -1,3 +1,5 @@
+// 01/07/19 2.4.1 add FDS_CRC_ENABLED; Default turn off GATT (see bluetooth_application_config.h ) 
+//                include SDK overrides; WDT reload 6 minutes
 #ifndef SDK_APPLICATION_CONFIG_H
 #define SDK_APPLICATION_CONFIG_H
 #include "bluetooth_application_config.h"
@@ -20,7 +22,10 @@
   #define CRC16_ENABLED   FDS_CRC_ENABLED  
   #define CRC32_ENABLED   FDS_CRC_ENABLED  
 #endif
-#define NRF_LOG_ENABLED 0  // Disable log printout by default to save space
+
+#ifndef NRF_LOG_ENABLED
+#define NRF_LOG_ENABLED 0  // Disable log output by default to save space (unless needed for testing)
+#endif
 
 #if APP_GATT_PROFILE_ENABLED
   #define BLE_DIS_ENABLED 1  //Device information service
