@@ -119,6 +119,11 @@ lis2dh12_ret_t lis2dh12_enable(void);
 lis2dh12_ret_t lis2dh12_set_scale(lis2dh12_scale_t scale);
 
 /**
+ * Return full scale in mg for current state
+ */
+int lis2dh12_get_full_scale();
+
+/**
  *  Select resolution. FIFO is 10 bits, 12 bit mode has lower bandwidth than 10 and 8 bit modes.
  *  Higher resolution consumes more power.
  *  Returns error code from SPI write
@@ -130,6 +135,16 @@ lis2dh12_ret_t lis2dh12_set_resolution(lis2dh12_resolution_t resolution);
  *  Returns error code from SPI write
  */
 lis2dh12_ret_t lis2dh12_set_sample_rate(lis2dh12_sample_rate_t sample_rate);
+
+/**
+ * Get sample rate.
+ */
+lis2dh12_ret_t lis2dh12_get_sample_rate(lis2dh12_sample_rate_t *sample_rate);
+
+/**
+ * Convert sample_rate values to frequency.
+ */
+int lis2dh12_odr_to_hz(lis2dh12_sample_rate_t sample_rate);
 
 /**
  *  Select FIFO mode. Bypass: FIFO not used. FIFO: FIFO fills and "freezes" until FIFO reset by setting mode to bypass.
@@ -181,14 +196,6 @@ lis2dh12_ret_t lis2dh12_set_interrupts(uint8_t interrupts, uint8_t pin);
 lis2dh12_ret_t lis2dh12_set_interrupt_configuration(uint8_t cfg, uint8_t function);
 
 /**
- * Setup high-pass functions of lis2dh12. Select mode, cutoff frequency, filter data, click, interrputs.
- *
- * @param highpass byte to write to filter, resets previous settings.
- * @return error code from SPI write. 
- */
-lis2dh12_ret_t lis2dh12_set_highpass(uint8_t highpass);
-
-/**
  *  Setup number of LSBs needed to trigger AOI interrupt function. 
  *  Note: this targets function 1 or 2, not pin. 
  *
@@ -213,6 +220,11 @@ lis2dh12_ret_t lis2dh12_set_activity_threshold(uint8_t bits);
  * Enable activity detection interrupt on pin 2. Interrupt is high for samples where high-passed acceleration exceeds mg
  */
 lis2dh12_ret_t lis2dh12_set_activity_interrupt_pin_2(uint16_t mg);
+
+/**
+ * Enable tap detection interrupt on given pin with click_cfg, threshold and time limit, window and latency.
+ */
+lis2dh12_ret_t lis2dh12_set_tap_interrupt(uint8_t click_cfg, int threshold_mg, int timelimit_ms, int latency_ms, int window_ms, uint8_t pin);
 
 /**
  *  Internal functions for reading/writing registers. 
