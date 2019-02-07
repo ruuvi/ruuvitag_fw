@@ -1,5 +1,5 @@
 # RuuviTag nRF52 Bootloader & Example firmware projects
-[![RuuviTag](https://tag.ruuvi.com/assets/images/fb_ruuvitag.jpg)](https://tag.ruuvitag.com)
+[![RuuviTag](https://ruuvi.com/assets/images/ruuvitag.jpg)](https://ruuvi.com)
 
 
 ## Repository structure
