@@ -1,5 +1,6 @@
 // 01/07/19 2.4.1 add FDS_CRC_ENABLED; Default turn off GATT (see bluetooth_application_config.h ) 
 //                include SDK overrides; WDT reload 6 minutes
+// This is included in drivers/init/sdk_config.h
 #ifndef SDK_APPLICATION_CONFIG_H
 #define SDK_APPLICATION_CONFIG_H
 #include "bluetooth_application_config.h"
