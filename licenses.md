@@ -27,15 +27,16 @@ Copyleft or BSD-3 status can be identified from the list below, please see git c
 
 Copyright in alphabetical order of GitHub usernames, real name and email are listed for user who have listed it on their profile:
 
-* angst7: Matt Roche <angst7@gmail.com> (BSD-3)
-* DG12:   Dennis German <DGermang@Real-World-Systems.com> (BSD-3)
-* dieweltistklein: (BSD-3)
-* frawau: François Wautier (BSD-3)
-* jessenic: Jesse Leskinen (BSD-3)
-* jrosberg: Janne Rosberg (BSD-3)
-* laurijamsa: Lauri Jämsä <lauri@ruuvi.com> (BSD-3)
-* mdxs: (BSD-3)
-* ojousima: Otso Jousimaa <otso@ruuvi.com> (BSD-3)
-* scrin: (BSD-3)
+* [angst7](https://github.com/angst7): Matt Roche <angst7@gmail.com> (BSD-3)
+* [DG12](https://github.com/DG12):   Dennis German <DGermang@Real-World-Systems.com> (BSD-3)
+* dieweltistklein (account removed): (BSD-3)
+* [frawau](https://github.com/frawau): François Wautier (BSD-3)
+* [jessenic](https://github.com/jessenic): Jesse Leskinen (BSD-3)
+* [jrosberg](https://github.com/jrosberg): Janne Rosberg (BSD-3)
+* [laurijamsa](https://github.com/laurijamsa): Lauri Jämsä <lauri@ruuvi.com> (BSD-3)
+* [mdxs](https://github.com/mdxs): (BSD-3)
+* [ojousima](https://github.com/ojousima): Otso Jousimaa <otso@ruuvi.com> (BSD-3)
+* [Scrin](https://github.com/Scrin): (BSD-3)
+* [tpikonen](https://github.com/tpikonen) (BSD-3)
 
 Ruuvi firmware is statically linked against bootloader and softdevice. 
