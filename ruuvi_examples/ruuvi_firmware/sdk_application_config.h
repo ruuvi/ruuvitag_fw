@@ -24,9 +24,7 @@
   #define CRC32_ENABLED   FDS_CRC_ENABLED  
 #endif
 
-#ifndef NRF_LOG_ENABLED
 #define NRF_LOG_ENABLED 0  // Disable log output by default to save space (unless needed for testing)
-#endif
 
 #if APP_GATT_PROFILE_ENABLED
   #define BLE_DIS_ENABLED 1  //Device information service
