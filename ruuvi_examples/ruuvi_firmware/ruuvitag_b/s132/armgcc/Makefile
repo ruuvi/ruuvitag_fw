@@ -1,6 +1,7 @@
 PROJECT_NAME     := ruuvi_firmware_ruuvitag-b_s132
 TARGETS          := ruuvi_firmware
 OUTPUT_DIRECTORY := _build
+# 01/07/19 2.4.1 added flash, nrf_nordic_flash,     sdk_overrides/ & (SDK_ROOT)/components/ble/ble_radio_notification
 
 SDK_ROOT := ../../../../../nRF5_SDK_12.3.0_d7731ad
 PROJ_DIR := ../../..

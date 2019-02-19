@@ -97,7 +97,7 @@ void encodeToRawFormat5(uint8_t* data_buffer, const bme280_data_t* environmental
     tx_pwr += 40;
     tx_pwr /= 2;
     data_buffer[14] |= (tx_pwr)&0x1F; //5 lowest bits for TX pwr
-    data_buffer[15] = acceleration_events % 256;
+    data_buffer[15] = acceleration_events % 256; // WARNING: 0 may indicate a multiple of 256 events, not necessarily no events
     data_buffer[16] = packet_counter>>8;
     data_buffer[17] = packet_counter&0xFF;
     packet_counter++;
