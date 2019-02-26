@@ -1,8 +1,9 @@
 /** RuuviTag Environment-station  */
-// Version 2.4.1 January 07, 2019 modes now  RAWv1(RED), RAWv2_FAST(GREEN) and RAWv2_SLOW(GREEN) preserved in flash. (URL removed) 
+// Version 2.4.2 March 03, 2019  add tuneables
+// Version 2.4.1 January 07, 2019 modes now  RAWv1(RED), RAWv2_FAST(GREEN) and RAWv2_SLOW(GREEN) preserved in flash. (URL removed)
 //               long button hold or NFC triggers reset.
 //               short button or NFC  triggers become_connectable i.e. fast_advertising  BUT
-//                 default is always non-connectable, non-scannable (see bluetooth_application_config.h) 
+//                 default is always non-connectable, non-scannable (see bluetooth_application_config.h)
 //               accelerometer (lis2dh12) reewritten as pre STM
 //               Only get battery voltage from ADC after radio has been quiet
 // Version 2.2.3 August 01, 2018; 
@@ -108,6 +109,14 @@ static volatile uint16_t vbat = 0; //Update in interrupt after radio activity.
 static uint64_t last_battery_measurement = 0; // Timestamp of VBat update.
 static ruuvi_sensor_t data;
 static uint8_t advertisement_delay = 0; //Random, static delay to reduce collisions.
+
+// tuneables retained in UICR
+static uint32_t password = 0; // if !0 tuneables are protected
+static uint16_t advertising_interval = ADVERTISING_INTERVAL_RAW;
+static uint16_t main_loop_interval   = MAIN_LOOP_INTERVAL_RAW;
+static uint16_t ble_tx_power         = BLE_TX_POWER;
+static uint16_t accel_sample_rate    = LIS2DH12_SAMPLERATE_RAWv1;
+static uint16_t accel_resolution     = LIS2DH12_RESOLUTION;
 
 // Possible modes of the app
 #define RAWv1 0
@@ -390,7 +399,7 @@ static void main_sensor_task(void* p_data, uint16_t length)
   {
     case RAWv2_FAST:
     case RAWv2_SLOW:
-      encodeToRawFormat5(data_buffer, &environmental, &buffer.sensor, acceleration_events, vbat, BLE_TX_POWER);
+      encodeToRawFormat5(data_buffer, &environmental, &buffer.sensor, acceleration_events, vbat, ble_tx_power);
       break;
     
     case RAWv1:
@@ -541,7 +550,7 @@ int main(void)
   app_sched_event_put (&tag_mode, sizeof(&tag_mode), change_mode);
   
   // Initialize repeated timer for sensor read and single-shot timer for button reset
-  if( init_timer(main_timer_id, APP_TIMER_MODE_REPEATED, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )
+  if( init_timer(main_timer_id, APP_TIMER_MODE_REPEATED, main_loop_interval, main_timer_handler) )
   {
     init_status |= TIMER_FAILED_INIT;
   }
@@ -571,8 +580,8 @@ int main(void)
     // Enable XYZ axes.
     lis2dh12_enable();
     lis2dh12_set_scale(LIS2DH12_SCALE);
-    lis2dh12_set_sample_rate(LIS2DH12_SAMPLERATE_RAWv1);
-    lis2dh12_set_resolution(LIS2DH12_RESOLUTION);
+    lis2dh12_set_sample_rate(accel_sample_rate);
+    lis2dh12_set_resolution(accel_resolution);
 
     lis2dh12_set_activity_interrupt_pin_2(LIS2DH12_ACTIVITY_THRESHOLD);
     NRF_LOG_INFO("Accelerometer configuration done \r\n");
@@ -616,10 +625,11 @@ int main(void)
 
   // 
   bluetooth_configure_advertisement_type(STARTUP_ADVERTISEMENT_TYPE);
-  bluetooth_tx_power_set(BLE_TX_POWER);
-  bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP);
+  bluetooth_tx_power_set(ble_tx_power);
+  bluetooth_configure_advertising_interval(advertising_interval);
   bluetooth_advertising_start(); 
   NRF_LOG_INFO("Advertising started\r\n");
+  password=password; // just to make compiler happy
 
   // Enter main loop. Executes tasks scheduled by timers and interrupts.
   for (;;)
