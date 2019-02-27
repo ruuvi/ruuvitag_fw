@@ -26,10 +26,10 @@
 #define RAWv2_DATA_LENGTH 24
 
 /**
- *  BLE_GAP_ADV_TYPE_ADV_IND   0x00           Connectable, scannable
+ *  BLE_GAP_ADV_TYPE_ADV_IND          0x00   Connectable, scannable
  *  BLE_GAP_ADV_TYPE_ADV_DIRECT_IND   0x01
- *  BLE_GAP_ADV_TYPE_ADV_SCAN_IND   0x02      Nonconnectable, scannable
- *  BLE_GAP_ADV_TYPE_ADV_NONCONN_IND   0x03   Nonconnectable, nonscannable
+ *  BLE_GAP_ADV_TYPE_ADV_SCAN_IND     0x02   Nonconnectable, scannable
+ *  BLE_GAP_ADV_TYPE_ADV_NONCONN_IND  0x03   Nonconnectable, nonscannable
  */
 // Most of the time non-connectable
 #define APPLICATION_ADVERTISEMENT_TYPE 0x03
