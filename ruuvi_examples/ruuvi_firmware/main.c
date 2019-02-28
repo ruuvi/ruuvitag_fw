@@ -1,5 +1,5 @@
 /** RuuviTag Environment-station  */
-// Version 2.4.2 March 03, 2019  add tuneables
+// Version 2.4.3 March 03, 2019  add tuneables
 // Version 2.4.1 January 07, 2019 modes now  RAWv1(RED), RAWv2_FAST(GREEN) and RAWv2_SLOW(GREEN) preserved in flash. (URL removed)
 //               long button hold or NFC triggers reset.
 //               short button or NFC  triggers become_connectable i.e. fast_advertising  BUT
