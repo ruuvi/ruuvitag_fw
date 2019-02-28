@@ -1,12 +1,12 @@
-/** RuuviTag Environment-station  */
+/** RuuviTag firmware  */
 // Version 2.4.1 January 07, 2019 modes now  RAWv1(RED), RAWv2_FAST(GREEN) and RAWv2_SLOW(GREEN) preserved in flash. (URL removed) 
 //               long button hold or NFC triggers reset.
 //               short button or NFC  triggers become_connectable i.e. fast_advertising  BUT
-//                 default is always non-connectable, non-scannable (see bluetooth_application_config.h) 
+//               default is always non-connectable, non-scannable (see bluetooth_application_config.h) 
 //               accelerometer (lis2dh12) reewritten as pre STM
 //               Only get battery voltage from ADC after radio has been quiet
 // Version 2.2.3 August 01, 2018; 
-//  Rewrite initalization continue even if there are failures and announce failure status by may means
+//  Rewrite initalization continue even if there are failures and announce failure status by led
 
 /* Copyright (c) 2015 Nordic Semiconductor. All Rights Reserved. 
  * The information contained herein is property of Nordic Semiconductor ASA.
@@ -83,7 +83,7 @@ static size_t NFC_message_length = sizeof(NFC_message);
 #define PIN_ENA_FAILED_INIT         0x0200
 #define ACCEL_INT_FAILED_INIT       0x0400
 #define ACC_INT_FAILED_INIT         0x0800
-#define BATTERY_MIN_V                 2600
+#define BATTERY_MIN_V                 2300  /// Millivolts, this value should be high enough to not trigger error on a tag on a freezer
 #define BATTERY_FAILED_INIT         0x1000
 #define BUTTON_FAILED_INIT          0x2000
 #define BME_FAILED_INIT             0x4000
@@ -160,9 +160,14 @@ void change_mode(void* data, uint16_t length)
         tag_mode = RAWv1;
         break;
     }
-    bluetooth_configure_advertising_interval(advertising_rates[tag_mode] + advertisement_delay);
-    bluetooth_apply_configuration();
   }
+  else
+  {
+    tag_mode = RAWv1;
+    app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW, RUUVITAG_APP_TIMER_PRESCALER), NULL);
+  }
+  bluetooth_configure_advertising_interval(advertising_rates[tag_mode] + advertisement_delay);
+  bluetooth_apply_configuration();
   NRF_LOG_INFO("Updating to %d mode\r\n", (uint32_t) tag_mode);
   main_timer_handler(NULL);
 }
@@ -216,6 +221,7 @@ static void store_mode(void* data, uint16_t length)
  */
 static void reboot(void* p_context)
 {
+  NRF_LOG_INFO("Rebooting\r\n")
   NVIC_SystemReset();
 }
 
@@ -253,8 +259,10 @@ ret_code_t button_press_handler(const ruuvi_standard_message_t message)
 
      // Update mode
      tag_mode++;
-     if(tag_mode > 2) { tag_mode = 0; }
+     if(tag_mode > sizeof(advertising_rates)/sizeof(advertising_rates[0])) { tag_mode = 0; }
      app_sched_event_put (&tag_mode, sizeof(&tag_mode), change_mode);
+
+     //Enter connectable mode if allowed by configuration.
      if(APP_GATT_PROFILE_ENABLED)
      {
        app_sched_event_put (NULL, 0, become_connectable);
@@ -379,7 +387,7 @@ static void main_sensor_task(void* p_data, uint16_t length)
   // Embed data into structure for parsing.
   parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
   NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d x: %d y: %d z: %d\r\n", raw_t, raw_p, raw_h, acc[0], acc[1], acc[2]);
-  NRF_LOG_DEBUG("VBAT: %d send %d \r\n", vbat, data.vbat);
+  NRF_LOG_INFO("VBAT: %d send %d \r\n", vbat, data.vbat);
   // Prepare bytearray to broadcast.
   bme280_data_t environmental;
   environmental.temperature = raw_t;
@@ -502,6 +510,9 @@ int main(void)
 
   // Initialize BLE Stack. Starts LFCLK required for timer operation.
   if( init_ble() ) { init_status |= BLE_FAILED_INIT; }
+  bluetooth_configure_advertisement_type(STARTUP_ADVERTISEMENT_TYPE);
+  bluetooth_tx_power_set(BLE_TX_POWER);
+  bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP);
   advertisement_delay = NRF_FICR->DEVICEID[0]&0x0F;
 
   // Priorities 2 and 3 are after SD timing critical events. 
@@ -537,22 +548,6 @@ int main(void)
     NRF_LOG_INFO("Loaded mode %d from flash\r\n", tag_mode);
   }
 
-  // Enter stored mode after boot - or default mode if store mode was not found
-  app_sched_event_put (&tag_mode, sizeof(&tag_mode), change_mode);
-  
-  // Initialize repeated timer for sensor read and single-shot timer for button reset
-  if( init_timer(main_timer_id, APP_TIMER_MODE_REPEATED, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )
-  {
-    init_status |= TIMER_FAILED_INIT;
-  }
-  
-  if( init_timer(reset_timer_id, APP_TIMER_MODE_SINGLE_SHOT, BUTTON_RESET_TIME, reboot) )
-  {
-    init_status |= TIMER_FAILED_INIT;
-  }
-  // Init starts timers, stop the reset
-  app_timer_stop(reset_timer_id);
-
   if( init_rtc() ) { init_status |= RTC_FAILED_INIT; }
   else { NRF_LOG_INFO("RTC initialized \r\n"); }
 
@@ -587,8 +582,24 @@ int main(void)
     NRF_LOG_INFO("BME280 configuration done \r\n");
   }
 
+  // Enter stored mode after boot - or default mode if store mode was not found
+  app_sched_event_put (&tag_mode, sizeof(&tag_mode), change_mode);
+  
+  // Initialize repeated timer for sensor read and single-shot timer for button reset
+  if( init_timer(main_timer_id, APP_TIMER_MODE_REPEATED, MAIN_LOOP_INTERVAL_RAW, main_timer_handler) )
+  {
+    init_status |= TIMER_FAILED_INIT;
+  }
+  
+  if( init_timer(reset_timer_id, APP_TIMER_MODE_SINGLE_SHOT, BUTTON_RESET_TIME, reboot) )
+  {
+    init_status |= TIMER_FAILED_INIT;
+  }
+  // Init starts timers, stop the reset
+  app_timer_stop(reset_timer_id);
+
   // Log errors, add a note to NFC, blink RED to visually indicate the problem
-  if (init_status )
+  if (init_status)
   { 
     snprintf((char* )NFC_message, NFC_message_length, "Error: %X", init_status);
     NRF_LOG_WARNING (" -- Initalization error :  %X \r\n", init_status);
@@ -610,14 +621,14 @@ int main(void)
 
   // Turn off red led, leave green on to signal model+ without errors
   RED_LED_OFF;
-  nrf_delay_ms(500);
+
+  // Wait for sensors to take first sample
+  nrf_delay_ms(1000);
+  // Get first sample from sensors
   app_sched_event_put (NULL, 0, main_sensor_task);
   app_sched_execute();
 
-  // 
-  bluetooth_configure_advertisement_type(STARTUP_ADVERTISEMENT_TYPE);
-  bluetooth_tx_power_set(BLE_TX_POWER);
-  bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP);
+  // Start advertising 
   bluetooth_advertising_start(); 
   NRF_LOG_INFO("Advertising started\r\n");
 
