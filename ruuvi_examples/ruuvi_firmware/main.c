@@ -166,7 +166,14 @@ void change_mode(void* data, uint16_t length)
     tag_mode = RAWv1;
     app_timer_start(main_timer_id, APP_TIMER_TICKS(MAIN_LOOP_INTERVAL_RAW, RUUVITAG_APP_TIMER_PRESCALER), NULL);
   }
-  bluetooth_configure_advertising_interval(advertising_rates[tag_mode] + advertisement_delay);
+  if(fast_advertising)
+  {
+    bluetooth_configure_advertising_interval(ADVERTISING_INTERVAL_STARTUP + advertisement_delay);
+  }
+  else
+  {
+    bluetooth_configure_advertising_interval(advertising_rates[tag_mode] + advertisement_delay);
+  }
   bluetooth_apply_configuration();
   NRF_LOG_INFO("Updating to %d mode\r\n", (uint32_t) tag_mode);
   main_timer_handler(NULL);
@@ -221,7 +228,7 @@ static void store_mode(void* data, uint16_t length)
  */
 static void reboot(void* p_context)
 {
-  NRF_LOG_INFO("Rebooting\r\n")
+  NRF_LOG_WARNING("Rebooting\r\n")
   NVIC_SystemReset();
 }
 
@@ -387,7 +394,7 @@ static void main_sensor_task(void* p_data, uint16_t length)
   // Embed data into structure for parsing.
   parseSensorData(&data, raw_t, raw_p, raw_h, vbat, acc);
   NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d x: %d y: %d z: %d\r\n", raw_t, raw_p, raw_h, acc[0], acc[1], acc[2]);
-  NRF_LOG_INFO("VBAT: %d send %d \r\n", vbat, data.vbat);
+  NRF_LOG_DEBUG("VBAT: %d send %d \r\n", vbat, data.vbat);
   // Prepare bytearray to broadcast.
   bme280_data_t environmental;
   environmental.temperature = raw_t;
