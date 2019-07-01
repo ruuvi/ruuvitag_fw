@@ -260,13 +260,7 @@ Once you're ready, reset the device and verify yhe bootloader is broadcasting wi
 `nrfjprog --family nrf52 -r`
 
 ## Over the Air
-Once softdevice and bootloader are installed no cables are needed, ever (unless the device needs to be rescued for some reason)! From now on, the FW (and/or the bootloader and/or the SoftDevice) can be updated Over-The-Air using Nordic's nRF Toolbox (or MasterControl Panel):
-
-https://www.nordicsemi.com/eng/Products/nRFready-Demo-Apps/nRF-Toolbox-App
-
-https://github.com/NordicSemiconductor/Android-nRF-Toolbox
-
-https://github.com/NordicSemiconductor/IOS-nRF-Toolbox
+Once softdevice and bootloader are installed no cables are needed, ever (unless the device needs to be rescued for some reason)! From now on, the FW (and/or the bootloader and/or the SoftDevice) can be updated Over-The-Air using [Nordic's nRF Connect app](https://www.nordicsemi.com/?sc_itemid=%7B41FF7A0B-B565-420A-95B7-B32122B5D3AD%7D)
 
 # If you're a developer, this is probably what you're after:
 
