@@ -1,25 +1,22 @@
 #ifndef BLUETOOTH_APP_CONFIG
 #define BLUETOOTH_APP_CONFIG
-// 01/07/19 version 2.4.1 slow down loops to 2s from 1s; 
-//           modes now: v1 ; v2 ; v2 slow 6s. drop URL
-//           compiletime define STARTUP_ADVERTISEMENT_TYPE 00 | 03 Nonconnectable, nonscannabl(default)  reduce STARTUP to 5s from 30s
 #define APPLICATION_DEVICE_NAME         "Ruuvi"                         /**< BLE name displayed in scan response. */
 #define APPLICATION_DEVICE_NAME_LENGTH  5                               /**< number of characters in above string, excluding null */
 #define APP_DEVICE_NAME                 APPLICATION_DEVICE_NAME         /**< TODO: Refactoring **/
 #define APP_DEVICE_NAME_LENGTH          APPLICATION_DEVICE_NAME_LENGTH
-#define APPLICATION_ADV_INTERVAL        1010                            /**< ms. Use value which is not exactly divisible by 1000 ms to be seen by gateways which have limited scan windows in second divisible intervals. **/
 #define APP_TX_POWER                    4                               /**< dBm **/
-#define INIT_FWREV                      "2.4.2"                         /**< Github tag. Do not include specifiers such as "alpha" so you can accept ready binaries as they are **/
+#define INIT_FWREV                      "2.5.3"                         /**< Github tag. Do not include specifiers such as "alpha" so you can accept ready binaries as they are **/
 #define INIT_SWREV                      INIT_FWREV                      /**< FW and SW are same thing in this context **/                             
 
 // milliseconds until main loop timer function is called. Other timers can bring
 // application out of sleep at higher (or lower) interval.
-#define MAIN_LOOP_INTERVAL_RAW        2010u
-#define ADVERTISING_INTERVAL_RAW      2010u
-#define MAIN_LOOP_INTERVAL_RAW_SLOW   6010u
-#define ADVERTISING_INTERVAL_RAW_SLOW 6010u
+#define MAIN_LOOP_INTERVAL_RAW        1280u
+#define ADVERTISING_INTERVAL_RAW      1280u //!< Apple guidelines Specify at most and exactly 1285 ms interval. Account for 0 - 10 ms random delay in advertisements
+#define MAIN_LOOP_INTERVAL_RAW_SLOW   ((5*1285)-5) // Apple maximum interval * 5
+#define ADVERTISING_INTERVAL_RAW_SLOW MAIN_LOOP_INTERVAL_RAW_SLOW
 #define ADVERTISING_STARTUP_PERIOD    5000u // milliseconds app advertises at startup speed.
 #define ADVERTISING_INTERVAL_STARTUP  100u  // Interval of startup advertising
+#define APPLICATION_ADV_INTERVAL      ADVERTISING_INTERVAL_RAW //!< Default value for driver
 
 //Raw v2
 #define RAWv1_DATA_LENGTH 14

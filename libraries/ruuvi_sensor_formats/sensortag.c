@@ -14,45 +14,6 @@
 #include "nrf_log_ctrl.h"
 
 /**
- *  Parses data into Ruuvi data format scale
- *  @param *data pointer to ruuvi_sensor_t object
- *  @param raw_t raw temperature as given by BME280, I.E 2-complement int32_t in celcius * 100, -2134 = 21.34
- *  @param raw_p raw pressure as given by BME280, uint32_t, multiplied by 256
- *  @param acceleration along 3 axes in milliG, X Y Z. 
- */
-
-void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32_t raw_h, uint16_t vbat, int32_t acc[3])
-{
-   
-    NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d\r\n", raw_t, raw_p, raw_h);
-
-    /*
-    0:   uint8_t     format;          // (0x02 = realtime sensor readings base64)
-    1:   uint8_t     humidity;        // one lsb is 0.5%
-    2-3: uint16_t    temperature;     // Signed 8.8 fixed-point notation.
-    4-5: uint16_t    pressure;        // (-50kPa)
-    */
-    //Convert raw values to ruu.vi specification
-    //Round values: 1 deg C, 1 hPa, 1% RH 
-    data->format = 0x00; //Will be decided in encoding phase
-    data->temperature = (raw_t < 0) ? 0x8000 : 0x0000; //Sign bit
-    if(raw_t < 0) raw_t = 0-raw_t; // disrecard sign
-    data->temperature |= (((raw_t / 100) << 8));       //raw_t is 2:2 signed fixed point in base-10, Drop decimals, scale up to next byte.
-    data->temperature |= (raw_t % 100);                //take decimals.
-    data->pressure = (uint16_t)((raw_p >> 8) - 50000); //Scale into pa, Shift by -50000 pa as per Ruu.vi interface.
-    data->humidity = (uint8_t)(raw_h >> 9);            //scale into 0.5%
-
-    // Set accelerometer data
-    data->accX = acc[0];
-    data->accY = acc[1];
-    data->accZ = acc[2];
-    
-    data->vbat = vbat;
-
-
-}
-
-/**
  *  Parses sensor values into propesed format. 
  *  Note: calling this function has side effect of incrementing packet counter
  *  Changes values in "environmental" as they're paresed to ruuvi format
@@ -65,30 +26,29 @@ void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32
  *  @param tx_pwr power in dBm, -40 ... 16
  *
  */
-void encodeToRawFormat5(uint8_t* data_buffer, const bme280_data_t* environmental, const acceleration_t* acceleration, uint16_t acceleration_events, uint16_t vbatt, int8_t tx_pwr)
+void encodeToRawFormat5(uint8_t* data_buffer, const ruuvi_sensor_t* const data, uint16_t acceleration_events, uint16_t vbatt, int8_t tx_pwr)
 {
     static uint32_t packet_counter = 0;
     data_buffer[0] = RAW_FORMAT_2;
-    int32_t temperature = environmental->temperature;
+    int32_t temperature = data->temperature;
     temperature *= 2; //Spec calls for 0.005 degree resolution, bme280 gives 0.01
     data_buffer[1] = (temperature)>>8;
     data_buffer[2] = (temperature)&0xFF;
-    uint32_t humidity = environmental->humidity;
-    humidity *= 400; 
-    humidity /= 1024;
+    // Humidity is reported as 1/ 400 as per spec.
+    uint32_t humidity = data->humidity * 400 / 1024;
     data_buffer[3] = humidity>>8;
     data_buffer[4] = humidity&0xFF;
     NRF_LOG_DEBUG("Humidity is %d\r\n", humidity/400);
-    uint32_t pressure = environmental->pressure;
+    uint32_t pressure = data->pressure;
     pressure = (uint16_t)((pressure >> 8) - 50000); //Scale into pa, Shift by -50000 pa as per Ruu.vi interface.
     data_buffer[5] = (pressure)>>8;
     data_buffer[6] = (pressure)&0xFF;
-    data_buffer[7] = (acceleration->x)>>8;
-    data_buffer[8] = (acceleration->x)&0xFF;
-    data_buffer[9] = (acceleration->y)>>8;
-    data_buffer[10] = (acceleration->y)&0xFF;
-    data_buffer[11] = (acceleration->z)>>8;
-    data_buffer[12] = (acceleration->z)&0xFF;
+    data_buffer[7] = (data->accX)>>8;
+    data_buffer[8] = (data->accX)&0xFF;
+    data_buffer[9] = (data->accY)>>8;
+    data_buffer[10] = (data->accY)&0xFF;
+    data_buffer[11] = (data->accZ)>>8;
+    data_buffer[12] = (data->accZ)&0xFF;
     //Bit-shift vbatt by 4 to fit TX PWR in
     vbatt -= 1600; //Bias by 1600 mV
     vbatt <<= 5;   //Shift by 5 to fit TX PWR in
@@ -97,7 +57,7 @@ void encodeToRawFormat5(uint8_t* data_buffer, const bme280_data_t* environmental
     tx_pwr += 40;
     tx_pwr /= 2;
     data_buffer[14] |= (tx_pwr)&0x1F; //5 lowest bits for TX pwr
-    data_buffer[15] = acceleration_events % 256; // WARNING: 0 may indicate a multiple of 256 events, not necessarily no events
+    data_buffer[15] = acceleration_events % 256; // 0 may indicate a multiple of 256 events, not necessarily no events
     data_buffer[16] = packet_counter>>8;
     data_buffer[17] = packet_counter&0xFF;
     packet_counter++;
@@ -114,16 +74,18 @@ void encodeToRawFormat5(uint8_t* data_buffer, const bme280_data_t* environmental
  *  Parses sensor values into RuuviTag Raw format v1.
  *  @param char* data_buffer character array with length of 14 bytes
  */
-void encodeToSensorDataFormat(uint8_t* data_buffer, const ruuvi_sensor_t* data)
+void encodeToRawFormat3(uint8_t* data_buffer, const ruuvi_sensor_t* data)
 
 {
     //serialize values into a string
     data_buffer[0] = SENSOR_TAG_DATA_FORMAT;
-    data_buffer[1] = data->humidity;
+    data_buffer[1] = data->humidity /512;
     data_buffer[2] = (data->temperature)>>8;
     data_buffer[3] = (data->temperature)&0xFF;
-    data_buffer[4] = (data->pressure)>>8;
-    data_buffer[5] = (data->pressure)&0xFF;
+    uint32_t pressure = data->pressure;
+    pressure = (uint16_t)((pressure >> 8) - 50000); //Scale into pa, Shift by -50000 pa as per Ruu.vi interface.
+    data_buffer[5] = (pressure)>>8;
+    data_buffer[6] = (pressure)&0xFF;
     data_buffer[6] = (data->accX)>>8;
     data_buffer[7] = (data->accX)&0xFF;
     data_buffer[8] = (data->accY)>>8;

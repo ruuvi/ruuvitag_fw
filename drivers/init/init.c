@@ -224,13 +224,11 @@ init_err_code_t init_bme280(void)
 }
 
 /**
- * Initialize sensors
+ * Initialize accelerometer
  *
- * This function initializes the sensor drivers.
- * It should be called even if sensors are not used, 
- * since initialization will put sensors in low-power mode
- *
- *
+ * This function initializes the lis2dh12 drivers.
+ * It should be called even if lis2dh12 is not used, 
+ * since initialization will put lis2dh12 in low-power mode
  */
 init_err_code_t init_sensors(void)
 {
