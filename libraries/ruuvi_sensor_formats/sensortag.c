@@ -32,15 +32,18 @@ void encodeToRawFormat5(uint8_t* data_buffer, const ruuvi_sensor_t* const data, 
     data_buffer[0] = RAW_FORMAT_2;
     int32_t temperature = data->temperature;
     temperature *= 2; //Spec calls for 0.005 degree resolution, bme280 gives 0.01
+    if(data->temperature == TEMPERATURE_INVALID) { temperature = TEMPERATURE_INVALID; }
     data_buffer[1] = (temperature)>>8;
     data_buffer[2] = (temperature)&0xFF;
     // Humidity is reported as 1/ 400 as per spec.
     uint32_t humidity = data->humidity * 400 / 1024;
+    if(data->humidity == HUMIDITY_INVALID) { humidity = HUMIDITY_INVALID; }
     data_buffer[3] = humidity>>8;
     data_buffer[4] = humidity&0xFF;
     NRF_LOG_DEBUG("Humidity is %d\r\n", humidity/400);
     uint32_t pressure = data->pressure;
     pressure = (uint16_t)((pressure >> 8) - 50000); //Scale into pa, Shift by -50000 pa as per Ruu.vi interface.
+    if(data->pressure == PRESSURE_INVALID) { pressure = PRESSURE_INVALID; }
     data_buffer[5] = (pressure)>>8;
     data_buffer[6] = (pressure)&0xFF;
     data_buffer[7] = (data->accX)>>8;
