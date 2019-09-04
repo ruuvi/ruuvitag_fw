@@ -480,7 +480,7 @@ int main(void)
   RED_LED_ON;
 
   if( init_log() ) { init_status |=LOG_FAILED_INIT; }
-  else { NRF_LOG_INFO("LOG initalized \r\n"); } // subsequent initalizations assume log is working
+  else { NRF_LOG_INFO("LOG initialized \r\n"); } // subsequent initializations assume log is working
 
   // start watchdog now in case program hangs up.
   // watchdog_default_handler logs error and resets the tag.

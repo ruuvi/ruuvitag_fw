@@ -83,12 +83,12 @@ void encodeToRawFormat3(uint8_t* data_buffer, const ruuvi_sensor_t* data)
     //serialize values into a string
     data_buffer[0] = SENSOR_TAG_DATA_FORMAT;
     data_buffer[1] = data->humidity /512;
-    data_buffer[2] = (data->temperature)>>8;
-    data_buffer[3] = (data->temperature)&0xFF;
+    data_buffer[2] = (data->temperature)/100;
+    data_buffer[3] = (data->temperature)%100;
     uint32_t pressure = data->pressure;
     pressure = (uint16_t)((pressure >> 8) - 50000); //Scale into pa, Shift by -50000 pa as per Ruu.vi interface.
-    data_buffer[5] = (pressure)>>8;
-    data_buffer[6] = (pressure)&0xFF;
+    data_buffer[4] = (pressure)>>8;
+    data_buffer[5] = (pressure)&0xFF;
     data_buffer[6] = (data->accX)>>8;
     data_buffer[7] = (data->accX)&0xFF;
     data_buffer[8] = (data->accY)>>8;
