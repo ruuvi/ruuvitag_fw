@@ -32,10 +32,10 @@
 #define URL_BASE_MAX_LENGTH (EDDYSTONE_URL_MAX_LENGTH - URL_PAYLOAD_LENGTH)
 
 // Invalid values for data
-#define TEMPERATURE_INVALID       0x8000
+#define TEMPERATURE_INVALID       -0x8000
 #define HUMIDITY_INVALID          0xFFFF
 #define PRESSURE_INVALID          0xFFFF
-#define ACCELERATION_INVALID      0x8000
+#define ACCELERATION_INVALID      -0x8000
 #define RAW2_TEMPERATURE_INVALID  TEMPERATURE_INVALID
 #define RAW2_HUMIDITY_INVALID     HUMIDITY_INVALID
 #define RAW2_PRESSURE_INVALID     PRESSURE_INVALID
@@ -71,7 +71,7 @@ void parseSensorData(ruuvi_sensor_t* data, int32_t raw_t, uint32_t raw_p, uint32
  *  Parses sensor values into RAWv1
  *  @param char* data_buffer character array with length of 14 bytes
  */
-void encodeToRawFormat3(uint8_t* data_buffer, const ruuvi_sensor_t* data);
+void encodeToRawFormat3(uint8_t* data_buffer, const ruuvi_sensor_t* const data);
 
 /**
  *  Parses sensor values into RAWv2
@@ -81,7 +81,7 @@ void encodeToRawFormat3(uint8_t* data_buffer, const ruuvi_sensor_t* data);
  *  @param acceleration_events counter of acceleration events. Events are configured by application, "value exceeds 1.1 G" recommended.
  *  @param vbatt Voltage of battery in millivolts
  */
-void encodeToRawFormat5(uint8_t* data_buffer,  const ruuvi_sensor_t* data, uint16_t acceleration_events, uint16_t vbatt, int8_t tx_pwr);
+void encodeToRawFormat5(uint8_t* data_buffer,  const ruuvi_sensor_t* const data, uint16_t acceleration_events, int8_t tx_pwr);
 
 
 /**

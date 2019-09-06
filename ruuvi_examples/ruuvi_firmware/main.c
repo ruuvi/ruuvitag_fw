@@ -352,7 +352,8 @@ static void main_sensor_task(void* p_data, uint16_t length)
                           .accZ = ACCELERATION_INVALID,
                           .humidity = HUMIDITY_INVALID,
                           .pressure = PRESSURE_INVALID,
-                          .temperature = TEMPERATURE_INVALID
+                          .temperature = TEMPERATURE_INVALID,
+                          .vbat = vbat
                         };
   lis2dh12_sensor_buffer_t buffer;
 
@@ -395,7 +396,7 @@ static void main_sensor_task(void* p_data, uint16_t length)
   {
     case RAWv2_FAST:
     case RAWv2_SLOW:
-      encodeToRawFormat5(data_buffer, &data, acceleration_events, vbat, BLE_TX_POWER);
+      encodeToRawFormat5(data_buffer, &data, acceleration_events, BLE_TX_POWER);
       break;
     
     case RAWv1:

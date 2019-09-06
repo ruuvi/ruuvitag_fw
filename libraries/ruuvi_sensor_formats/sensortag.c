@@ -26,7 +26,7 @@
  *  @param tx_pwr power in dBm, -40 ... 16
  *
  */
-void encodeToRawFormat5(uint8_t* data_buffer, const ruuvi_sensor_t* const data, uint16_t acceleration_events, uint16_t vbatt, int8_t tx_pwr)
+void encodeToRawFormat5(uint8_t* data_buffer, const ruuvi_sensor_t* const data, uint16_t acceleration_events, int8_t tx_pwr)
 {
     static uint32_t packet_counter = 0;
     data_buffer[0] = RAW_FORMAT_2;
@@ -53,6 +53,7 @@ void encodeToRawFormat5(uint8_t* data_buffer, const ruuvi_sensor_t* const data, 
     data_buffer[11] = (data->accZ)>>8;
     data_buffer[12] = (data->accZ)&0xFF;
     //Bit-shift vbatt by 4 to fit TX PWR in
+    uint16_t vbatt = data->vbat;
     vbatt -= 1600; //Bias by 1600 mV
     vbatt <<= 5;   //Shift by 5 to fit TX PWR in
     data_buffer[13] = (vbatt)>>8;
@@ -77,7 +78,7 @@ void encodeToRawFormat5(uint8_t* data_buffer, const ruuvi_sensor_t* const data, 
  *  Parses sensor values into RuuviTag Raw format v1.
  *  @param char* data_buffer character array with length of 14 bytes
  */
-void encodeToRawFormat3(uint8_t* data_buffer, const ruuvi_sensor_t* data)
+void encodeToRawFormat3(uint8_t* data_buffer, const ruuvi_sensor_t* const data)
 
 {
     //serialize values into a string
@@ -94,15 +95,15 @@ void encodeToRawFormat3(uint8_t* data_buffer, const ruuvi_sensor_t* data)
     pressure = (uint16_t)((pressure >> 8) - 50000); //Scale into pa, Shift by -50000 pa as per Ruu.vi interface.
     data_buffer[4] = (pressure)>>8;
     data_buffer[5] = (pressure)&0xFF;
-    int32_t accX = data->accX;
+    int16_t accX = data->accX;
     if(data->accX == ACCELERATION_INVALID) { accX = 0; }
     data_buffer[6] = (accX)>>8;
     data_buffer[7] = (accX)&0xFF;
-    int32_t accY = data->accY;
+    int16_t accY = data->accY;
     if(data->accY == ACCELERATION_INVALID) { accY = 0; }
     data_buffer[8] = (accY)>>8;
     data_buffer[9] = (accY)&0xFF;
-    int32_t accZ = data->accZ;
+    int16_t accZ = data->accZ;
     if(data->accZ == ACCELERATION_INVALID) { accZ = 0; }
     data_buffer[10] = (accZ)>>8;
     data_buffer[11] = (accZ)&0xFF;
