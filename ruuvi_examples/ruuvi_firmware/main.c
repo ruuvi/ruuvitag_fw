@@ -632,7 +632,8 @@ int main(void)
 
   // Wait for sensors to take first sample
   nrf_delay_ms(1000);
-  // Get first sample from sensors
+  // Get first sample from sensors, set fast advertising start counter
+  fast_advertising_start = millis();
   app_sched_event_put (NULL, 0, main_sensor_task);
   app_sched_execute();
 
