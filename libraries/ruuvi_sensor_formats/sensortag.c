@@ -82,19 +82,30 @@ void encodeToRawFormat3(uint8_t* data_buffer, const ruuvi_sensor_t* data)
 {
     //serialize values into a string
     data_buffer[0] = SENSOR_TAG_DATA_FORMAT;
-    data_buffer[1] = data->humidity /512;
-    data_buffer[2] = (data->temperature)/100;
-    data_buffer[3] = (data->temperature)%100;
+    uint32_t humidity = data->humidity;
+    if(data->humidity == HUMIDITY_INVALID) { humidity = 0; }
+    data_buffer[1] = humidity / 512;
+    int32_t temperature = data->temperature;
+    if(data->temperature == TEMPERATURE_INVALID) { temperature = 0; }
+    data_buffer[2] = temperature / 100;
+    data_buffer[3] = temperature % 100;
     uint32_t pressure = data->pressure;
+    if(data->pressure == PRESSURE_INVALID) { pressure = 50000<<8; }
     pressure = (uint16_t)((pressure >> 8) - 50000); //Scale into pa, Shift by -50000 pa as per Ruu.vi interface.
     data_buffer[4] = (pressure)>>8;
     data_buffer[5] = (pressure)&0xFF;
-    data_buffer[6] = (data->accX)>>8;
-    data_buffer[7] = (data->accX)&0xFF;
-    data_buffer[8] = (data->accY)>>8;
-    data_buffer[9] = (data->accY)&0xFF;
-    data_buffer[10] = (data->accZ)>>8;
-    data_buffer[11] = (data->accZ)&0xFF;
+    int32_t accX = data->accX;
+    if(data->accX == ACCELERATION_INVALID) { accX = 0; }
+    data_buffer[6] = (accX)>>8;
+    data_buffer[7] = (accX)&0xFF;
+    int32_t accY = data->accY;
+    if(data->accY == ACCELERATION_INVALID) { accY = 0; }
+    data_buffer[8] = (accY)>>8;
+    data_buffer[9] = (accY)&0xFF;
+    int32_t accZ = data->accZ;
+    if(data->accZ == ACCELERATION_INVALID) { accZ = 0; }
+    data_buffer[10] = (accZ)>>8;
+    data_buffer[11] = (accZ)&0xFF;
     data_buffer[12] = (data->vbat)>>8;
     data_buffer[13] = (data->vbat)&0xFF;
 }

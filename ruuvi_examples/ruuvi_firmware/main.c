@@ -354,11 +354,7 @@ static void main_sensor_task(void* p_data, uint16_t length)
                           .pressure = PRESSURE_INVALID,
                           .temperature = TEMPERATURE_INVALID
                         };
-  int32_t  raw_t  = 0;
-  uint32_t raw_p = 0;
-  uint32_t raw_h = 0;
   lis2dh12_sensor_buffer_t buffer;
-  int32_t acc[3] = {0};
 
   if (fast_advertising && ((millis() - fast_advertising_start) > ADVERTISING_STARTUP_PERIOD))
   {
@@ -383,7 +379,7 @@ static void main_sensor_task(void* p_data, uint16_t length)
     int32_t temp;                                        // variable to hold temp reading
     (void)sd_temp_get(&temp);                            // get new temperature
     temp *= 25;                                          // SD returns temp * 4. Ruuvi format expects temp * 100. 4*25 = 100.
-    raw_t = (int32_t) temp;
+    data.temperature = temp;
   }
 
   if(lis2dh12_available)
@@ -394,9 +390,6 @@ static void main_sensor_task(void* p_data, uint16_t length)
     data.accY = buffer.sensor.y;
     data.accZ = buffer.sensor.z;
   }
-
-  NRF_LOG_DEBUG("temperature: %d, pressure: %d, humidity: %d x: %d y: %d z: %d\r\n", raw_t, raw_p, raw_h, acc[0], acc[1], acc[2]);
-  NRF_LOG_DEBUG("VBAT: %d send %d \r\n", vbat, data.vbat);
 
   switch(tag_mode)
   {
