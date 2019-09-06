@@ -110,6 +110,7 @@ static uint64_t debounce = 0;                  // Flag for avoiding double press
 static uint16_t acceleration_events = 0;       // Number of times accelerometer has triggered
 static volatile uint16_t vbat = 0;             // Update in interrupt after radio activity.
 static uint64_t last_battery_measurement = 0;  // Timestamp of VBat update.
+static volatile bool pressed = false;          // Debounce flag
 
 // Possible modes of the app
 #define RAWv1 0
@@ -223,8 +224,14 @@ static void store_mode(void* data, uint16_t length)
  */
 static void reboot(void* p_context)
 {
-  NRF_LOG_WARNING("Rebooting\r\n")
-  NVIC_SystemReset();
+  // Reboot if we've not registered a button press, OR
+  // if we have registered a button press and the button is still pressed (debounce)
+  if(!pressed || (pressed && !(nrf_gpio_pin_read(BUTTON_1))))
+  {
+    NRF_LOG_WARNING("Rebooting\r\n")
+    NVIC_SystemReset();
+  }
+  pressed = false;
 }
 
 /**@brief Function for handling button events.
@@ -237,8 +244,7 @@ static void reboot(void* p_context)
  */
 ret_code_t button_press_handler(const ruuvi_standard_message_t message)
 {
-  // Avoid double presses
-  static bool pressed = false;
+  // Debounce
   if(false == message.payload[1] && ((millis() - debounce) > DEBOUNCE_THRESHOLD) && !pressed)
   {
     NRF_LOG_INFO("Button pressed\r\n");
