@@ -311,8 +311,8 @@ static uint32_t compensate_H_int32(int32_t adc_H)
 
 	v_x1_u32r = (v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) * ((int32_t)bme280.cp.dig_H1)) >> 4));
 	v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
-        // Cap maximum reported value to 120%
-	v_x1_u32r = (v_x1_u32r > 503316480 ? 503316480 : v_x1_u32r);
+        // Cap maximum reported value to 100%
+	v_x1_u32r = (v_x1_u32r > (100<<22) ? (100<<22) : v_x1_u32r);
 
 	return (uint32_t)(v_x1_u32r >> 12);
 }
