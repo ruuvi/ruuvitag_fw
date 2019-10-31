@@ -87,8 +87,12 @@ void encodeToRawFormat3(uint8_t* data_buffer, const ruuvi_sensor_t* const data)
     if(data->humidity == HUMIDITY_INVALID) { humidity = 0; }
     data_buffer[1] = humidity / 512;
     int32_t temperature = data->temperature;
+    // RAWv1 uses 1-complement negative numbers
+    if(temperature < 0) { temperature = 0 - temperature; }
     if(data->temperature == TEMPERATURE_INVALID) { temperature = 0; }
+    bool negative = ((data->temperature < 0) && data->temperature != TEMPERATURE_INVALID);
     data_buffer[2] = temperature / 100;
+    data_buffer[2] |= (negative<<7 & 0x80);
     data_buffer[3] = temperature % 100;
     uint32_t pressure = data->pressure;
     if(data->pressure == PRESSURE_INVALID) { pressure = 50000<<8; }
