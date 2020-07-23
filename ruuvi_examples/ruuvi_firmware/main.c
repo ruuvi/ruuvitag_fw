@@ -228,7 +228,10 @@ static void reboot(void* p_context)
   // if we have registered a button press and the button is still pressed (debounce)
   if(!pressed || (pressed && !(nrf_gpio_pin_read(BUTTON_1))))
   {
-    NRF_LOG_WARNING("Rebooting\r\n")
+    NRF_LOG_WARNING("Erasing Flash and rebooting\r\n");
+    app_timer_stop(main_timer_id);
+    bluetooth_advertising_stop();
+    flash_purge();
     NVIC_SystemReset();
   }
   pressed = false;

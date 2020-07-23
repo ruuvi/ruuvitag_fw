@@ -299,4 +299,27 @@ ret_code_t flash_init(void)
   rc |= fds_stat(&stat);
   return rc;
 }
+
+ret_code_t flash_purge(void)
+{
+    ret_code_t err_code = NRF_SUCCESS;
+#if   defined(NRF51)
+        int erase_unit = 1024;
+#elif defined(NRF52_SERIES)
+        int erase_unit = 4096;
+#endif
+    const size_t end_address = 0x75000; // Start of bootloader.
+    // Start of flash pages
+    const size_t start_address = end_address - (FDS_PHY_PAGES * erase_unit);
+
+    for (int p = 0; p < FDS_PHY_PAGES; p++)
+    {
+
+        int page = (start_address / erase_unit) + p;
+        err_code |= sd_flash_page_erase (page);
+        nrf_delay_ms(200);
+    }
+    return err_code;
+}
+
 #endif
