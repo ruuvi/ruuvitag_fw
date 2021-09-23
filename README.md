@@ -1,6 +1,7 @@
-# RuuviTag nRF52 Bootloader & Example firmware projects
+# Legacy RuuviTag nRF52 Bootloader & Example firmware projects
 [![RuuviTag](https://ruuvi.com/assets/images/ruuvitag.jpg)](https://ruuvi.com)
 
+This repository contains RuuviTag firmware versions up to 2.5.9 and is no longer maintained. You probably are interested in the up-to-date repository [here](https://github.com/ruuvi/ruuvi.firmware.c). 
 
 ## Repository structure
 ```
