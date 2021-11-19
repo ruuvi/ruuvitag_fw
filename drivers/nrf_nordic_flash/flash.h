@@ -14,6 +14,8 @@ ret_code_t flash_record_get(const uint32_t page_id, const uint32_t record_id, co
 ret_code_t flash_record_set(const uint32_t page_id, const uint32_t record_id, const size_t data_size, const void* const data);
 ret_code_t flash_free_size_get(size_t* size);
 
+ret_code_t flash_purge(void);
+
 
 
 #endif

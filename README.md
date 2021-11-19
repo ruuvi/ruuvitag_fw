@@ -283,8 +283,7 @@ The firmware is built on Nordic SDK 12.3 and uses Softdevice S132 v3.1.1.
 
 ## 2.x
 RuuviTags manufactured in 2020 ship with Ruuvi Firmware 2.5.9.
-The firmware broadcasts in RAWv2 format by default, but you can enter to RAWv1 mode which is compatible with 
-1.2.12 by pressing button "B" twice. Red led blinks while in legacy mode and green led blinks while in modern mode. 
+The firmware broadcasts in RAWv2 format by default, but you can enter to RAWv1 mode which is compatible with 1.2.12 by pressing button "B" twice. Red led blinks while in legacy mode and green led blinks while in modern mode. 
 The firmware is built on Nordic SDK 12.3 and uses Softdevice S132 v3.1.1, generally switching between 
 1.x and 2.x applications is easy.
 
